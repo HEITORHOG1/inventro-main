@@ -230,18 +230,22 @@
         </div>
 
         <div class="buttons">
+            <a href="<?php echo base_url('cardapio/acompanhar/' . html_escape($order->order_number)); ?>" class="btn btn-whatsapp">
+                <i class="fas fa-map-marker-alt"></i> Acompanhar Pedido
+            </a>
+
             <?php if (!empty($whatsapp)): ?>
-                <a href="https://wa.me/55<?php echo $whatsapp; ?>?text=Olá! Fiz o pedido %23<?php echo $order->order_number; ?> e gostaria de confirmar." 
-                   target="_blank" class="btn btn-whatsapp">
+                <a href="https://wa.me/55<?php echo html_escape($whatsapp); ?>?text=<?php echo rawurlencode('Ola! Fiz o pedido #' . $order->order_number . ' e gostaria de confirmar.'); ?>"
+                   target="_blank" class="btn btn-print">
                     <i class="fab fa-whatsapp"></i> Falar no WhatsApp
                 </a>
             <?php endif; ?>
-            
-            <a href="<?php echo base_url('cardapio/cupom/' . $order->order_number); ?>" 
-               target="_blank" class="btn btn-print">
+
+            <a href="<?php echo base_url('cardapio/cupom/' . html_escape($order->order_number)); ?>"
+               target="_blank" class="btn btn-secondary">
                 <i class="fas fa-print"></i> Imprimir Cupom
             </a>
-            
+
             <a href="<?php echo base_url('cardapio'); ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Fazer Novo Pedido
             </a>

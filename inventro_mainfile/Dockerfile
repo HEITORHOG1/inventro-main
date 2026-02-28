@@ -35,7 +35,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     zip \
     intl \
     opcache \
-    openssl \
     && docker-php-ext-enable opcache
 
 # ---- Módulos Apache ----

@@ -8,14 +8,10 @@ class Config extends MX_Controller {
 
     public function __construct() {
         parent::__construct();
+        $this->permission->module('delivery')->redirect();
         $this->load->model('delivery/delivery_model');
         $this->load->library(['session', 'form_validation']);
         $this->load->helper(['url', 'form']);
-        
-        // Verificar login
-        if (!$this->session->userdata('isLogIn')) {
-            redirect('login');
-        }
     }
 
     /**
@@ -51,6 +47,24 @@ class Config extends MX_Controller {
         $data['module'] = "delivery";
         $data['page'] = "config_view";
         echo Modules::run('template/layout', $data);
+    }
+
+    /**
+     * Toggle pausar/retomar loja (AJAX)
+     */
+    public function toggle_pause() {
+        header('Content-Type: application/json');
+
+        $current = $this->delivery_model->get_config('loja_pausada', '0');
+        $new_value = ($current === '1') ? '0' : '1';
+        $this->delivery_model->save_config('loja_pausada', $new_value);
+
+        echo json_encode([
+            'success' => true,
+            'loja_pausada' => $new_value === '1',
+            'message' => $new_value === '1' ? 'Loja pausada' : 'Loja retomada',
+            'csrf_token' => $this->security->get_csrf_hash()
+        ]);
     }
 
     /**

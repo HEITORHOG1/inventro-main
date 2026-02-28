@@ -107,7 +107,7 @@ INSERT INTO `cardapio_config` (`chave`, `valor`, `descricao`) VALUES
 ('aceita_pix', '1', 'Aceita Pix'),
 ('pix_chave', '', 'Chave Pix para pagamento'),
 ('pix_tipo', 'telefone', 'Tipo da chave Pix (telefone/cpf/cnpj/email/aleatoria)'),
-('whatsapp_numero', '', 'Número WhatsApp para pedidos'),
+('whatsapp_numero', '11999998888', 'Número WhatsApp para pedidos'),
 ('entrega_ativa', '1', 'Delivery ativo'),
 ('retirada_ativa', '1', 'Retirada no local ativa'),
 ('mensagem_confirmacao', 'Seu pedido foi recebido! Em breve entraremos em contato.', 'Mensagem de confirmação')

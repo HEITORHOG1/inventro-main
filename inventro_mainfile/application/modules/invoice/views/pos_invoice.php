@@ -236,6 +236,10 @@
                                                     </option>
                                                     <option value="2"><?php echo  makeString(['bank_payment'])?>
                                                     </option>
+                                                    <option value="3">PIX</option>
+                                                    <option value="4">Cartao Debito</option>
+                                                    <option value="5">Cartao Credito</option>
+                                                    <option value="6">Fiado</option>
 
                                                 </select>
 

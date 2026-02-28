@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo html_escape($loja->title ?? 'Cardápio Digital'); ?></title>
     <meta name="description" content="Cardápio digital - Faça seu pedido">
-    
+    <link rel="manifest" href="<?php echo base_url('cardapio/manifest.json'); ?>">
+    <meta name="theme-color" content="#25D366">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -133,6 +137,8 @@
         .form-control { width: 100%; padding: 12px 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 1rem; transition: all 0.3s; }
         .form-control:focus { outline: none; border-color: var(--primary); background: rgba(255,255,255,0.1); }
         .form-control::placeholder { color: var(--text-secondary); }
+        select.form-control { background-color: var(--bg-card); color: var(--text-primary); -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a0a0a0' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; padding-right: 40px; }
+        select.form-control option { background-color: #1a1a2e; color: #ffffff; padding: 10px; }
         .form-row { display: flex; gap: 10px; }
         .form-row .form-group { flex: 1; }
 
@@ -232,7 +238,15 @@
                 <?php endif; ?>
                 <div>
                     <h1><?php echo html_escape($loja->title ?? 'Cardápio Digital'); ?></h1>
-                    <p><i class="fas fa-clock"></i> Aberto agora • Entrega disponível</p>
+                    <?php if (isset($loja_aberta) && $loja_aberta): ?>
+                        <p><i class="fas fa-clock"></i> Aberto agora</p>
+                    <?php else: ?>
+                        <p style="color:var(--danger);"><i class="fas fa-times-circle"></i> Fechado
+                            <?php if (isset($horario_abertura)): ?>
+                                — Abrimos as <?php echo html_escape($horario_abertura); ?>
+                            <?php endif; ?>
+                        </p>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="search-box">
@@ -241,6 +255,26 @@
             </div>
         </div>
     </header>
+
+    <!-- Loja Fechada Banner -->
+    <?php if (isset($loja_aberta) && !$loja_aberta): ?>
+    <div style="background:rgba(255,82,82,0.15);border:1px solid rgba(255,82,82,0.4);padding:15px 20px;text-align:center;color:#ff5252;font-weight:500;max-width:1200px;margin:10px auto;border-radius:12px;">
+        <i class="fas fa-store-slash" style="font-size:1.2rem;margin-right:8px;"></i>
+        Estamos fechados no momento.
+        <?php if (isset($horario_abertura) && isset($horario_fechamento)): ?>
+            Funcionamos das <?php echo html_escape($horario_abertura); ?> as <?php echo html_escape($horario_fechamento); ?>.
+        <?php endif; ?>
+        Navegue pelo cardapio e volte no horario de funcionamento!
+    </div>
+    <?php endif; ?>
+
+    <!-- Pedido Minimo Banner -->
+    <?php if (isset($pedido_minimo) && $pedido_minimo > 0): ?>
+    <div id="pedidoMinimoBanner" style="background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);padding:10px 20px;text-align:center;color:var(--primary);font-size:0.9rem;max-width:1200px;margin:5px auto;border-radius:12px;">
+        <i class="fas fa-info-circle"></i>
+        Pedido minimo: <strong>R$ <?php echo number_format($pedido_minimo, 2, ',', '.'); ?></strong>
+    </div>
+    <?php endif; ?>
 
     <!-- Categories -->
     <section class="categories">
@@ -282,7 +316,7 @@
                                  data-unit="<?php echo html_escape($produto->unit_name ?? 'un'); ?>">
                                 <div class="product-image">
                                     <?php if (!empty($produto->picture)): ?>
-                                        <img src="<?php echo base_url($produto->picture); ?>" alt="<?php echo html_escape($produto->name); ?>">
+                                        <img src="<?php echo base_url('application/modules/item/assets/images/' . html_escape($produto->picture)); ?>" alt="<?php echo html_escape($produto->name); ?>">
                                     <?php else: ?>
                                         <i class="fas fa-box no-image"></i>
                                     <?php endif; ?>
@@ -342,16 +376,45 @@
         <div class="delivery-form" id="deliveryForm" style="display: none;">
             <h3 class="form-title"><i class="fas fa-truck"></i> Dados para Entrega</h3>
             
-            <!-- Taxa de Entrega Fixa -->
-            <div class="taxa-info">
+            <!-- Tipo de Entrega -->
+            <div class="form-group">
+                <label>Tipo de Pedido *</label>
+                <div class="payment-options" style="margin-bottom:10px;">
+                    <button type="button" class="payment-option selected" data-tipo="entrega" onclick="setTipoEntrega('entrega')">
+                        <i class="fas fa-motorcycle"></i>
+                        <span>Entrega</span>
+                    </button>
+                    <button type="button" class="payment-option" data-tipo="retirada" onclick="setTipoEntrega('retirada')">
+                        <i class="fas fa-store"></i>
+                        <span>Retirar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zona de Entrega -->
+            <div id="zonaEntregaGroup" class="form-group">
+                <label>Zona de Entrega *</label>
+                <?php if (!empty($zonas)): ?>
+                <select class="form-control" id="zonaEntrega" onchange="updateZona()">
+                    <option value="">-- Selecione seu bairro --</option>
+                    <?php foreach ($zonas as $zona): ?>
+                        <option value="<?php echo (int)$zona->id; ?>"
+                                data-taxa="<?php echo (float)$zona->taxa; ?>"
+                                data-tempo-min="<?php echo (int)($zona->tempo_min ?? 20); ?>"
+                                data-tempo-max="<?php echo (int)($zona->tempo_max ?? 40); ?>">
+                            <?php echo html_escape($zona->nome); ?> — R$ <?php echo number_format($zona->taxa, 2, ',', '.'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php else: ?>
+                <p style="color:var(--text-secondary);font-size:0.85rem;">Nenhuma zona configurada</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- Taxa de Entrega Info -->
+            <div class="taxa-info" id="taxaInfo">
                 <i class="fas fa-motorcycle"></i>
-                <span>Taxa de entrega: </span>
-                <span class="valor" id="taxaFixaDisplay">
-                    <?php 
-                    $taxa_entrega = floatval($taxa_entrega ?? 0);
-                    echo $taxa_entrega == 0 ? 'GRÁTIS' : 'R$ ' . number_format($taxa_entrega, 2, ',', '.');
-                    ?>
-                </span>
+                <span id="taxaInfoText">Selecione a zona de entrega</span>
             </div>
             
             <div class="form-group">
@@ -397,18 +460,24 @@
             <div class="form-group">
                 <label>Forma de Pagamento *</label>
                 <div class="payment-options">
+                    <?php if (($config['aceita_dinheiro'] ?? '1') === '1'): ?>
                     <button type="button" class="payment-option" data-payment="dinheiro">
                         <i class="fas fa-money-bill-wave"></i>
                         <span>Dinheiro</span>
                     </button>
+                    <?php endif; ?>
+                    <?php if (($config['aceita_cartao'] ?? '1') === '1'): ?>
                     <button type="button" class="payment-option" data-payment="cartao">
                         <i class="fas fa-credit-card"></i>
                         <span>Cartão</span>
                     </button>
+                    <?php endif; ?>
+                    <?php if (($config['aceita_pix'] ?? '1') === '1'): ?>
                     <button type="button" class="payment-option" data-payment="pix">
                         <i class="fas fa-qrcode"></i>
                         <span>Pix</span>
                     </button>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -436,6 +505,16 @@
             </div>
         </div>
         
+        <!-- Cupom de Desconto -->
+        <div class="form-group" id="cupomGroup" style="display:none;">
+            <label><i class="fas fa-ticket-alt"></i> Cupom de Desconto</label>
+            <div style="display:flex;gap:8px;">
+                <input type="text" class="form-control" id="cupomCodigo" placeholder="Digite o cupom" style="flex:1;text-transform:uppercase;">
+                <button type="button" onclick="aplicarCupom()" style="padding:12px 20px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;">Aplicar</button>
+            </div>
+            <div id="cupomMsg" style="font-size:0.85rem;margin-top:5px;display:none;"></div>
+        </div>
+
         <!-- Totais -->
         <div class="cart-totals" id="cartTotals">
             <div class="total-row">
@@ -444,7 +523,11 @@
             </div>
             <div class="total-row">
                 <span>Taxa de entrega</span>
-                <span id="taxaValue"><?php echo $taxa_entrega == 0 ? 'GRÁTIS' : 'R$ ' . number_format($taxa_entrega, 2, ',', '.'); ?></span>
+                <span id="taxaValue">--</span>
+            </div>
+            <div class="total-row" id="descontoRow" style="display:none;color:var(--success);">
+                <span>Desconto</span>
+                <span id="descontoValue">- R$ 0,00</span>
             </div>
             <div class="total-row final">
                 <span>TOTAL</span>
@@ -470,14 +553,22 @@
         <span id="toastMessage">Produto adicionado!</span>
     </div>
 
+    <!-- Cupom de Desconto Field (before totals) -->
+
     <script>
         let cart = [];
         let selectedPayment = null;
         let clienteEncontradoData = null;
+        let tipoEntrega = 'entrega';
+        let taxaEntrega = 0;
+        let selectedZonaId = null;
+        let cupomAplicado = null;
         const whatsappNumber = '<?php echo $whatsapp; ?>';
-        const storeName = '<?php echo addslashes($loja->title ?? "Cardápio"); ?>';
+        const storeName = <?php echo json_encode($loja->title ?? 'Cardapio'); ?>;
         const baseUrl = '<?php echo base_url(); ?>';
-        const taxaEntrega = <?php echo $taxa_entrega; ?>;
+        const lojaAberta = <?php echo (isset($loja_aberta) && $loja_aberta) ? 'true' : 'false'; ?>;
+        const pedidoMinimo = <?php echo (float)($pedido_minimo ?? 0); ?>;
+        const taxaFixa = <?php echo (float)($taxa_entrega ?? 0); ?>;
 
         // Buscar cliente por telefone
         async function buscarCliente(telefone) {
@@ -547,6 +638,49 @@
         }
 
 
+        function setTipoEntrega(tipo) {
+            tipoEntrega = tipo;
+            document.querySelectorAll('[data-tipo]').forEach(function(btn) {
+                btn.classList.toggle('selected', btn.dataset.tipo === tipo);
+            });
+            var zonaGroup = document.getElementById('zonaEntregaGroup');
+            var enderecoField = document.getElementById('clienteEndereco');
+            if (tipo === 'retirada') {
+                if (zonaGroup) zonaGroup.style.display = 'none';
+                if (enderecoField) enderecoField.placeholder = 'Opcional para retirada';
+                taxaEntrega = 0;
+                selectedZonaId = null;
+            } else {
+                if (zonaGroup) zonaGroup.style.display = 'block';
+                if (enderecoField) enderecoField.placeholder = 'Rua, numero, bairro';
+                updateZona();
+            }
+            updateCartUI();
+        }
+
+        function updateZona() {
+            var select = document.getElementById('zonaEntrega');
+            var taxaInfo = document.getElementById('taxaInfoText');
+            if (!select) {
+                taxaEntrega = taxaFixa;
+                if (taxaInfo) taxaInfo.textContent = taxaEntrega == 0 ? 'GRATIS' : 'Taxa: R$ ' + taxaEntrega.toFixed(2).replace('.', ',');
+                return;
+            }
+            var option = select.options[select.selectedIndex];
+            if (option && option.value) {
+                selectedZonaId = parseInt(option.value);
+                taxaEntrega = parseFloat(option.dataset.taxa) || 0;
+                var tMin = option.dataset.tempoMin || '?';
+                var tMax = option.dataset.tempoMax || '?';
+                if (taxaInfo) taxaInfo.innerHTML = 'Entrega em ' + tMin + '-' + tMax + ' min &bull; Taxa: <strong>R$ ' + taxaEntrega.toFixed(2).replace('.', ',') + '</strong>';
+            } else {
+                selectedZonaId = null;
+                taxaEntrega = 0;
+                if (taxaInfo) taxaInfo.textContent = 'Selecione a zona de entrega';
+            }
+            updateCartUI();
+        }
+
         function addToCart(btn) {
             const card = btn.closest('.product-card');
             const id = card.dataset.id;
@@ -587,13 +721,29 @@
             const cartItems = document.getElementById('cartItems');
             const deliveryForm = document.getElementById('deliveryForm');
 
-            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const total = subtotal + taxaEntrega;
+            var totalItems = cart.reduce(function(sum, item) { return sum + item.qty; }, 0);
+            var subtotal = cart.reduce(function(sum, item) { return sum + (item.price * item.qty); }, 0);
+            var desconto = cupomAplicado ? cupomAplicado.desconto : 0;
+            var total = subtotal + taxaEntrega - desconto;
+            if (total < 0) total = 0;
 
             cartCount.textContent = totalItems;
             document.getElementById('subtotalValue').textContent = 'R$ ' + subtotal.toFixed(2).replace('.', ',');
+            document.getElementById('taxaValue').textContent = taxaEntrega == 0 ? 'GRATIS' : 'R$ ' + taxaEntrega.toFixed(2).replace('.', ',');
             document.getElementById('totalValue').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+
+            // Desconto
+            var descontoRow = document.getElementById('descontoRow');
+            if (desconto > 0 && descontoRow) {
+                descontoRow.style.display = 'flex';
+                document.getElementById('descontoValue').textContent = '- R$ ' + desconto.toFixed(2).replace('.', ',');
+            } else if (descontoRow) {
+                descontoRow.style.display = 'none';
+            }
+
+            // Show cupom field when cart has items
+            var cupomGroup = document.getElementById('cupomGroup');
+            if (cupomGroup) cupomGroup.style.display = cart.length > 0 ? 'block' : 'none';
 
             if (cart.length === 0) {
                 cartItems.innerHTML = `
@@ -632,12 +782,46 @@
         }
 
         function validateForm() {
-            const nome = document.getElementById('clienteNome').value.trim();
-            const telefone = document.getElementById('clienteTelefone').value.trim();
-            const endereco = document.getElementById('clienteEndereco').value.trim();
-            
-            const isValid = cart.length > 0 && nome && telefone && endereco && selectedPayment;
-            
+            var nome = document.getElementById('clienteNome').value.trim();
+            var telefone = document.getElementById('clienteTelefone').value.trim();
+            var endereco = document.getElementById('clienteEndereco').value.trim();
+            var subtotal = cart.reduce(function(sum, item) { return sum + (item.price * item.qty); }, 0);
+
+            var isValid = cart.length > 0 && nome && telefone && selectedPayment;
+
+            // Endereco obrigatorio apenas para entrega
+            if (tipoEntrega === 'entrega') {
+                isValid = isValid && endereco;
+                // Zona obrigatoria se tem zonas
+                var zonaSelect = document.getElementById('zonaEntrega');
+                if (zonaSelect && zonaSelect.options.length > 1) {
+                    isValid = isValid && selectedZonaId;
+                }
+            }
+
+            // Loja fechada
+            if (!lojaAberta) {
+                isValid = false;
+            }
+
+            // Pedido minimo
+            var minimoMsg = document.getElementById('pedidoMinimoMsg');
+            if (pedidoMinimo > 0 && subtotal < pedidoMinimo) {
+                isValid = false;
+                var falta = (pedidoMinimo - subtotal).toFixed(2).replace('.', ',');
+                if (!minimoMsg) {
+                    minimoMsg = document.createElement('div');
+                    minimoMsg.id = 'pedidoMinimoMsg';
+                    minimoMsg.style.cssText = 'color:var(--danger);font-size:0.85rem;text-align:center;padding:8px;margin:5px 0;border:1px solid rgba(255,82,82,0.3);border-radius:8px;background:rgba(255,82,82,0.1);';
+                    var totals = document.getElementById('cartTotals');
+                    if (totals) totals.parentNode.insertBefore(minimoMsg, totals);
+                }
+                minimoMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Pedido minimo R$ ' + pedidoMinimo.toFixed(2).replace('.', ',') + ' — falta R$ ' + falta;
+                minimoMsg.style.display = 'block';
+            } else if (minimoMsg) {
+                minimoMsg.style.display = 'none';
+            }
+
             document.getElementById('btnWhatsapp').disabled = !isValid;
             document.getElementById('btnSite').disabled = !isValid;
         }
@@ -661,66 +845,91 @@
         }
 
         function finalizarWhatsapp() {
-            const data = getFormData();
-            if (!data.cliente_nome || !data.cliente_telefone || !data.cliente_endereco || !selectedPayment) {
-                showToast('Preencha todos os campos obrigatórios');
+            var data = getFormData();
+            if (!data.cliente_nome || !data.cliente_telefone || !selectedPayment) {
+                showToast('Preencha todos os campos obrigatorios');
+                return;
+            }
+            if (tipoEntrega === 'entrega' && !data.cliente_endereco) {
+                showToast('Preencha o endereco de entrega');
                 return;
             }
 
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const total = subtotal + taxaEntrega;
+            var subtotal = cart.reduce(function(sum, item) { return sum + (item.price * item.qty); }, 0);
+            var desconto = cupomAplicado ? cupomAplicado.desconto : 0;
+            var total = subtotal + taxaEntrega - desconto;
+            if (total < 0) total = 0;
 
-            let message = `🛒 *PEDIDO - ${storeName}*\n\n`;
-            message += `*Cliente:* ${data.cliente_nome}\n`;
-            message += `*Telefone:* ${data.cliente_telefone}\n`;
-            message += `*Endereço:* ${data.cliente_endereco}\n\n`;
-            message += `*ITENS:*\n`;
-            
-            cart.forEach(item => {
-                message += `• ${item.qty}x ${item.name} - R$ ${(item.price * item.qty).toFixed(2).replace('.', ',')}\n`;
+            var message = '* PEDIDO - ' + storeName + '*\n\n';
+            message += '*Cliente:* ' + data.cliente_nome + '\n';
+            message += '*Telefone:* ' + data.cliente_telefone + '\n';
+            if (tipoEntrega === 'retirada') {
+                message += '*Tipo:* Retirada na loja\n\n';
+            } else {
+                message += '*Endereco:* ' + data.cliente_endereco + '\n\n';
+            }
+            message += '*ITENS:*\n';
+
+            cart.forEach(function(item) {
+                message += '- ' + item.qty + 'x ' + item.name + ' - R$ ' + (item.price * item.qty).toFixed(2).replace('.', ',') + '\n';
             });
-            
-            message += `\n*Subtotal:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
-            message += `*Taxa de Entrega:* ${taxaEntrega == 0 ? 'GRÁTIS' : 'R$ ' + taxaEntrega.toFixed(2).replace('.', ',')}\n`;
-            message += `*TOTAL:* R$ ${total.toFixed(2).replace('.', ',')}\n\n`;
-            message += `*Pagamento:* ${data.forma_pagamento.charAt(0).toUpperCase() + data.forma_pagamento.slice(1)}\n`;
-            
+
+            message += '\n*Subtotal:* R$ ' + subtotal.toFixed(2).replace('.', ',') + '\n';
+            if (tipoEntrega !== 'retirada') {
+                message += '*Taxa de Entrega:* ' + (taxaEntrega == 0 ? 'GRATIS' : 'R$ ' + taxaEntrega.toFixed(2).replace('.', ',')) + '\n';
+            }
+            if (desconto > 0) {
+                message += '*Desconto:* - R$ ' + desconto.toFixed(2).replace('.', ',') + '\n';
+            }
+            message += '*TOTAL:* R$ ' + total.toFixed(2).replace('.', ',') + '\n\n';
+            message += '*Pagamento:* ' + data.forma_pagamento.charAt(0).toUpperCase() + data.forma_pagamento.slice(1) + '\n';
+
             if (data.forma_pagamento == 'dinheiro' && data.troco_para) {
-                message += `*Troco para:* R$ ${data.troco_para}\n`;
+                message += '*Troco para:* R$ ' + data.troco_para + '\n';
             }
             if (data.observacao) {
-                message += `\n*Obs:* ${data.observacao}\n`;
+                message += '\n*Obs:* ' + data.observacao + '\n';
             }
 
-            saveOrder('whatsapp').then(() => {
-                window.open(`https://wa.me/55${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+            saveOrder('whatsapp').then(function() {
+                window.open('https://wa.me/55' + whatsappNumber + '?text=' + encodeURIComponent(message), '_blank');
             });
         }
 
         function finalizarSite() {
-            const data = getFormData();
-            if (!data.cliente_nome || !data.cliente_telefone || !data.cliente_endereco || !selectedPayment) {
-                showToast('Preencha todos os campos obrigatórios');
+            var data = getFormData();
+            if (!data.cliente_nome || !data.cliente_telefone || !selectedPayment) {
+                showToast('Preencha todos os campos obrigatorios');
                 return;
             }
-            
-            saveOrder('site').then(response => {
+            if (tipoEntrega === 'entrega' && !data.cliente_endereco) {
+                showToast('Preencha o endereco de entrega');
+                return;
+            }
+
+            saveOrder('site').then(function(response) {
                 if (response.success) {
                     window.location.href = baseUrl + 'cardapio/confirmacao/' + response.order_number;
                 } else {
-                    showToast('Erro: ' + response.message);
+                    showToast('Erro: ' + (response.message || 'Tente novamente'));
                 }
             });
         }
 
         async function saveOrder(tipo) {
-            const data = getFormData();
+            var data = getFormData();
             data.tipo_checkout = tipo;
+            data.tipo_entrega = tipoEntrega;
             data.items = cart;
             data.taxa_entrega = taxaEntrega;
+            if (selectedZonaId) data.zona_id = selectedZonaId;
+            if (cupomAplicado) {
+                data.cupom_codigo = cupomAplicado.codigo;
+                data.desconto_cupom = cupomAplicado.desconto;
+            }
 
             try {
-                const response = await fetch(baseUrl + 'cardapio/processar_pedido', {
+                var response = await fetch(baseUrl + 'cardapio/processar_pedido', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -728,7 +937,38 @@
                 return await response.json();
             } catch (error) {
                 console.error('Erro:', error);
-                return { success: false, message: 'Erro de conexão' };
+                return { success: false, message: 'Erro de conexao' };
+            }
+        }
+
+        async function aplicarCupom() {
+            var codigo = document.getElementById('cupomCodigo').value.trim().toUpperCase();
+            var cupomMsg = document.getElementById('cupomMsg');
+            if (!codigo) { return; }
+            var subtotal = cart.reduce(function(sum, item) { return sum + (item.price * item.qty); }, 0);
+            try {
+                var response = await fetch(baseUrl + 'cardapio/api/validar_cupom?codigo=' + encodeURIComponent(codigo) + '&subtotal=' + subtotal);
+                var data = await response.json();
+                cupomMsg.style.display = 'block';
+                if (data.valido) {
+                    cupomAplicado = {codigo: codigo, tipo: data.tipo, desconto: data.desconto_calculado};
+                    if (data.tipo === 'frete_gratis') {
+                        taxaEntrega = 0;
+                        cupomAplicado.desconto = 0;
+                    }
+                    cupomMsg.style.color = 'var(--success)';
+                    cupomMsg.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                    showToast('Cupom aplicado!');
+                } else {
+                    cupomAplicado = null;
+                    cupomMsg.style.color = 'var(--danger)';
+                    cupomMsg.innerHTML = '<i class="fas fa-times-circle"></i> ' + data.message;
+                }
+                updateCartUI();
+            } catch (e) {
+                cupomMsg.style.display = 'block';
+                cupomMsg.style.color = 'var(--danger)';
+                cupomMsg.textContent = 'Erro ao validar cupom';
             }
         }
 
@@ -746,9 +986,9 @@
                 updateCartUI();
             }
 
-            document.querySelectorAll('.payment-option').forEach(option => {
+            document.querySelectorAll('.payment-option[data-payment]').forEach(option => {
                 option.addEventListener('click', function() {
-                    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+                    document.querySelectorAll('.payment-option[data-payment]').forEach(o => o.classList.remove('selected'));
                     this.classList.add('selected');
                     selectedPayment = this.dataset.payment;
                     
@@ -805,5 +1045,12 @@
             });
         });
     </script>
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('<?php echo base_url('cardapio/sw.js'); ?>')
+        .then(function(reg) { console.log('SW registered'); })
+        .catch(function(err) { console.log('SW error:', err); });
+}
+</script>
 </body>
 </html>

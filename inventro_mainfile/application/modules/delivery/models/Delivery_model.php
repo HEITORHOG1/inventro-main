@@ -154,10 +154,42 @@ class Delivery_model extends CI_Model {
     }
 
     /**
-     * Atualizar status do pedido
+     * Atualizar status do pedido (com dados extras como timestamps)
      */
-    public function update_order_status($id, $status) {
-        return $this->db->update('orders', ['status' => $status], ['id' => $id]);
+    public function update_order_status($id, $status, $extra_data = []) {
+        $data = array_merge(['status' => $status, 'updated_at' => date('Y-m-d H:i:s')], $extra_data);
+        return $this->db->update('orders', $data, ['id' => (int)$id]);
+    }
+
+    /**
+     * Buscar pedidos do dia agrupados por status (para Kanban)
+     */
+    public function get_orders_grouped_by_status() {
+        $this->db->select('orders.*, delivery_zones.nome as zona_nome_atual');
+        $this->db->from('orders');
+        $this->db->join('delivery_zones', 'orders.zona_id = delivery_zones.id', 'left');
+        $this->db->where('DATE(orders.created_at)', date('Y-m-d'));
+        $this->db->order_by('orders.created_at', 'ASC');
+        $orders = $this->db->get()->result();
+
+        $grouped = [
+            'pendente' => [],
+            'confirmado' => [],
+            'preparando' => [],
+            'saiu_entrega' => [],
+            'entregue' => [],
+            'cancelado' => []
+        ];
+
+        foreach ($orders as $order) {
+            // Buscar itens para cada pedido
+            $order->items = $this->db->get_where('order_items', ['order_id' => $order->id])->result();
+            if (isset($grouped[$order->status])) {
+                $grouped[$order->status][] = $order;
+            }
+        }
+
+        return $grouped;
     }
 
     /**

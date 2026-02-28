@@ -58,6 +58,14 @@ $route['cardapio'] = 'cardapio/index';
 $route['cardapio/buscar'] = 'cardapio/buscar';
 $route['cardapio/api/produtos'] = 'cardapio/api_produtos';
 $route['cardapio/api/categorias'] = 'cardapio/api_categorias';
+$route['cardapio/acompanhar/(:any)'] = 'cardapio/acompanhar/$1';
+$route['cardapio/api/status/(:any)'] = 'cardapio/api_status/$1';
+$route['cardapio/avaliar/(:any)'] = 'cardapio/avaliar/$1';
+$route['cardapio/api/validar_cupom'] = 'cardapio/api_validar_cupom';
+$route['cardapio/api/ultimo_pedido'] = 'cardapio/api_ultimo_pedido';
+$route['cardapio/manifest.json'] = 'cardapio/manifest';
+$route['cardapio/sw.js'] = 'cardapio/service_worker';
+$route['cardapio/offline'] = 'cardapio/offline';
 
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

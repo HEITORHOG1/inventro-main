@@ -575,7 +575,7 @@ class Invoice extends MX_Controller {
         $grand_total_price = $this->input->post('grand_total_price',TRUE);
         $paid_amount = $this->input->post('paid_amount',TRUE);
         $due_amount = $this->input->post('due_amount',TRUE);
-        $paytype = 1;
+        $paytype = (int)$this->input->post('paytype', TRUE) ?: 1;
         $bank_id = $this->input->post('bank_id',TRUE);
         if ($details) {
             $details = $details;

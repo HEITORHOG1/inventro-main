@@ -184,4 +184,32 @@ public function delete($id = null)
     }
     redirect("item/Item/item_list");
   }
+
+    /**
+     * Toggle disponibilidade no cardapio (AJAX)
+     */
+    public function toggle_disponivel($id = null) {
+        header('Content-Type: application/json');
+
+        if (!$id) {
+            echo json_encode(['success' => false, 'message' => 'ID obrigatorio']);
+            return;
+        }
+
+        $product = $this->db->where('id', (int)$id)->get('product_tbl')->row();
+        if (!$product) {
+            echo json_encode(['success' => false, 'message' => 'Produto nao encontrado']);
+            return;
+        }
+
+        $new_value = ($product->disponivel_cardapio ?? 1) ? 0 : 1;
+        $this->db->where('id', (int)$id)->update('product_tbl', ['disponivel_cardapio' => $new_value]);
+
+        echo json_encode([
+            'success' => true,
+            'disponivel' => $new_value,
+            'message' => $new_value ? 'Produto visivel no cardapio' : 'Produto oculto no cardapio',
+            'csrf_token' => $this->security->get_csrf_hash()
+        ]);
+    }
 }
