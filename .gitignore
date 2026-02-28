@@ -1,0 +1,85 @@
+# =============================================
+# Documentation (não enviar)
+# =============================================
+Documentation Inventory/
+
+# =============================================
+# Markdown files (bloquear todos, exceto README)
+# =============================================
+*.md
+!README.md
+!**/README.md
+
+# =============================================
+# Arquivos sensíveis / debug
+# =============================================
+inventro_mainfile/test.php
+inventro_mainfile/error_log
+inventro_mainfile/application/logs/*.log
+*.log
+.env
+.env.*
+
+# =============================================
+# Configurações com credenciais
+# (use .env ou docker secrets em produção)
+# =============================================
+# inventro_mainfile/application/config/database.php
+
+# =============================================
+# Cache e arquivos temporários
+# =============================================
+inventro_mainfile/application/cache/temp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# =============================================
+# Dependências
+# =============================================
+node_modules/
+bower_components/
+inventro_mainfile/vendor/
+
+# =============================================
+# IDE / Editor
+# =============================================
+.idea/
+.vscode/
+.vs/
+nbproject/
+*.sublime-project
+*.sublime-workspace
+
+# =============================================
+# OS files
+# =============================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# =============================================
+# Build / compilados (AdminLTE)
+# =============================================
+.sass-cache/
+inventro_mainfile/admin_assets/data/
+
+# =============================================
+# Docker volumes locais
+# =============================================
+docker-data/
+
+# =============================================
+# Arquivos de backup SQL soltos na raiz
+# =============================================
+inventro_mainfile/*.sql
+!inventro_mainfile/docker/mysql/init/*.sql
+
+# =============================================
+# Archives
+# =============================================
+*.zip
+*.tar.gz
+*.rar

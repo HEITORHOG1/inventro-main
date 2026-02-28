@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo html_escape($loja->title ?? 'Cardápio Digital'); ?></title>
+    <meta name="description" content="Cardápio digital - Faça seu pedido">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #25D366;
+            --primary-dark: #128C7E;
+            --accent: #FF6B35;
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-light: #0f3460;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --success: #00c853;
+            --danger: #ff5252;
+            --border-radius: 16px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-card) 50%, var(--bg-light) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        /* Header */
+        .header {
+            background: rgba(22, 33, 62, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo-section img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); }
+        .logo-section h1 { font-size: 1.5rem; font-weight: 600; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-section p { font-size: 0.85rem; color: var(--text-secondary); }
+
+        .search-box { position: relative; flex: 1; max-width: 400px; min-width: 250px; }
+        .search-box input { width: 100%; padding: 12px 20px 12px 50px; border: none; border-radius: 50px; background: rgba(255,255,255,0.1); color: var(--text-primary); font-size: 1rem; transition: all 0.3s; }
+        .search-box input:focus { outline: none; background: rgba(255,255,255,0.15); box-shadow: 0 0 20px rgba(37, 211, 102, 0.3); }
+        .search-box input::placeholder { color: var(--text-secondary); }
+        .search-box i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+
+        /* Categories */
+        .categories { padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .categories-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth; }
+        .categories-scroll::-webkit-scrollbar { height: 6px; }
+        .categories-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .categories-scroll::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        .category-btn { padding: 10px 24px; border: none; border-radius: 50px; background: rgba(255,255,255,0.1); color: var(--text-primary); font-size: 0.9rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.3s; flex-shrink: 0; }
+        .category-btn:hover, .category-btn.active { background: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 20px rgba(37, 211, 102, 0.4); }
+
+        /* Products Grid */
+        .products-section { padding: 0 20px 120px; max-width: 1200px; margin: 0 auto; }
+        .category-title { font-size: 1.3rem; font-weight: 600; margin: 30px 0 20px; padding-left: 10px; border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 10px; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+        /* Product Card */
+        .product-card { background: rgba(22, 33, 62, 0.8); border-radius: var(--border-radius); overflow: hidden; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.05); }
+        .product-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: rgba(37, 211, 102, 0.3); }
+        .product-image { width: 100%; height: 180px; background: linear-gradient(135deg, var(--bg-light), var(--bg-card)); display: flex; align-items: center; justify-content: center; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-image .no-image { font-size: 4rem; color: rgba(255,255,255,0.2); }
+        .product-info { padding: 20px; }
+        .product-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 5px; }
+        .product-description { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-footer { display: flex; justify-content: space-between; align-items: center; }
+        .product-price { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+        .product-unit { font-size: 0.8rem; color: var(--text-secondary); font-weight: 400; }
+        .add-btn { width: 45px; height: 45px; border: none; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; font-size: 1.2rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+        .add-btn:hover { transform: scale(1.1); box-shadow: 0 5px 20px rgba(37, 211, 102, 0.5); }
+
+        /* Cart Float Button */
+        .cart-float { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .cart-btn { width: 65px; height: 65px; border: none; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 30px rgba(37, 211, 102, 0.5); transition: all 0.3s; position: relative; }
+        .cart-btn:hover { transform: scale(1.1); }
+        .cart-count { position: absolute; top: -5px; right: -5px; background: var(--accent); color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+        /* Cart Modal */
+        .cart-modal { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); border-radius: 24px 24px 0 0; padding: 20px; z-index: 1001; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 90vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
+        .cart-modal.open { transform: translateY(0); }
+        .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .cart-overlay.open { opacity: 1; visibility: visible; }
+
+        .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .cart-header h2 { font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+        .close-cart { width: 40px; height: 40px; border: none; border-radius: 50%; background: rgba(255,255,255,0.1); color: var(--text-primary); font-size: 1.2rem; cursor: pointer; }
+
+        .cart-items { margin-bottom: 15px; max-height: 200px; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cart-item-info { flex: 1; }
+        .cart-item-name { font-weight: 500; margin-bottom: 5px; font-size: 0.9rem; }
+        .cart-item-price { color: var(--primary); font-weight: 600; font-size: 0.85rem; }
+        .quantity-controls { display: flex; align-items: center; gap: 8px; background: rgba(37, 211, 102, 0.2); border-radius: 50px; padding: 4px; }
+        .qty-btn { width: 30px; height: 30px; border: none; border-radius: 50%; background: var(--primary); color: white; font-size: 0.9rem; cursor: pointer; }
+        .qty-btn:hover { background: var(--primary-dark); }
+        .qty-value { font-size: 1rem; font-weight: 600; min-width: 25px; text-align: center; }
+        .cart-item-remove { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; padding: 8px; margin-left: 8px; }
+        .cart-empty { text-align: center; padding: 30px 20px; color: var(--text-secondary); }
+        .cart-empty i { font-size: 3rem; margin-bottom: 15px; opacity: 0.3; }
+
+        /* Formulário de Entrega Simplificado */
+        .delivery-form { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; margin: 15px 0; }
+        .form-title { font-size: 1rem; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: var(--primary); }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 5px; }
+        .form-control { width: 100%; padding: 12px 15px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 1rem; transition: all 0.3s; }
+        .form-control:focus { outline: none; border-color: var(--primary); background: rgba(255,255,255,0.1); }
+        .form-control::placeholder { color: var(--text-secondary); }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+
+        /* Payment Options */
+        .payment-options { display: flex; gap: 10px; flex-wrap: wrap; }
+        .payment-option { flex: 1; min-width: 90px; padding: 12px; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; background: transparent; color: var(--text-primary); cursor: pointer; text-align: center; transition: all 0.3s; }
+        .payment-option:hover { border-color: var(--primary); }
+        .payment-option.selected { border-color: var(--primary); background: rgba(37, 211, 102, 0.2); }
+        .payment-option i { font-size: 1.5rem; margin-bottom: 5px; display: block; }
+        .payment-option span { font-size: 0.85rem; }
+        .troco-field { margin-top: 10px; display: none; }
+        .troco-field.show { display: block; }
+
+        /* Totais */
+        .cart-totals { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 10px; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.95rem; }
+        .total-row.final { border-top: 2px solid rgba(255,255,255,0.2); margin-top: 8px; padding-top: 12px; font-size: 1.2rem; font-weight: 700; }
+        .total-row.final .value { color: var(--primary); }
+
+        /* Buttons */
+        .checkout-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .btn-checkout { width: 100%; padding: 16px; border: none; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; }
+        .btn-checkout:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-whatsapp { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .btn-whatsapp:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4); }
+        .btn-site { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
+        .btn-site:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(52, 152, 219, 0.4); }
+        .divider { text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin: 5px 0; }
+
+        /* Taxa Info */
+        .taxa-info { background: rgba(37, 211, 102, 0.1); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .taxa-info i { font-size: 1.2rem; color: var(--primary); }
+        .taxa-info .valor { font-weight: 700; color: var(--primary); }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg-card); color: var(--text-primary); padding: 15px 30px; border-radius: 50px; box-shadow: var(--shadow); z-index: 2000; opacity: 0; transition: all 0.3s; display: flex; align-items: center; gap: 10px; border: 1px solid var(--primary); }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header-content { flex-direction: column; text-align: center; }
+            .search-box { width: 100%; max-width: none; }
+            .logo-section { flex-direction: column; }
+            .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+            .product-image { height: 140px; }
+            .product-info { padding: 12px; }
+            .product-name { font-size: 0.95rem; }
+            .product-price { font-size: 1.1rem; }
+            .add-btn { width: 38px; height: 38px; font-size: 1rem; }
+            .payment-options { flex-direction: column; }
+            .payment-option { min-width: auto; }
+        }
+
+        /* Cliente Encontrado */
+        .cliente-encontrado {
+            background: rgba(37, 211, 102, 0.15);
+            border: 1px solid rgba(37, 211, 102, 0.4);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .cliente-info { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+        .cliente-info i { font-size: 2rem; color: var(--primary); }
+        .cliente-info strong { display: block; font-size: 1rem; margin-bottom: 3px; }
+        .cliente-info p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
+        .cliente-actions { display: flex; gap: 10px; }
+        .btn-usar-dados, .btn-editar-dados {
+            flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;
+        }
+        .btn-usar-dados { background: var(--primary); color: white; }
+        .btn-usar-dados:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn-editar-dados { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+        .btn-editar-dados:hover { background: rgba(255,255,255,0.2); }
+
+        /* CPF Toggle */
+        .cpf-nota-group { margin-top: 10px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .cpf-toggle { margin-bottom: 10px; }
+        .toggle-label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .toggle-label input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; }
+        .toggle-text { color: var(--text-secondary); font-size: 0.9rem; }
+        .cpf-field { animation: slideIn 0.3s ease; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <?php if (!empty($loja->logo)): ?>
+                    <img src="<?php echo base_url($loja->logo); ?>" alt="Logo">
+                <?php else: ?>
+                    <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+                        <i class="fas fa-store"></i>
+                    </div>
+                <?php endif; ?>
+                <div>
+                    <h1><?php echo html_escape($loja->title ?? 'Cardápio Digital'); ?></h1>
+                    <p><i class="fas fa-clock"></i> Aberto agora • Entrega disponível</p>
+                </div>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar produtos...">
+            </div>
+        </div>
+    </header>
+
+    <!-- Categories -->
+    <section class="categories">
+        <div class="categories-scroll">
+            <button class="category-btn active" data-category="all">
+                <i class="fas fa-th-large"></i> Todos
+            </button>
+            <?php foreach ($categorias as $cat): ?>
+                <button class="category-btn" data-category="<?php echo html_escape($cat->name); ?>">
+                    <?php echo html_escape($cat->name); ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+    </section>
+
+    <!-- Products -->
+    <main class="products-section">
+        <?php if (empty($produtos_por_categoria)): ?>
+            <div style="text-align:center;padding:50px;color:var(--text-secondary);">
+                <i class="fas fa-box-open" style="font-size:3rem;opacity:0.3;"></i>
+                <p>Nenhum produto disponível no momento</p>
+            </div>
+        <?php else: ?>
+            <?php foreach ($produtos_por_categoria as $categoria => $produtos): ?>
+                <div class="category-group" data-category="<?php echo html_escape($categoria); ?>">
+                    <h2 class="category-title">
+                        <i class="fas fa-tag"></i>
+                        <?php echo html_escape($categoria); ?>
+                        <span style="font-size:0.8rem;color:var(--text-secondary);font-weight:400;">
+                            (<?php echo count($produtos); ?> itens)
+                        </span>
+                    </h2>
+                    <div class="products-grid">
+                        <?php foreach ($produtos as $produto): ?>
+                            <div class="product-card" 
+                                 data-id="<?php echo $produto->id; ?>"
+                                 data-name="<?php echo html_escape($produto->name); ?>"
+                                 data-price="<?php echo $produto->price; ?>"
+                                 data-unit="<?php echo html_escape($produto->unit_name ?? 'un'); ?>">
+                                <div class="product-image">
+                                    <?php if (!empty($produto->picture)): ?>
+                                        <img src="<?php echo base_url($produto->picture); ?>" alt="<?php echo html_escape($produto->name); ?>">
+                                    <?php else: ?>
+                                        <i class="fas fa-box no-image"></i>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="product-info">
+                                    <h3 class="product-name"><?php echo html_escape($produto->name); ?></h3>
+                                    <p class="product-description">
+                                        <?php echo html_escape($produto->description ?? 'Produto de qualidade'); ?>
+                                    </p>
+                                    <div class="product-footer">
+                                        <div class="product-price">
+                                            R$ <?php echo number_format($produto->price, 2, ',', '.'); ?>
+                                            <span class="product-unit">/<?php echo html_escape($produto->unit_name ?? 'un'); ?></span>
+                                        </div>
+                                        <button class="add-btn" onclick="addToCart(this)">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </main>
+
+    <!-- Cart Float Button -->
+    <div class="cart-float">
+        <button class="cart-btn" onclick="toggleCart()">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
+    </div>
+
+    <!-- Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+
+    <!-- Cart Modal -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-header">
+            <h2><i class="fas fa-shopping-cart"></i> Seu Pedido</h2>
+            <button class="close-cart" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="cart-items" id="cartItems">
+            <div class="cart-empty">
+                <i class="fas fa-shopping-basket"></i>
+                <p>Seu carrinho está vazio</p>
+                <p style="font-size:0.85rem;">Adicione produtos para fazer seu pedido</p>
+            </div>
+        </div>
+
+        <!-- Formulário de Entrega Simplificado -->
+        <div class="delivery-form" id="deliveryForm" style="display: none;">
+            <h3 class="form-title"><i class="fas fa-truck"></i> Dados para Entrega</h3>
+            
+            <!-- Taxa de Entrega Fixa -->
+            <div class="taxa-info">
+                <i class="fas fa-motorcycle"></i>
+                <span>Taxa de entrega: </span>
+                <span class="valor" id="taxaFixaDisplay">
+                    <?php 
+                    $taxa_entrega = floatval($taxa_entrega ?? 0);
+                    echo $taxa_entrega == 0 ? 'GRÁTIS' : 'R$ ' . number_format($taxa_entrega, 2, ',', '.');
+                    ?>
+                </span>
+            </div>
+            
+            <div class="form-group">
+                <label>Telefone/WhatsApp *</label>
+                <div style="position:relative;">
+                    <input type="tel" class="form-control" id="clienteTelefone" placeholder="(11) 99999-9999">
+                    <div id="loadingIndicator" style="display:none;position:absolute;right:15px;top:50%;transform:translateY(-50%);">
+                        <i class="fas fa-spinner fa-spin" style="color:var(--primary);"></i>
+                    </div>
+                </div>
+                <small style="color:var(--text-secondary);font-size:0.75rem;">Digite seu telefone para buscar cadastro</small>
+            </div>
+            
+            <!-- Alerta de Cliente Encontrado -->
+            <div id="clienteEncontrado" class="cliente-encontrado" style="display:none;">
+                <div class="cliente-info">
+                    <i class="fas fa-user-check"></i>
+                    <div>
+                        <strong id="clienteEncontradoNome">João Silva</strong>
+                        <p id="clienteEncontradoEndereco">Rua...</p>
+                    </div>
+                </div>
+                <div class="cliente-actions">
+                    <button type="button" class="btn-usar-dados" onclick="usarDadosCliente()">
+                        <i class="fas fa-check"></i> Usar estes dados
+                    </button>
+                    <button type="button" class="btn-editar-dados" onclick="editarDados()">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Nome completo *</label>
+                <input type="text" class="form-control" id="clienteNome" placeholder="Seu nome">
+            </div>
+            
+            <div class="form-group">
+                <label>Endereço completo *</label>
+                <input type="text" class="form-control" id="clienteEndereco" placeholder="Rua, número, bairro">
+            </div>
+            
+            <div class="form-group">
+                <label>Forma de Pagamento *</label>
+                <div class="payment-options">
+                    <button type="button" class="payment-option" data-payment="dinheiro">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Dinheiro</span>
+                    </button>
+                    <button type="button" class="payment-option" data-payment="cartao">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Cartão</span>
+                    </button>
+                    <button type="button" class="payment-option" data-payment="pix">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Pix</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group troco-field" id="trocoField">
+                <label>Troco para quanto?</label>
+                <input type="text" class="form-control" id="trocoPara" placeholder="Ex: R$ 50,00">
+            </div>
+            
+            <div class="form-group">
+                <label>Observações (opcional)</label>
+                <input type="text" class="form-control" id="observacao" placeholder="Alguma observação?">
+            </div>
+            
+            <!-- CPF na Nota -->
+            <div class="form-group cpf-nota-group">
+                <div class="cpf-toggle">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="querCpf" onchange="toggleCpfField()">
+                        <span class="toggle-text">Deseja CPF na nota fiscal?</span>
+                    </label>
+                </div>
+                <div id="cpfField" class="cpf-field" style="display:none;">
+                    <input type="text" class="form-control" id="cpfNota" placeholder="000.000.000-00" maxlength="14">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Totais -->
+        <div class="cart-totals" id="cartTotals">
+            <div class="total-row">
+                <span>Subtotal</span>
+                <span id="subtotalValue">R$ 0,00</span>
+            </div>
+            <div class="total-row">
+                <span>Taxa de entrega</span>
+                <span id="taxaValue"><?php echo $taxa_entrega == 0 ? 'GRÁTIS' : 'R$ ' . number_format($taxa_entrega, 2, ',', '.'); ?></span>
+            </div>
+            <div class="total-row final">
+                <span>TOTAL</span>
+                <span class="value" id="totalValue">R$ 0,00</span>
+            </div>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="checkout-buttons" id="checkoutButtons">
+            <button class="btn-checkout btn-whatsapp" id="btnWhatsapp" onclick="finalizarWhatsapp()" disabled>
+                <i class="fab fa-whatsapp"></i> Finalizar via WhatsApp
+            </button>
+            <span class="divider">ou</span>
+            <button class="btn-checkout btn-site" id="btnSite" onclick="finalizarSite()" disabled>
+                <i class="fas fa-shopping-bag"></i> Finalizar pelo Site
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle" style="color:var(--primary)"></i>
+        <span id="toastMessage">Produto adicionado!</span>
+    </div>
+
+    <script>
+        let cart = [];
+        let selectedPayment = null;
+        let clienteEncontradoData = null;
+        const whatsappNumber = '<?php echo $whatsapp; ?>';
+        const storeName = '<?php echo addslashes($loja->title ?? "Cardápio"); ?>';
+        const baseUrl = '<?php echo base_url(); ?>';
+        const taxaEntrega = <?php echo $taxa_entrega; ?>;
+
+        // Buscar cliente por telefone
+        async function buscarCliente(telefone) {
+            if (telefone.length < 10) return;
+            
+            const loading = document.getElementById('loadingIndicator');
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch(baseUrl + 'cardapio/api_buscar_cliente?telefone=' + encodeURIComponent(telefone));
+                const data = await response.json();
+                
+                if (data.found && data.cliente) {
+                    clienteEncontradoData = data.cliente;
+                    document.getElementById('clienteEncontradoNome').textContent = data.cliente.nome;
+                    document.getElementById('clienteEncontradoEndereco').textContent = data.cliente.endereco;
+                    document.getElementById('clienteEncontrado').style.display = 'block';
+                    showToast('Cliente encontrado!');
+                } else {
+                    document.getElementById('clienteEncontrado').style.display = 'none';
+                    clienteEncontradoData = null;
+                }
+            } catch (error) {
+                console.error('Erro ao buscar cliente:', error);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function usarDadosCliente() {
+            if (!clienteEncontradoData) return;
+            
+            document.getElementById('clienteNome').value = clienteEncontradoData.nome;
+            document.getElementById('clienteEndereco').value = clienteEncontradoData.endereco;
+            
+            if (clienteEncontradoData.cpf) {
+                document.getElementById('querCpf').checked = true;
+                document.getElementById('cpfField').style.display = 'block';
+                document.getElementById('cpfNota').value = clienteEncontradoData.cpf;
+            }
+            
+            document.getElementById('clienteEncontrado').style.display = 'none';
+            showToast('Dados preenchidos!');
+            validateForm();
+        }
+
+        function editarDados() {
+            document.getElementById('clienteEncontrado').style.display = 'none';
+            document.getElementById('clienteNome').focus();
+        }
+
+        function toggleCpfField() {
+            const checkbox = document.getElementById('querCpf');
+            const cpfField = document.getElementById('cpfField');
+            cpfField.style.display = checkbox.checked ? 'block' : 'none';
+            if (checkbox.checked) {
+                document.getElementById('cpfNota').focus();
+            }
+        }
+
+        function formatCPF(value) {
+            let v = value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 9) v = v.slice(0,3) + '.' + v.slice(3,6) + '.' + v.slice(6,9) + '-' + v.slice(9);
+            else if (v.length > 6) v = v.slice(0,3) + '.' + v.slice(3,6) + '.' + v.slice(6);
+            else if (v.length > 3) v = v.slice(0,3) + '.' + v.slice(3);
+            return v;
+        }
+
+
+        function addToCart(btn) {
+            const card = btn.closest('.product-card');
+            const id = card.dataset.id;
+            const name = card.dataset.name;
+            const price = parseFloat(card.dataset.price);
+            const unit = card.dataset.unit;
+
+            const existingItem = cart.find(item => item.id === id);
+            if (existingItem) {
+                existingItem.qty++;
+            } else {
+                cart.push({ id, name, price, unit, qty: 1 });
+            }
+
+            updateCartUI();
+            showToast('Produto adicionado!');
+            
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => btn.innerHTML = '<i class="fas fa-plus"></i>', 500);
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(item => item.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartCount = document.getElementById('cartCount');
+            const cartItems = document.getElementById('cartItems');
+            const deliveryForm = document.getElementById('deliveryForm');
+
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const total = subtotal + taxaEntrega;
+
+            cartCount.textContent = totalItems;
+            document.getElementById('subtotalValue').textContent = 'R$ ' + subtotal.toFixed(2).replace('.', ',');
+            document.getElementById('totalValue').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="cart-empty">
+                        <i class="fas fa-shopping-basket"></i>
+                        <p>Seu carrinho está vazio</p>
+                        <p style="font-size:0.85rem;">Adicione produtos para fazer seu pedido</p>
+                    </div>
+                `;
+                deliveryForm.style.display = 'none';
+            } else {
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">
+                                R$ ${(item.price * item.qty).toFixed(2).replace('.', ',')}
+                                <span style="color:var(--text-secondary);font-size:0.75rem;">
+                                    (${item.qty}x R$ ${item.price.toFixed(2).replace('.', ',')})
+                                </span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button class="qty-btn" onclick="updateQty('${item.id}', -1)"><i class="fas fa-minus"></i></button>
+                            <span class="qty-value">${item.qty}</span>
+                            <button class="qty-btn" onclick="updateQty('${item.id}', 1)"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <button class="cart-item-remove" onclick="removeFromCart('${item.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                `).join('');
+                deliveryForm.style.display = 'block';
+            }
+
+            validateForm();
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function validateForm() {
+            const nome = document.getElementById('clienteNome').value.trim();
+            const telefone = document.getElementById('clienteTelefone').value.trim();
+            const endereco = document.getElementById('clienteEndereco').value.trim();
+            
+            const isValid = cart.length > 0 && nome && telefone && endereco && selectedPayment;
+            
+            document.getElementById('btnWhatsapp').disabled = !isValid;
+            document.getElementById('btnSite').disabled = !isValid;
+        }
+
+        function toggleCart() {
+            document.getElementById('cartModal').classList.toggle('open');
+            document.getElementById('cartOverlay').classList.toggle('open');
+        }
+
+        function getFormData() {
+            const cpfNota = document.getElementById('querCpf').checked ? document.getElementById('cpfNota').value.trim() : '';
+            return {
+                cliente_nome: document.getElementById('clienteNome').value.trim(),
+                cliente_telefone: document.getElementById('clienteTelefone').value.trim(),
+                cliente_endereco: document.getElementById('clienteEndereco').value.trim(),
+                forma_pagamento: selectedPayment,
+                troco_para: document.getElementById('trocoPara').value.trim(),
+                observacao: document.getElementById('observacao').value.trim(),
+                cpf_nota: cpfNota
+            };
+        }
+
+        function finalizarWhatsapp() {
+            const data = getFormData();
+            if (!data.cliente_nome || !data.cliente_telefone || !data.cliente_endereco || !selectedPayment) {
+                showToast('Preencha todos os campos obrigatórios');
+                return;
+            }
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const total = subtotal + taxaEntrega;
+
+            let message = `🛒 *PEDIDO - ${storeName}*\n\n`;
+            message += `*Cliente:* ${data.cliente_nome}\n`;
+            message += `*Telefone:* ${data.cliente_telefone}\n`;
+            message += `*Endereço:* ${data.cliente_endereco}\n\n`;
+            message += `*ITENS:*\n`;
+            
+            cart.forEach(item => {
+                message += `• ${item.qty}x ${item.name} - R$ ${(item.price * item.qty).toFixed(2).replace('.', ',')}\n`;
+            });
+            
+            message += `\n*Subtotal:* R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+            message += `*Taxa de Entrega:* ${taxaEntrega == 0 ? 'GRÁTIS' : 'R$ ' + taxaEntrega.toFixed(2).replace('.', ',')}\n`;
+            message += `*TOTAL:* R$ ${total.toFixed(2).replace('.', ',')}\n\n`;
+            message += `*Pagamento:* ${data.forma_pagamento.charAt(0).toUpperCase() + data.forma_pagamento.slice(1)}\n`;
+            
+            if (data.forma_pagamento == 'dinheiro' && data.troco_para) {
+                message += `*Troco para:* R$ ${data.troco_para}\n`;
+            }
+            if (data.observacao) {
+                message += `\n*Obs:* ${data.observacao}\n`;
+            }
+
+            saveOrder('whatsapp').then(() => {
+                window.open(`https://wa.me/55${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+            });
+        }
+
+        function finalizarSite() {
+            const data = getFormData();
+            if (!data.cliente_nome || !data.cliente_telefone || !data.cliente_endereco || !selectedPayment) {
+                showToast('Preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            saveOrder('site').then(response => {
+                if (response.success) {
+                    window.location.href = baseUrl + 'cardapio/confirmacao/' + response.order_number;
+                } else {
+                    showToast('Erro: ' + response.message);
+                }
+            });
+        }
+
+        async function saveOrder(tipo) {
+            const data = getFormData();
+            data.tipo_checkout = tipo;
+            data.items = cart;
+            data.taxa_entrega = taxaEntrega;
+
+            try {
+                const response = await fetch(baseUrl + 'cardapio/processar_pedido', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Erro:', error);
+                return { success: false, message: 'Erro de conexão' };
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+                updateCartUI();
+            }
+
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedPayment = this.dataset.payment;
+                    
+                    const trocoField = document.getElementById('trocoField');
+                    trocoField.classList.toggle('show', selectedPayment == 'dinheiro');
+                    
+                    validateForm();
+                });
+            });
+
+            ['clienteNome', 'clienteTelefone', 'clienteEndereco'].forEach(id => {
+                document.getElementById(id).addEventListener('input', validateForm);
+            });
+
+            document.getElementById('clienteTelefone').addEventListener('input', function(e) {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length > 11) val = val.slice(0, 11);
+                if (val.length > 6) val = '(' + val.slice(0,2) + ') ' + val.slice(2,7) + '-' + val.slice(7);
+                else if (val.length > 2) val = '(' + val.slice(0,2) + ') ' + val.slice(2);
+                else if (val.length > 0) val = '(' + val;
+                e.target.value = val;
+            });
+
+            // Buscar cliente quando terminar de digitar telefone
+            document.getElementById('clienteTelefone').addEventListener('blur', function(e) {
+                const telefone = e.target.value.replace(/\D/g, '');
+                if (telefone.length >= 10) {
+                    buscarCliente(telefone);
+                }
+            });
+
+            // Formatação automática do CPF
+            document.getElementById('cpfNota').addEventListener('input', function(e) {
+                e.target.value = formatCPF(e.target.value);
+            });
+
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const category = this.dataset.category;
+                    document.querySelectorAll('.category-group').forEach(group => {
+                        group.style.display = (category === 'all' || group.dataset.category === category) ? 'block' : 'none';
+                    });
+                });
+            });
+
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const term = this.value.toLowerCase();
+                document.querySelectorAll('.product-card').forEach(card => {
+                    card.style.display = card.dataset.name.toLowerCase().includes(term) || term === '' ? 'block' : 'none';
+                });
+                if (term) document.querySelectorAll('.category-group').forEach(g => g.style.display = 'block');
+            });
+        });
+    </script>
+</body>
+</html>

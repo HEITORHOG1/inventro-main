@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"table = \" /g/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application/modules/*/models/*.php)",
+      "Bash(xargs grep -l \"product\\\\|delivery\\\\|invoice\\\\|purchase\")"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+name,category_id,description,price,purchase_price,product_code,unit,model,cartoon_qty,supplier_id
+mouse,Women,demo,300,250,2222,Kg,2222,20,Jamal Khan
+anowar khan,Baby,test,200,150,3333,Box,3333,30,Test Supplier
+keyboard,Baby,Demo,500,230,4444,Box,4444,20,Jamal Khan

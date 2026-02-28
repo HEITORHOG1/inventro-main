@@ -1,0 +1,14 @@
+@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700);
+.display-bk{display:block;}
+.display-nk{display:none;}
+.txt-alignlt{text-align:left;}
+.txt-alignrt{text-align:right;}
+.txt-aligncn{text-align:center;}
+.loginp-tbl{cursor:pointer;font-size:12px;}
+.opcity-cl{opacity: 0.8;}
+.content-width1{width: 100%;}
+.text-cl1{color:#FFF; cursor:pointer;}
+.fontsz{font-size: 20px;}
+.mrchart{position: relative; height: 300px;}
+.mchart-canvas{height: 300px;}
+.txt-color{color:#F00}

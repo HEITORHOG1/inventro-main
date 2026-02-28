@@ -1,0 +1,62 @@
+
+    header {
+    letter-spacing: 6px;
+    font-size: 14px;
+}
+
+table {
+    width: 100%;
+    background-color:#FFC107;
+}
+
+button {
+       width: 45px;
+    height: 45px;
+    float: left;
+    padding: 0;
+    margin: 5px;
+    box-sizing: border-box;
+    background: #2873A4;
+    border: none;
+    font-size: 24px;
+    line-height: 24px;
+    border-radius: 50%;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+}
+
+
+
+.screen {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #343A40;
+    color: white;
+    text-align: right;
+    border-radius: 5px; 
+    
+}
+#mainScreen{
+ font-family:sans-serif;   
+}
+
+
+.fade-scale {
+  transform: scale(0);
+  opacity: 0;
+  -webkit-transition: all .25s linear;
+  -o-transition: all .25s linear;
+  transition: all .25s linear;
+}
+
+.fade-scale.in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+
+#calculator{
+     border-radius: 3 !important;
+}

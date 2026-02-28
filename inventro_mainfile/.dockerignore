@@ -1,0 +1,25 @@
+# Arquivos ignorados pelo Docker
+
+# Dados do MySQL (mantidos no volume)
+docker/mysql/data/
+
+# Logs
+*.log
+logs/
+
+# Arquivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Cache do Composer
+vendor/
+
+# Arquivos temporários
+*.tmp
+*.temp

@@ -1,0 +1,23 @@
+#cash_book_total{
+	text-align:right;
+}
+
+
+
+#supplier_id{
+	width:100%;
+}
+
+
+#customer_id{
+	width:100%;
+}
+
+.purchase_total{
+	text-align:right;
+}
+
+
+.sales_report_total{
+	text-align:right;
+}

@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Servidor Web PHP com Apache
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inventro_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    depends_on:
+      - db
+    networks:
+      - inventro_network
+
+  # Banco de Dados MySQL
+  db:
+    image: mysql:8.0
+    container_name: inventro_db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4'
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: inventro_db
+      MYSQL_USER: inventro_user
+      MYSQL_PASSWORD: inventro_password
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - inventro_mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - inventro_network
+
+  # phpMyAdmin para gerenciamento do banco
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: inventro_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root_password
+    depends_on:
+      - db
+    networks:
+      - inventro_network
+
+networks:
+  inventro_network:
+    driver: bridge
+
+volumes:
+  inventro_mysql_data:
+    driver: local

@@ -1,0 +1,9 @@
+#bank_div{
+    display: none; 
+}
+#bank_id{
+    width: 100%;
+}
+.displayflex{
+   display:flex !important;
+}

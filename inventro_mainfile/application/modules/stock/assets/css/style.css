@@ -1,0 +1,25 @@
+.add_button{
+    margin-bottom: 10px;
+}
+.searchbar{
+    float: right;
+}
+.dllist{
+	font-size: 18px;
+}
+.dllist dt{
+	padding-bottom: 10px;
+}
+.d-flex {
+    display: -webkit-box!important;
+    display: -ms-flexbox!important;
+    display: flex!important;
+}
+.justify-content-between {
+    -webkit-box-pack: justify!important;
+    -ms-flex-pack: justify!important;
+    justify-content: space-between!important;
+}
+.box_style{
+    min-height: 390px;
+}

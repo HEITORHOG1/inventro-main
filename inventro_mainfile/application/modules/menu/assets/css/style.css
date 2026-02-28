@@ -1,0 +1,53 @@
+.add_button{
+    margin-bottom: 10px;
+}
+.searchbar{
+    float: right;
+}
+.dllist{
+	font-size: 18px;
+}
+.dllist dt{
+	padding-bottom: 10px;
+}
+.d-flex {
+    display: -webkit-box!important;
+    display: -ms-flexbox!important;
+    display: flex!important;
+}
+.justify-content-between {
+    -webkit-box-pack: justify!important;
+    -ms-flex-pack: justify!important;
+    justify-content: space-between!important;
+}
+.box_style{
+    min-height: 390px;
+}
+
+
+
+.add_role_right{
+    float: right;
+}
+
+.before_assign_role_list{
+   margin: -5px;
+}
+.existroles{
+  background: #ddd;
+  padding: 5px 5px;
+}
+
+.exis_ul{
+ margin-left: 20px; 
+ margin-bottom: 15px;
+}
+
+
+.select22_role{
+   width: 100%;
+}
+
+.edit_user_access_role_btn{
+  margin-left: 12px;
+}

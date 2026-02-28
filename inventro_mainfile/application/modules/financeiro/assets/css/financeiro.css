@@ -1,0 +1,77 @@
+/* Módulo Financeiro - CSS */
+
+/* Cards de status */
+.financeiro-card {
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+}
+
+.financeiro-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Badge de status */
+.badge-vencido {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-hoje {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-aberto {
+    background-color: #6c757d;
+    color: white;
+}
+
+.badge-parcial {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-pago, .badge-recebido {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-cancelado {
+    background-color: #343a40;
+    color: white;
+}
+
+/* Callout customizado */
+.callout-vencido {
+    border-left-color: #dc3545;
+    background-color: #f8d7da;
+}
+
+/* Tabela de valores */
+.table .text-danger.font-weight-bold {
+    color: #c82333 !important;
+}
+
+.table .text-success.font-weight-bold {
+    color: #1e7e34 !important;
+}
+
+/* Filtros */
+.filterbox {
+    border: 1px solid #dee2e6;
+    margin-top: 10px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .filterbox .form-group {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .filterbox .form-inline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

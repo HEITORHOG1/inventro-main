@@ -1,0 +1,22 @@
+.language>.pagination>li.page-item {
+    padding: 10px;
+    background-color: #17a2b8;
+   
+}
+
+.language>.pagination>li.page-item a{
+    padding: 10px;
+    background-color: #17a2b8;
+   color: #fff;
+}
+
+.language>.pagination>li.active {
+    padding: 10px;
+    background-color: #a9c9ce;
+}
+
+.language>.pagination>li.active a{
+    padding: 10px;
+    background-color: #a9c9ce;
+    color: #fff;
+}
