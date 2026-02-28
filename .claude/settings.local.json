@@ -2,7 +2,42 @@
   "permissions": {
     "allow": [
       "Bash(grep -r \"table = \" /g/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application/modules/*/models/*.php)",
-      "Bash(xargs grep -l \"product\\\\|delivery\\\\|invoice\\\\|purchase\")"
+      "Bash(xargs grep -l \"product\\\\|delivery\\\\|invoice\\\\|purchase\")",
+      "Bash(xargs grep -l \"employee\\\\|salary\\\\|hrm\")",
+      "Bash(grep -n \"fiado\\\\|caderneta\\\\|pesavel\\\\|peso\\\\|validade\\\\|ean\\\\|pix\\\\|whatsapp\\\\|lgpd\\\\|privacidade\" /g/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/docker/mysql/init/*.sql)",
+      "Bash(xargs grep -l \"close\\\\|PDV\\\\|pos\\\\|POS\")",
+      "Bash(git -C /g/Projetos/inventro-inventory-management-system/inventro-main log --oneline --all)",
+      "Bash(xargs grep -l \"cardapio\\\\|menu\\\\|delivery\")",
+      "Read(//g/Projetos/inventro-inventory-management-system/**)",
+      "Bash(grep -i ssl|cert|nginx|healthcheck)",
+      "Bash(curl -s \"http://localhost:8080\")",
+      "Bash(xargs cat)",
+      "Bash(xargs grep -l \"phpinfo\\(\\)\")",
+      "Bash(# Check the .env.example for any sensitive content indicators cat \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/.env.example\"\")",
+      "Bash(# Check if vfsstream is used by the application \\(it''s a testing library for PHP\\) grep -rl \"\"vfsstream\\\\|vfsStream\\\\|bovigo/vfs\"\" \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application\"\")",
+      "Read(//g/dev/**)",
+      "Bash(# Check for any .env file \\(not .env.example\\) in the root find \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile\"\" -name \"\".env\"\" -not -name \"\".env.example\"\")",
+      "Bash(# Check if admin_assets/build is referenced in any views or CSS grep -rl \"\"admin_assets/build\"\" \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application\"\")",
+      "Bash(# Verify flot-old is truly an old duplicate \\(both flot and flot-old exist\\) ls \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/admin_assets/plugins/flot/\"\")",
+      "Bash(# Check for any files that reference flot-old in application JS/views grep -rl \"\"flot-old\"\" \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application\"\")",
+      "Bash(# Confirm right_sidebar.php is truly empty and safe to delete wc -c \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application/modules/template/views/admin_include/right_sidebar.php\"\" # Check if it''s referenced grep -rl \"\"right_sidebar\"\" \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application\"\")",
+      "Bash(# Check if any part of the application references the admin_assets/data/outgoing path grep -rl \"\"data/outgoing\\\\|outgoing/backup\"\" \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application\"\")",
+      "Bash(head -5 grep -rl \"data/outgoing\\\\|outgoing/backup\" \"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/admin_assets\")",
+      "Bash(# Check if correcoes_acentos.sql is referenced anywhere grep -rl \"\"correcoes_acentos\"\" \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile\"\")",
+      "Bash(# Final check: any other junk files I might have missed find \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile\"\" -name \"\"*.orig\"\" -o -name \"\"*.rej\"\")",
+      "Bash(# Check if var_dump in Account.php and Inventory_model.php are actually active code or in comments grep -n -B 3 -A 1 \"\"var_dump\"\" \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application/modules/accounts/controllers/Account.php\"\")",
+      "Bash(# Check if Account.php get_customers function is used/live or orphaned grep -n \"\"get_customers\\\\|function get_customers\"\" \"\"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application/modules/accounts/controllers/Account.php\"\")",
+      "Bash(ls -la docker/mysql/init/*.sql)",
+      "Bash(grep -l \"orders\\\\|cardapio\\\\|delivery\" \"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/docker/mysql/init\"/*.sql)",
+      "Bash(grep -A 50 \"CREATE TABLE IF NOT EXISTS \\\\`sec_role_permission\\\\`\" \"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/docker/mysql/init/01-schema.sql\")",
+      "Bash(grep -n \"CREATE TABLE.*setting\" \"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/docker/mysql/init\"/*.sql)",
+      "Bash(grep -A 30 \"CREATE TABLE.*\\\\`setting\\\\`\" \"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/docker/mysql/init/02-base-data.sql\")",
+      "Bash(grep -A 30 \"CREATE TABLE IF NOT EXISTS \\\\`sec_menu_item\\\\`\" \"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/docker/mysql/init/01-schema.sql\")",
+      "Bash(grep -A 25 \"CREATE TABLE IF NOT EXISTS \\\\`setting\\\\`\" \"g:/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/docker/mysql/init/01-schema.sql\")"
+    ],
+    "additionalDirectories": [
+      "g:\\Projetos\\inventro-inventory-management-system\\inventro-main\\inventro_mainfile\\application\\cache",
+      "G:\\Projetos\\inventro-inventory-management-system\\inventro-main"
     ]
   }
 }

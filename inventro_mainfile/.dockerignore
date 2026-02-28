@@ -1,25 +1,56 @@
-# Arquivos ignorados pelo Docker
+# =============================================
+# Inventro — Docker Ignore
+# =============================================
+
+# Git
+.git
+.gitignore
+
+# Docker configs (não precisa dentro do container)
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+
+# IDE / Editor
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Documentação (não vai para produção)
+Documentation Inventory/
+
+# Logs antigos
+*.log
+error_log
 
 # Dados do MySQL (mantidos no volume)
 docker/mysql/data/
 
-# Logs
-*.log
-logs/
-
-# Arquivos de IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Arquivos do sistema
-.DS_Store
-Thumbs.db
-
-# Cache do Composer
-vendor/
-
 # Arquivos temporários
 *.tmp
 *.temp
+*.bak
+
+# Backups SQL soltos
+*.sql
+!docker/mysql/init/*.sql
+
+# Arquivos de teste
+test.php
+
+# Env local (credenciais ficam no docker-compose)
+.env
+.env.*
+!.env.example
+
+# Archives
+*.zip
+*.tar.gz
+*.rar

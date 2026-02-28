@@ -848,8 +848,6 @@ class Inventory_model extends CI_Model {
 
 	    			);
 
-	    			print_r($inv_batch_details); exit;
-
     				$this->db->insert('inv_batch_details',$inv_batch_details);
     			}
 

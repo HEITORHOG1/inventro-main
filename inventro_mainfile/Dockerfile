@@ -1,12 +1,14 @@
-# Imagem base PHP 7.4 com Apache
+# =============================================
+# Inventro — Dockerfile Produção
+# PHP 7.4 + Apache + Extensões necessárias
+# =============================================
 FROM php:7.4-apache
 
-# Argumentos de build
 ARG DEBIAN_FRONTEND=noninteractive
+ARG APP_ENV=production
 
-# Instalar dependências do sistema
-RUN apt-get update && apt-get install -y \
-    git \
+# ---- Dependências do sistema ----
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libpng-dev \
     libonig-dev \
@@ -14,12 +16,13 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
+    libssl-dev \
     zip \
     unzip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar extensões PHP necessárias para CodeIgniter
+# ---- Extensões PHP ----
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo \
@@ -27,44 +30,56 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     mysqli \
     mbstring \
     exif \
-    pcntl \
     bcmath \
     gd \
     zip \
-    intl
+    intl \
+    opcache \
+    openssl \
+    && docker-php-ext-enable opcache
 
-# Habilitar mod_rewrite do Apache (necessário para CodeIgniter)
-RUN a2enmod rewrite headers
+# ---- Módulos Apache ----
+RUN a2enmod rewrite headers expires deflate
 
-# Configurar o Apache para permitir .htaccess
+# ---- Permitir .htaccess ----
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
-# Instalar Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# ---- Segurança: esconder versão do Apache ----
+RUN echo "ServerTokens Prod" >> /etc/apache2/conf-available/security.conf \
+    && echo "ServerSignature Off" >> /etc/apache2/conf-available/security.conf \
+    && a2enconf security
 
-# Definir diretório de trabalho
+# ---- Diretório de trabalho ----
 WORKDIR /var/www/html
 
-# Copiar arquivos do projeto
+# ---- Copiar código ----
 COPY . /var/www/html
 
-# Ajustar permissões
+# ---- Permissões seguras (755 dirs, 644 files) ----
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+    && find /var/www/html -type d -exec chmod 755 {} \; \
+    && find /var/www/html -type f -exec chmod 644 {} \;
 
-# Criar diretórios necessários e ajustar permissões
+# ---- Diretórios que precisam de escrita ----
 RUN mkdir -p /var/www/html/application/cache \
     && mkdir -p /var/www/html/application/logs \
     && mkdir -p /var/www/html/admin_assets/uploads \
     && chown -R www-data:www-data /var/www/html/application/cache \
     && chown -R www-data:www-data /var/www/html/application/logs \
     && chown -R www-data:www-data /var/www/html/admin_assets/uploads \
-    && chmod -R 777 /var/www/html/application/cache \
-    && chmod -R 777 /var/www/html/application/logs \
-    && chmod -R 777 /var/www/html/admin_assets/uploads
+    && chmod -R 775 /var/www/html/application/cache \
+    && chmod -R 775 /var/www/html/application/logs \
+    && chmod -R 775 /var/www/html/admin_assets/uploads
 
-# Expor porta 80
+# ---- Remover arquivos perigosos em produção ----
+RUN rm -f /var/www/html/test.php 2>/dev/null; \
+    rm -f /var/www/html/error_log 2>/dev/null; \
+    true
+
 EXPOSE 80
 
-# Comando padrão
+# ---- Health check nativo ----
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
 CMD ["apache2-foreground"]

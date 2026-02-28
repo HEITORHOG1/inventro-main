@@ -32,7 +32,6 @@ class Account extends MX_Controller {
     //    =========== its for get_customers ============
     public function get_customers() {
         $get_customers = $this->Account_model->get_customers();
-        var_dump($get_customers);
         echo "<option value=''>-- select one --</option>";
         foreach ($get_customers as $value) {
             echo "<option value='$value->customerid'>$value->name</option>";

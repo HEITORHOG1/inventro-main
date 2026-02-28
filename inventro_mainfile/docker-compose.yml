@@ -1,62 +1,115 @@
 version: '3.8'
 
 services:
-  # Servidor Web PHP com Apache
+  # =========================================
+  # Servidor Web PHP + Apache
+  # =========================================
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        APP_ENV: ${APP_ENV:-production}
     container_name: inventro_app
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "${APP_PORT:-8080}:80"
     volumes:
       - .:/var/www/html
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - app_logs:/var/www/html/application/logs
     environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html
+      APP_ENV: ${APP_ENV:-production}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-inventro_db}
+      DB_USERNAME: ${DB_USERNAME:-inventro_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CI_ENCRYPTION_KEY: ${CI_ENCRYPTION_KEY}
+      TZ: ${TZ:-America/Sao_Paulo}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Banco de Dados MySQL
+  # =========================================
+  # Banco de Dados MySQL 8.0
+  # =========================================
   db:
     image: mysql:8.0
     container_name: inventro_db
     restart: unless-stopped
-    ports:
-      - "3306:3306"
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --init-connect='SET NAMES utf8mb4'
+    # SEM ports expostas — só acessível internamente
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --init-connect='SET NAMES utf8mb4'
+      --default-authentication-plugin=mysql_native_password
+      --max-connections=150
+      --innodb-buffer-pool-size=256M
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: inventro_db
-      MYSQL_USER: inventro_user
-      MYSQL_PASSWORD: inventro_password
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE:-inventro_db}
+      MYSQL_USER: ${DB_USERNAME:-inventro_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
+      TZ: ${TZ:-America/Sao_Paulo}
     volumes:
       - inventro_mysql_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # phpMyAdmin para gerenciamento do banco
+  # =========================================
+  # phpMyAdmin (apenas desenvolvimento)
+  # =========================================
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: inventro_phpmyadmin
     restart: unless-stopped
     ports:
-      - "8081:80"
+      - "${PMA_PORT:-8081}:80"
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
-      PMA_USER: root
-      PMA_PASSWORD: root_password
+      PMA_USER: ${DB_USERNAME:-inventro_user}
+      PMA_PASSWORD: ${DB_PASSWORD}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - inventro_network
+    profiles:
+      - dev
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
 
 networks:
   inventro_network:
@@ -64,4 +117,6 @@ networks:
 
 volumes:
   inventro_mysql_data:
+    driver: local
+  app_logs:
     driver: local
