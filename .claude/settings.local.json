@@ -214,7 +214,16 @@
       "Bash(docker compose up -d --build)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/)",
       "Bash(docker exec inventro_app env)",
-      "Bash(docker exec inventro_app php -i)"
+      "Bash(docker exec inventro_app php -i)",
+      "Read(//g/Projetos/inventro-inventory-management-system/inventro-main/**)",
+      "Bash(grep -l \"public function\" \"/g/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application/modules/delivery/controllers\"/*.php)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(grep -i \"payment\\\\|gateway\\\\|stripe\\\\|mercadopago\\\\|paypal\" \"/g/Projetos/inventro-inventory-management-system/inventro-main/inventro_mainfile/application/config/\"*.php)",
+      "Bash(xargs ls -lh)",
+      "Bash(docker exec inventro_db mysql -u inventro_user -pinventro_password inventro_db -e \"DESCRIBE customer_tbl;\")",
+      "Bash(docker exec inventro_db mysql -u inventro_user -pinventro_password inventro_db -e \"SELECT id, name, mobile, address, cep, cidade, estado FROM customer_tbl LIMIT 5;\")",
+      "Bash(curl -s \"http://localhost:8080/cardapio/api_buscar_cliente?telefone=98765111\")",
+      "Bash(curl -s -I http://localhost:8080/login)"
     ],
     "additionalDirectories": [
       "g:\\Projetos\\inventro-inventory-management-system\\inventro-main\\inventro_mainfile\\application\\cache",

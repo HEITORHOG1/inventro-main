@@ -90,13 +90,17 @@ class Cardapio extends CI_Controller {
                 return;
             }
         } else {
-            // Buscar por telefone (limpar formatação) — query segura via like()
+            // Buscar por telefone (limpar formatação no PHP e no SQL)
             $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone);
             if (strlen($telefone_limpo) < 8) {
                 echo json_encode(['found' => false]);
                 return;
             }
-            $this->db->like('mobile', $telefone_limpo);
+            // Strip formatting in SQL before comparing — $telefone_limpo is digits only (safe)
+            $this->db->where(
+                "REPLACE(REPLACE(REPLACE(REPLACE(mobile, '(', ''), ')', ''), ' ', ''), '-', '') LIKE '%" . $this->db->escape_like_str($telefone_limpo) . "%'",
+                null, false
+            );
         }
 
         $cliente = $this->db->get()->row();
