@@ -346,7 +346,7 @@ $config['cache_query_string'] = FALSE;
 | https://codeigniter.com/user_guide/libraries/encryption.html
 |
 */
-$config['encryption_key'] = 'TU#12HIN12SOR12KER#';
+$config['encryption_key'] = getenv('CI_ENCRYPTION_KEY') ?: 'TU#12HIN12SOR12KER#';
 
 /*
 |--------------------------------------------------------------------------
@@ -404,9 +404,9 @@ $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ci_session';
 $config['sess_expiration'] = 7200;
 $config['sess_save_path'] = APPPATH.'cache/temp/';
-$config['sess_match_ip'] = FALSE;
+$config['sess_match_ip'] = TRUE;
 $config['sess_time_to_update'] = 300;
-$config['sess_regenerate_destroy'] = FALSE;
+$config['sess_regenerate_destroy'] = TRUE;
 
 
 
@@ -428,8 +428,8 @@ $config['sess_regenerate_destroy'] = FALSE;
 $config['cookie_prefix']	= '';
 $config['cookie_domain']	= '';
 $config['cookie_path']		= '/';
-$config['cookie_secure']	= FALSE;
-$config['cookie_httponly'] 	= FALSE;
+$config['cookie_secure']	= getenv('CI_COOKIE_SECURE') === 'true' ? TRUE : FALSE;
+$config['cookie_httponly'] 	= TRUE;
 
 /*
 |--------------------------------------------------------------------------
@@ -477,7 +477,7 @@ $config['csrf_protection'] = TRUE;
 $config['csrf_token_name'] = 'csrf_test_name';
 $config['csrf_cookie_name'] = 'csrf_cookie_name';
 $config['csrf_expire'] = 7200;
-$config['csrf_regenerate'] = FALSE;
+$config['csrf_regenerate'] = TRUE;
 $config['csrf_exclude_uris'] = array(
     'cardapio/processar_pedido',
     'cardapio/api_produtos',
@@ -485,9 +485,6 @@ $config['csrf_exclude_uris'] = array(
     'cardapio/api_zonas',
     'cardapio/api_categorias',
     'cardapio/buscar',
-    'delivery/zones/api_list',
-    'delivery/orders/api_list',
-    'delivery/zones/toggle_status/.*',
     // API v1 — apps nativos usam JWT, não CSRF
     'api/v1/.*'
 );

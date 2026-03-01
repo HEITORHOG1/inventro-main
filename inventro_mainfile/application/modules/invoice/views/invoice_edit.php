@@ -149,13 +149,13 @@
                                                 <input type="hidden" name="" id="boxqty_hide_<?php echo $sl; ?>" class="form-control" value="<?php echo $single->cartoon_qty; ?>">
                                             </td>
                                             <td class="test">
-                                                <input type="text" name="product_rate[]" onkeyup="quantity_calculate('<?php echo $sl; ?>');" onchange="quantity_calculate('<?php echo $sl; ?>');" id="product_rate_<?php echo $sl; ?>" class="form-control common_rate product_rate_<?php echo $sl; ?> text-right" placeholder="0.00" value="<?php echo $single->price; ?>" min="0" tabindex="7" required=""/>
+                                                <input type="text" name="product_rate[]" onkeyup="quantity_calculate('<?php echo $sl; ?>');" onchange="quantity_calculate('<?php echo $sl; ?>');" id="product_rate_<?php echo $sl; ?>" class="form-control common_rate product_rate_<?php echo $sl; ?> text-right" placeholder="0.00" value="<?php echo html_escape($single->price); ?>" min="0" tabindex="7" required=""/>
                                             </td>
                                             <td class="test">
-                                                <input type="text" name="product_discount[]" onkeyup="quantity_calculate('<?php echo $sl; ?>');" onchange="quantity_calculate('<?php echo $sl; ?>');" id="product_discount_<?php echo $sl; ?>" class="form-control common_discount product_discount_<?php echo $sl; ?> text-right" placeholder="0.00" value="<?php echo $single->discount; ?>" min="0" tabindex="7"/>
+                                                <input type="text" name="product_discount[]" onkeyup="quantity_calculate('<?php echo $sl; ?>');" onchange="quantity_calculate('<?php echo $sl; ?>');" id="product_discount_<?php echo $sl; ?>" class="form-control common_discount product_discount_<?php echo $sl; ?> text-right" placeholder="0.00" value="<?php echo html_escape($single->discount); ?>" min="0" tabindex="7"/>
                                             </td>
                                             <td class="text-right">
-                                                <input class="form-control total_price text-right common_totalprice" type="text" name="total_price[]" id="total_price_<?php echo $sl; ?>" value="<?php echo $single->total_price; ?>" readonly="readonly" />
+                                                <input class="form-control total_price text-right common_totalprice" type="text" name="total_price[]" id="total_price_<?php echo $sl; ?>" value="<?php echo html_escape($single->total_price); ?>" readonly="readonly" />
                                             </td>
                                             <td class="text-center">
                                                 <input type="hidden" id="all_discount_<?php echo $sl; ?>" class="all_discount" name="discount_amount[]" />
@@ -170,23 +170,23 @@
                                 <center>
                                     <label for="details" class="  col-form-label"><?php echo makeString(['description']); ?></label>
                                 </center>
-                                <textarea name="details" class="form-control" placeholder="<?php echo makeString(['description']); ?>"><?php echo $edit_invoice->description; ?></textarea>
+                                <textarea name="details" class="form-control" placeholder="<?php echo makeString(['description']); ?>"><?php echo html_escape($edit_invoice->description); ?></textarea>
                                 </td>
                                 <td class="text-right" colspan="2"><b><?php echo makeString(['invoice_discount']); ?> </b>:</td>
                                 <td class="text-right">
-                                    <input type="text" onkeyup="quantity_calculate(1);"  onchange="quantity_calculate('<?php echo $sl; ?>');" id="invoice_discount" class="form-control text-right" name="invoice_discount" placeholder="0.00" value="<?php echo $edit_invoice->invoice_discount; ?>" />
+                                    <input type="text" onkeyup="quantity_calculate(1);"  onchange="quantity_calculate('<?php echo $sl; ?>');" id="invoice_discount" class="form-control text-right" name="invoice_discount" placeholder="0.00" value="<?php echo html_escape($edit_invoice->invoice_discount); ?>" />
                                 </td>
                                 </tr>
                                 <tr>
                                     <td class="text-right" colspan="2"><b><?php echo makeString(['total_discount']); ?> </b>:</td>
                                     <td class="text-right">
-                                        <input type="text" onkeyup="quantity_calculate('<?php echo $sl; ?>');"  onchange="quantity_calculate('<?php echo $sl; ?>');" id="total_discount" class="form-control text-right" name="total_discount" placeholder="0.00" value="<?php echo $edit_invoice->total_discount; ?>" readonly />
+                                        <input type="text" onkeyup="quantity_calculate('<?php echo $sl; ?>');"  onchange="quantity_calculate('<?php echo $sl; ?>');" id="total_discount" class="form-control text-right" name="total_discount" placeholder="0.00" value="<?php echo html_escape($edit_invoice->total_discount); ?>" readonly />
                                     </td>
                                 </tr>
                                 <tr>
                                     <td colspan="2"  class="text-right"><b><?php echo makeString(['grand_total']); ?>  :</b></td>
                                     <td class="text-right">
-                                        <input type="text" id="grandTotal" class="form-control text-right" name="grand_total_price" value="<?php echo $edit_invoice->total_amount; ?>" readonly="readonly" />
+                                        <input type="text" id="grandTotal" class="form-control text-right" name="grand_total_price" value="<?php echo html_escape($edit_invoice->total_amount); ?>" readonly="readonly" />
                                     </td>
                                 </tr>
                                 <tr>

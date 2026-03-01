@@ -54,7 +54,7 @@
  * NOTE: If you change these, also change the error_reporting() code below
  */
 	
-	define('ENVIRONMENT', getenv('APP_ENV') ?: 'development');
+	define('ENVIRONMENT', getenv('APP_ENV') ?: 'production');
 
 /*
  *---------------------------------------------------------------

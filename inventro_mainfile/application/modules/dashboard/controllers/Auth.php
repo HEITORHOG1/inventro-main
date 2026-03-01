@@ -23,7 +23,7 @@ class Auth extends MX_Controller {
 		$data['title']    = makeString(['login']); 
 
 		$this->form_validation->set_rules('email', makeString(['email']), 'required|valid_email|max_length[100]|trim');
-		$this->form_validation->set_rules('password', makeString(['password']), 'required|max_length[32]|md5|trim');
+		$this->form_validation->set_rules('password', makeString(['password']), 'required|max_length[128]|trim');
 	
 
 
@@ -35,11 +35,34 @@ class Auth extends MX_Controller {
 		
 		if ( $this->form_validation->run())
 		{
-			
-		
+			$plain_password = $this->input->post('password', TRUE);
 			$user = $this->auth_model->checkUser($userData);
 
 			if($user->num_rows() > 0) {
+
+				$row = $user->row();
+				$password_valid = false;
+
+				// 1) Try bcrypt first (already migrated users)
+				if (!empty($row->password_bcrypt)) {
+					$password_valid = password_verify($plain_password, $row->password_bcrypt);
+				}
+
+				// 2) Fallback: legacy MD5 (transparent migration)
+				if (!$password_valid && !empty($row->password)) {
+					if (md5($plain_password) === $row->password) {
+						$password_valid = true;
+						// Migrate to bcrypt on the fly
+						$bcrypt_hash = password_hash($plain_password, PASSWORD_BCRYPT, ['cost' => 12]);
+						$this->auth_model->update_password_bcrypt($row->id, $bcrypt_hash);
+					}
+				}
+
+				if (!$password_valid) {
+					$this->session->set_flashdata('exception', makeString(['incorrect_email_or_password']));
+					redirect('login');
+					return;
+				}
 
 				$checkPermission = $this->auth_model->userPermission2($user->row()->id);
 

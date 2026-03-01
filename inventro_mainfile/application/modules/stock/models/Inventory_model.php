@@ -303,19 +303,20 @@ class Inventory_model extends CI_Model {
 			$this->db->update('inv_checkout_details', $updatedata, ['checkout_id' => $checkout_id, 'product_id' => $product->product_id]);
 			
 			// Inv Stock products quantity addition
-			$this->db->query("
-				UPDATE `inv_stock` 
-				SET `case_qty` = `case_qty` - $case_qty, 
-				`unit_qty` = `unit_qty` - $unit_qty 
-				WHERE  distributor_id = $checkout->create_by 
-				AND product_id = $product->product_id");
+			$this->db->query(
+				"UPDATE `inv_stock` SET `case_qty` = `case_qty` - ?, `unit_qty` = `unit_qty` - ? WHERE distributor_id = ? AND product_id = ?",
+				[(int)$case_qty, (int)$unit_qty, (int)$checkout->create_by, (int)$product->product_id]
+			);
 
 			// FieldStaff Inv Stock products quantity substraction
 			$checkINVstockField = $this->db->where('fieldstaff_id',$checkout->fk_fieldstaff_id)->where('product_id',$product->product_id)->get('inv_stock_fieldstaff')->num_rows();
 			
 			if($checkINVstockField>0){
 				// FieldStaff Inv Stock products quantity substraction
-				$this->db->query("UPDATE `inv_stock_fieldstaff` SET `case_qty` = `case_qty` + $case_qty, `unit_qty` = `unit_qty` + $unit_qty WHERE  fieldstaff_id = $checkout->fk_fieldstaff_id AND product_id = $product->product_id");
+				$this->db->query(
+					"UPDATE `inv_stock_fieldstaff` SET `case_qty` = `case_qty` + ?, `unit_qty` = `unit_qty` + ? WHERE fieldstaff_id = ? AND product_id = ?",
+					[(int)$case_qty, (int)$unit_qty, (int)$checkout->fk_fieldstaff_id, (int)$product->product_id]
+				);
 				//update
 			} else {
 				// insert
@@ -563,10 +564,16 @@ class Inventory_model extends CI_Model {
 			$this->db->update('inv_checkin_details', $updatedata, ['checkin_id' => $checkin_id, 'product_id' => $product->product_id]);
 			// Inv Stock products quantity addition
 			
-			$this->db->query("UPDATE `inv_stock` SET `case_qty` = `case_qty` + $case_qty, `unit_qty` = `unit_qty` + $unit_qty WHERE  distributor_id = $checkin->create_by AND product_id = $product->product_id");
+			$this->db->query(
+				"UPDATE `inv_stock` SET `case_qty` = `case_qty` + ?, `unit_qty` = `unit_qty` + ? WHERE distributor_id = ? AND product_id = ?",
+				[(int)$case_qty, (int)$unit_qty, (int)$checkin->create_by, (int)$product->product_id]
+			);
 
 			// FieldStaff Inv Stock products quantity substraction
-			$this->db->query("UPDATE `inv_stock_fieldstaff` SET `case_qty` = `case_qty` - $case_qty, `unit_qty` = `unit_qty` - $unit_qty WHERE  fieldstaff_id = $checkin->fk_fieldstaff_id AND product_id = $product->product_id");
+			$this->db->query(
+				"UPDATE `inv_stock_fieldstaff` SET `case_qty` = `case_qty` - ?, `unit_qty` = `unit_qty` - ? WHERE fieldstaff_id = ? AND product_id = ?",
+				[(int)$case_qty, (int)$unit_qty, (int)$checkin->fk_fieldstaff_id, (int)$product->product_id]
+			);
 
 		}
 
@@ -772,8 +779,11 @@ class Inventory_model extends CI_Model {
 
 	    			if($stock_exist->num_rows() > 0) {
 
-	    				$this->db->query("UPDATE `inv_stock` SET case_qty = case_qty + $case_qty, unit_qty = unit_qty + $unit_qty WHERE  distributor_id = $distributor AND product_id = $productid");
-	    			
+	    				$this->db->query(
+	    					"UPDATE `inv_stock` SET case_qty = case_qty + ?, unit_qty = unit_qty + ? WHERE distributor_id = ? AND product_id = ?",
+	    					[(int)$case_qty, (int)$unit_qty, (int)$distributor, (int)$productid]
+	    				);
+
 	    			} else {
 
 	    				$stock[] = array(
@@ -835,7 +845,10 @@ class Inventory_model extends CI_Model {
 
     			if($batch_exist->num_rows()>0){
     				
-	    			$this->db->query("UPDATE `inv_batch_details` SET case_qty = case_qty + $case_qty, unit_qty = unit_qty + $unit_qty WHERE  batch_id = $batch_id AND product_id = $productid");
+	    			$this->db->query(
+	    				"UPDATE `inv_batch_details` SET case_qty = case_qty + ?, unit_qty = unit_qty + ? WHERE batch_id = ? AND product_id = ?",
+	    				[(int)$case_qty, (int)$unit_qty, (int)$batch_id, (int)$productid]
+	    			);
 
     			}else{
 
@@ -860,8 +873,11 @@ class Inventory_model extends CI_Model {
 
     			if($stock_exist->num_rows() > 0) {
 
-    				$this->db->query("UPDATE `inv_stock` SET case_qty = case_qty + $case_qty, unit_qty = unit_qty + $unit_qty WHERE  distributor_id = $distributor AND product_id = $productid");
-    			
+    				$this->db->query(
+    					"UPDATE `inv_stock` SET case_qty = case_qty + ?, unit_qty = unit_qty + ? WHERE distributor_id = ? AND product_id = ?",
+    					[(int)$case_qty, (int)$unit_qty, (int)$distributor, (int)$productid]
+    				);
+
     			} else {
 
     				$stock = array(

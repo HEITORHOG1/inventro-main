@@ -37,8 +37,8 @@
                                     <select class="form-control select2" name="customer_id" id="customer_id" data-placeholder="<?php echo makeString(['select_one']); ?>">
                                         <option value=""></option>
                                         <?php foreach ($get_customer as $customer) { ?>
-                                            <option value="<?php echo $customer->customerid; ?>">
-                                                <?php echo $customer->name; ?>
+                                            <option value="<?php echo html_escape($customer->customerid); ?>">
+                                                <?php echo html_escape($customer->name); ?>
                                             </option>
                                         <?php } ?>
                                     </select>
@@ -102,7 +102,7 @@
                                                 <option value=""></option>
                                                 <?php
                                                 foreach ($get_products as $products) {
-                                                    echo "<option value=" . $products->product_id . ">" . $products->name . "</option>";
+                                                    echo "<option value=\"" . html_escape($products->product_id) . "\">" . html_escape($products->name) . "</option>";
                                                 }
                                                 ?>
                                             </select>

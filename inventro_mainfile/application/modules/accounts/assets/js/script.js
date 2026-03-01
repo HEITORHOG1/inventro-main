@@ -15,9 +15,14 @@
                 $.ajax({
                     url: base_url + "invoice/invoice/get_banks",
                     type: "POST",
+                    dataType: "json",
                     data: {'csrf_test_name': CSRF_TOKEN},
-                    success: function (r) {
-                        $("#cheque_bank_name").html(r);
+                    success: function (data) {
+                        var opts = "<option value=''>-- select one --</option>";
+                        $.each(data, function(i, item) {
+                            opts += "<option value='" + $('<span>').text(item.bank_id).html() + "'>" + $('<span>').text(item.bank_name).html() + "</option>";
+                        });
+                        $("#cheque_bank_name").html(opts);
                     }
                 });
             }
@@ -78,9 +83,14 @@ function get_allcustomer() {
     $.ajax({
         url: base_url + "accounts/account/get_customers",
         type: "POST",
+        dataType: "json",
         data: {'csrf_test_name': CSRF_TOKEN},
-        success: function (r) {
-            $(".customers").html(r);
+        success: function (data) {
+            var opts = "<option value=''>-- select one --</option>";
+            $.each(data, function(i, item) {
+                opts += "<option value='" + $('<span>').text(item.customerid).html() + "'>" + $('<span>').text(item.name).html() + "</option>";
+            });
+            $(".customers").html(opts);
         }
     });
 }
@@ -91,9 +101,14 @@ function get_allsuppliers() {
     $.ajax({
         url: base_url + "accounts/account/get_allsuppliers",
         type: "POST",
+        dataType: "json",
         data: {'csrf_test_name': CSRF_TOKEN},
-        success: function (r) {
-            $(".suppliers").html(r);
+        success: function (data) {
+            var opts = "<option value=''>-- select one --</option>";
+            $.each(data, function(i, item) {
+                opts += "<option value='" + $('<span>').text(item.supplier_id).html() + "'>" + $('<span>').text(item.name).html() + "</option>";
+            });
+            $(".suppliers").html(opts);
         }
     });
 }

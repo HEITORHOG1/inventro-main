@@ -13,9 +13,14 @@ function returnBank_paymet(val) {
         $.ajax({
             url: base_url + "invoice/invoice/get_banks",
             type: "POST",
+            dataType: "json",
             data: {bank_id: val,'csrf_test_name': CSRF_TOKEN},
-            success: function (r) {
-                $("#bank_id").html(r);
+            success: function (data) {
+                var opts = "<option value=''>-- select one --</option>";
+                $.each(data, function(i, item) {
+                    opts += "<option value='" + $('<span>').text(item.bank_id).html() + "'>" + $('<span>').text(item.bank_name).html() + "</option>";
+                });
+                $("#bank_id").html(opts);
             }
         });
     } else {

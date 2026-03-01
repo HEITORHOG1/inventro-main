@@ -83,9 +83,9 @@ class Invoice extends MX_Controller {
 
         
             $tr .= "<tr>
-                     <td> <input type=\"text\" style=\"width:150px\" name=\"\" class=\"form-control\" value=\"" . $product_details->product_name . "- (" . $product_details->product_model . ")" ."\" id=\"item_name_\" readonly/>
-                     <input type=\"hidden\" name=\"product_id[]\" class=\"\" value=\"".$product_details->product_id."\" id=\"product_id_".$product_details->product_id."\"/>
-                     <input type=\"hidden\" name=\"available_qnt[]\" class=\"form-control\" id=\"available_qnt_".$product_details->product_id."\" value=\"".$product_details->total_product."\" readonly>
+                     <td> <input type=\"text\" style=\"width:150px\" name=\"\" class=\"form-control\" value=\"" . htmlspecialchars($product_details->product_name, ENT_QUOTES, 'UTF-8') . "- (" . htmlspecialchars($product_details->product_model, ENT_QUOTES, 'UTF-8') . ")" ."\" id=\"item_name_\" readonly/>
+                     <input type=\"hidden\" name=\"product_id[]\" class=\"\" value=\"".(int)$product_details->product_id."\" id=\"product_id_".(int)$product_details->product_id."\"/>
+                     <input type=\"hidden\" name=\"available_qnt[]\" class=\"form-control\" id=\"available_qnt_".(int)$product_details->product_id."\" value=\"".(int)$product_details->total_product."\" readonly>
                                         </td>
                                         
                                         <td>
@@ -124,10 +124,8 @@ class Invoice extends MX_Controller {
 //    =========== its for get_products ============
     public function get_products() {
         $get_products = $this->Invoice_model->get_products();
-        echo "<option value=''>-- selecione --</option>";
-        foreach ($get_products as $value) {
-            echo "<option value='$value->product_id'>$value->name</option>";
-        }
+        header('Content-Type: application/json');
+        echo json_encode($get_products);
     }
 
 //    =========== its for invoice save =========== 
@@ -508,12 +506,9 @@ class Invoice extends MX_Controller {
 
 // ================ 
     public function get_banks() {
-    
         $bank_list = $this->Account_model->get_banks();
-        echo "<option value=''>-- selecione --</option>";
-        foreach ($bank_list as $value) {
-            echo "<option value='$value->bank_id'>$value->bank_name</option>";
-        }
+        header('Content-Type: application/json');
+        echo json_encode($bank_list);
     }
 
 //    ============= its for invoice_delete ===========

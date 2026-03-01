@@ -19,18 +19,18 @@ $position = $get_appsetting->position;
                         <img src="<?php echo base_url($get_appsetting->logo); ?>" class="img-responsive" alt="">
                         <br>
                         <address>
-                            <strong><?php echo $get_appsetting->title; ?></strong><br>
-                            <?php echo $get_appsetting->address; ?><br>
+                            <strong><?php echo html_escape($get_appsetting->title); ?></strong><br>
+                            <?php echo html_escape($get_appsetting->address); ?><br>
                             <?php echo html_escape($get_appsetting->email); ?><br>
                             <abbr title="Phone"></abbr> <?php echo html_escape($get_appsetting->phone); ?>
                         </address>
                     </div>
                     <div class="col-sm-6 text-right">
-                        <h4 class="m-t-0">Invoice : <?php echo $get_invoice_info->invoice_id; ?></h4>
+                        <h4 class="m-t-0">Invoice : <?php echo html_escape($get_invoice_info->invoice_id); ?></h4>
                         <div><?php echo date('d F Y', strtotime($get_invoice_info->date)); ?></div>
                         <address>
                             <strong><?php echo html_escape( $get_invoice_info->name); ?></strong><br>
-                            <?php echo $get_invoice_info->address; ?><br>
+                            <?php echo html_escape($get_invoice_info->address); ?><br>
                             <?php echo html_escape($get_invoice_info->email); ?><br>
                             <abbr title="<?php echo makeString(['mobile']); ?>"></abbr> <?php echo html_escape($get_invoice_info->mobile); ?>
                         </address>
@@ -76,7 +76,7 @@ $position = $get_appsetting->position;
                 <div class="row">
                     <div class="col-sm-8">
                         <p>
-                            <?php echo $get_invoice_info->description; ?>
+                            <?php echo html_escape($get_invoice_info->description); ?>
                         </p>
                         <p><strong><?php echo makeString(['thank_you_very_much']); ?></strong></p>
 

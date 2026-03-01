@@ -6,14 +6,15 @@ class Returns extends MX_Controller {
 public function __construct()
 	{
 		parent::__construct();
-		
+		$this->permission->module('return')->redirect();
 		$this->load->model(array(
 			'Return_model',
-		));	
-     $this->load->library('Generators');	 
+		));
+     $this->load->library('Generators');
 	}
 
-public function customer_return(){   
+public function customer_return(){
+        $this->permission->method('return', 'read')->redirect();
         $data['title']    = makeString(['customer_return']); 
         $invoice_id = $this->input->post('invoiceid');
         $data['invoiceid']= $invoice_id;
@@ -27,8 +28,8 @@ public function customer_return(){
 		echo Modules::run('template/layout', $data); 
 	} 
 
-  public function supplier_return(){ 
-      
+  public function supplier_return(){
+        $this->permission->method('return', 'read')->redirect();
          $purchase_id = $this->input->post('purchase_id',TRUE);
         //  dd( $purchase_id);
          $data['title']         = makeString(['purchase_edit']);
@@ -62,6 +63,7 @@ public function customer_return(){
 
  //customer return list
  public function customer_return_list(){
+   $this->permission->method('return', 'read')->redirect();
    $data['title'] = makeString(['customer_return_list']);
         $data['get_appsetting'] = $this->Return_model->get_appsetting();
         $config["base_url"] = base_url('sales/returns/customer_return_list');
@@ -99,6 +101,7 @@ public function customer_return(){
 
  //supplier return
 public function supplier_return_list(){
+   $this->permission->method('return', 'read')->redirect();
    $data['title'] = makeString(['supplier_return_list']);
         $data['get_appsetting'] = $this->Return_model->get_appsetting();
         $config["base_url"] = base_url('sales/returns/supplier_return_list');
@@ -136,6 +139,7 @@ public function supplier_return_list(){
 
 //Save customer return
       public function save_customer_return() {
+        $this->permission->method('return', 'create')->redirect();
         $transaction_id = "RT" . date('d') . $this->generators->generator(8);
         $invoice_id = $this->input->post('invoice_id',TRUE);
         $receipt_no = "R" . date('d') . $this->generators->generator(10);
@@ -248,6 +252,7 @@ public function supplier_return_list(){
 
 //Save supplier return
       public function save_supplier_return() {
+        $this->permission->method('return', 'create')->redirect();
         $transaction_id = "RT" . date('d') . $this->generators->generator(8);
         $purchase_id = $this->input->post('purchase_id',TRUE);
         $receipt_no = "R" . date('d') . $this->generators->generator(10);
@@ -358,7 +363,8 @@ public function supplier_return_list(){
     }
 
 
- public function delete($id = null){ 
+ public function delete($id = null){
+    $this->permission->method('return', 'delete')->redirect();
     if ($this->Return_model->delete($id)) {
       #set success message
       $this->session->set_flashdata('message',makeString(['delete_successfully']));
@@ -371,6 +377,7 @@ public function supplier_return_list(){
 
 // supplier return details
  public function supplier_return_details($return_id) {
+        $this->permission->method('return', 'read')->redirect();
         $data['title'] = makeString(['supplier_return_details']);        
         $data['get_appsetting'] = $this->Return_model->get_appsetting();
         $data['return_info'] = $this->Return_model->get_supplier_return_info($return_id);
@@ -381,6 +388,7 @@ public function supplier_return_list(){
     }
 //customer return details
     public function customer_return_details($return_id) {
+        $this->permission->method('return', 'read')->redirect();
         $data['title'] = makeString(['customer_return_details']);        
         $data['get_appsetting'] = $this->Return_model->get_appsetting();
         $data['return_info'] = $this->Return_model->get_customer_return_info($return_id);

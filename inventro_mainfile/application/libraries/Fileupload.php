@@ -29,6 +29,7 @@ class Fileupload
         $config = [
             'upload_path'      => $file_path,
             'allowed_types'    => 'gif|jpg|png|jpeg|ico',
+            'max_size'         => 2048, // 2MB max
             'max_filename'     => 255,
             'overwrite'        => false,
             'maintain_ratio'   => true,
@@ -36,7 +37,7 @@ class Fileupload
             'remove_spaces'    => true,
             'file_ext_tolower' => true,
         ];
-        
+
         $ci->load->library('upload', $config);
 
         // Perform the upload
@@ -47,7 +48,22 @@ class Fileupload
 
         // Get uploaded file data
         $file = $ci->upload->data();
-        return $file_path . $file['file_name']; // Return the file path
+        $full_path = $file_path . $file['file_name'];
+
+        // MIME type verification (defense in depth — don't trust extension alone)
+        $allowed_mimes = ['image/gif', 'image/jpeg', 'image/png', 'image/x-icon', 'image/vnd.microsoft.icon'];
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $detected_mime = finfo_file($finfo, $full_path);
+            finfo_close($finfo);
+            if (!in_array($detected_mime, $allowed_mimes)) {
+                @unlink($full_path);
+                log_message('error', 'Upload rejected: MIME type ' . $detected_mime . ' not allowed for ' . $file['file_name']);
+                return false;
+            }
+        }
+
+        return $full_path; // Return the file path
     }
 
     /**

@@ -32,19 +32,15 @@ class Account extends MX_Controller {
     //    =========== its for get_customers ============
     public function get_customers() {
         $get_customers = $this->Account_model->get_customers();
-        echo "<option value=''>-- select one --</option>";
-        foreach ($get_customers as $value) {
-            echo "<option value='$value->customerid'>$value->name</option>";
-        }
+        header('Content-Type: application/json');
+        echo json_encode($get_customers);
     }
 
     //    =========== its for get_allsuppliers ============
     public function get_allsuppliers() {
         $get_allsuppliers = $this->Account_model->get_suppliers();
-        echo "<option value=''>-- select one --</option>";
-        foreach ($get_allsuppliers as $value) {
-            echo "<option value='$value->supplier_id'>$value->name</option>";
-        }
+        header('Content-Type: application/json');
+        echo json_encode($get_allsuppliers);
     }
 
 //    =========== its for transaction save ============

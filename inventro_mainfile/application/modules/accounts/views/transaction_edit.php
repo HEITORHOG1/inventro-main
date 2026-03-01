@@ -115,9 +115,9 @@
                                             if ($get_customer) {
                                                 foreach ($get_customer as $customer) {
                                                     if ($transaction_edit->ledger_id == $customer->customerid) {
-                                                        echo "<option selected value=" . $customer->customerid . ">" . $customer->name . "</option>";
+                                                        echo "<option selected value=\"" . html_escape($customer->customerid) . "\">" . html_escape($customer->name) . "</option>";
                                                     } else {
-                                                        echo "<option value=" . $customer->customerid . ">" . $customer->name . " </option>";
+                                                        echo "<option value=\"" . html_escape($customer->customerid) . "\">" . html_escape($customer->name) . "</option>";
                                                     }
                                                 }
                                             }
@@ -125,9 +125,9 @@
                                             if ($get_supplier) {
                                                 foreach ($get_supplier as $supplier) {
                                                     if ($transaction_edit->ledger_id == $supplier->supplier_id) {
-                                                        echo "<option selected value=" . $supplier->supplier_id . ">" . $supplier->name . "</option>";
+                                                        echo "<option selected value=\"" . html_escape($supplier->supplier_id) . "\">" . html_escape($supplier->name) . "</option>";
                                                     } else {
-                                                        echo "<option value=" . $supplier->supplier_id . ">" . $supplier->name . "</option>";
+                                                        echo "<option value=\"" . html_escape($supplier->supplier_id) . "\">" . html_escape($supplier->name) . "</option>";
                                                     }
                                                 }
                                             }
@@ -154,9 +154,9 @@
                                             if ($get_bank) {
                                                 foreach ($get_bank as $bank) {
                                                     if ($transaction_edit->cheque_bank_name == $bank->bank_id) {
-                                                        echo "<option selected value=" . $bank->bank_id . ">" . $bank->bank_name . "</option>";
+                                                        echo "<option selected value=\"" . html_escape($bank->bank_id) . "\">" . html_escape($bank->bank_name) . "</option>";
                                                     } else {
-                                                        echo "<option value=" . $bank->bank_id . ">" . $bank->bank_name . "</option>";
+                                                        echo "<option value=\"" . html_escape($bank->bank_id) . "\">" . html_escape($bank->bank_name) . "</option>";
                                                     }
                                                 }
                                             }
