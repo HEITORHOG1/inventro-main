@@ -9,12 +9,15 @@
 # Docker configs (não precisa dentro do container)
 docker-compose.yml
 docker-compose.override.yml
+docker-compose.prod.yml
 .dockerignore
+Makefile
 
 # IDE / Editor
 .idea/
 .vscode/
 .vs/
+.claude/
 *.swp
 *.swo
 

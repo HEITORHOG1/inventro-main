@@ -1,0 +1,24 @@
+# =============================================
+# Inventro — Docker Compose Produção (Hostiger)
+# =============================================
+# Usar com: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Ou:       make prod
+#
+# Este arquivo NÃO é carregado automaticamente.
+# Quando você usa -f, o override.yml também NÃO é carregado.
+# Então aqui só precisamos dos overrides específicos de produção
+# em cima da base (docker-compose.yml).
+
+services:
+  # =========================================
+  # Override do App para produção
+  # =========================================
+  app:
+    volumes:
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - app_logs:/var/www/html/application/logs
+      - app_uploads:/var/www/html/admin_assets/uploads
+      # Código NÃO montado — usa o baked na imagem (COPY do Dockerfile)
+    environment:
+      APP_ENV: production
+      CI_COOKIE_SECURE: "true"

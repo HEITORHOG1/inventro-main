@@ -208,7 +208,13 @@
       "Bash(curl -v -c cookies2.txt -b cookies2.txt -X POST http://localhost:8080/login -d \"email=admin@admin.com&password=12345678&csrf_test_name=359e986f8c3487333a8656cbb02fd4d5\")",
       "Bash(curl -s -c cookies2.txt -b cookies2.txt -L http://localhost:8080/dashboard/dashboard_dis -w \"\\\\n%{http_code}\")",
       "Bash(docker exec inventro_db mysql -u inventro_user -pinventro_password inventro_db -e \"SELECT id, email, LEFT\\(password, 15\\) as md5_pwd, LEFT\\(password_bcrypt, 15\\) as bcrypt_pwd FROM user WHERE email=''admin@admin.com'';\")",
-      "Bash(curl -s -X POST http://localhost:8080/api/v1/motoboy/auth/login -H \"Content-Type: application/json\" -d '{\"\"telefone\"\": \"\"11999999999\"\", \"\"senha\"\": \"\"teste123\"\"}')"
+      "Bash(curl -s -X POST http://localhost:8080/api/v1/motoboy/auth/login -H \"Content-Type: application/json\" -d '{\"\"telefone\"\": \"\"11999999999\"\", \"\"senha\"\": \"\"teste123\"\"}')",
+      "Bash(docker compose down)",
+      "Bash(docker compose -f docker-compose.yml -f docker-compose.prod.yml config)",
+      "Bash(docker compose up -d --build)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/)",
+      "Bash(docker exec inventro_app env)",
+      "Bash(docker exec inventro_app php -i)"
     ],
     "additionalDirectories": [
       "g:\\Projetos\\inventro-inventory-management-system\\inventro-main\\inventro_mainfile\\application\\cache",
