@@ -176,6 +176,7 @@ class Delivery_model extends CI_Model {
             'pendente' => [],
             'confirmado' => [],
             'preparando' => [],
+            'pronto_coleta' => [],
             'saiu_entrega' => [],
             'entregue' => [],
             'cancelado' => []
@@ -204,6 +205,7 @@ class Delivery_model extends CI_Model {
             'pendente' => 0,
             'confirmado' => 0,
             'preparando' => 0,
+            'pronto_coleta' => 0,
             'saiu_entrega' => 0,
             'entregue' => 0,
             'cancelado' => 0

@@ -32,6 +32,12 @@
                     <input type="text" name="phone" class="form-control" id="phone" value="<?php echo html_escape($setting->phone) ?>" placeholder="Telefone">
                   </div>
 
+                  <div class="form-group">
+                    <label for="cnpj"><?php echo makeString(['cnpj']) ?></label>
+                    <input type="text" name="cnpj" class="form-control" id="cnpj" value="<?php echo html_escape($setting->cnpj ?? '') ?>" placeholder="<?php echo makeString(['cnpj_placeholder']) ?>" maxlength="20">
+                    <small class="form-text text-muted">Aparece no cupom de pedidos (nota n&atilde;o-fiscal)</small>
+                  </div>
+
                   <?php if(!empty($setting->favicon)) {  ?>
                     <div class="form-group ">
                         <label for="faviconPreview" class="col-xs-3 col-form-label"></label>
@@ -92,6 +98,18 @@
 
                  
 
+
+                  <div class="form-group">
+                    <label for="plano_negocio"><?php echo makeString(['plano_negocio']) ?></label>
+                    <select name="plano_negocio" class="form-control" id="plano_negocio">
+                        <?php foreach ($planosList as $key => $label) { ?>
+                            <option value="<?php echo html_escape($key) ?>" <?php echo ((@$setting->plano_negocio == $key) ? 'selected' : '') ?>><?php echo html_escape($label) ?></option>
+                        <?php } ?>
+                    </select>
+                    <small class="form-text text-muted">
+                        <?php echo makeString(['plano_negocio_descricao']) ?>
+                    </small>
+                  </div>
 
                   <div class="form-group">
                     <label for="timezone"><?php echo makeString(['timezone']) ?></label>

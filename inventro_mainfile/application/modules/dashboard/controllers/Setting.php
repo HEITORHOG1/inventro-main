@@ -24,11 +24,12 @@ class Setting extends MX_Controller {
 		
 		$data['languageList'] = $this->languageList(); 
 		$data['currencyList'] = $this->setting_model->currencyList(); 
-		$data['setting'] = $this->setting_model->read(); 
+		$data['setting'] = $this->setting_model->read();
+		$data['planosList'] = $this->config->item('planos_nomes');
 
-		$data['module'] = "dashboard";  
-		$data['page']   = "setting/__setting";  
-		echo Modules::run('template/layout', $data); 
+		$data['module'] = "dashboard";
+		$data['page']   = "setting/__setting";
+		echo Modules::run('template/layout', $data);
 
 	} 
 
@@ -40,8 +41,10 @@ class Setting extends MX_Controller {
 		$this->form_validation->set_rules('address', makeString(['address']) ,'max_length[255]');
 		$this->form_validation->set_rules('email',makeString(['email']),'max_length[100]|valid_email');
 		$this->form_validation->set_rules('phone',makeString(['phone']),'max_length[20]');
+		$this->form_validation->set_rules('cnpj',makeString(['cnpj']),'max_length[20]');
 		$this->form_validation->set_rules('language',makeString(['language']),'max_length[250]'); 
-		$this->form_validation->set_rules('footer_text',makeString(['footer_text']),'max_length[255]'); 
+		$this->form_validation->set_rules('footer_text',makeString(['footer_text']),'max_length[255]');
+		$this->form_validation->set_rules('plano_negocio',makeString(['plano_negocio']),'required|in_list[mercadinho,mercado_completo]');
 		
 		//logo upload
 		$logo = $this->fileupload->do_upload(
@@ -87,14 +90,16 @@ class Setting extends MX_Controller {
 			'address' 	  => $this->input->post('address',TRUE),
 			'email' 	  => $this->input->post('email',TRUE),
 			'phone' 	  => $this->input->post('phone',TRUE),
+			'cnpj' 	      => $this->input->post('cnpj',TRUE),
 			'logo' 	      => (!empty($logo)?$logo:$this->input->post('old_logo',TRUE)),
 			'favicon' 	  => (!empty($favicon)?$favicon:$this->input->post('old_favicon',TRUE)),
 			'language'    => $this->input->post('language',TRUE), 
 			'currency'	  => $this->input->post('currency',TRUE),
 			'site_align'  => $this->input->post('site_align',TRUE), 
 			'footer_text' => $this->input->post('footer_text', TRUE),
-			'timezone'		=>$this->input->post('timezone',TRUE)
-		]; 
+			'timezone'		=>$this->input->post('timezone',TRUE),
+			'plano_negocio' => $this->input->post('plano_negocio', TRUE)
+		];
 		
 		if ($this->form_validation->run() === true) {
 
@@ -114,18 +119,22 @@ class Setting extends MX_Controller {
 				} else {
 					#set exception message
 					$this->session->set_flashdata('exception', makeString(['please_try_again']));
-				} 
+				}
 			}
- 
+
+			// Atualiza plano na session para efeito imediato
+			$this->session->set_userdata('plano_negocio', $postData['plano_negocio']);
+
 			redirect('dashboard/setting');
 
-		} else { 
+		} else {
 			$data['languageList'] = $this->languageList();
-			$data['currencyList'] = $this->setting_model->currencyList(); 
-			$data['module'] = "dashboard";  
-			$data['page']   = "setting/__setting";  
-			echo Modules::run('template/layout', $data); 
-		} 
+			$data['currencyList'] = $this->setting_model->currencyList();
+			$data['planosList'] = $this->config->item('planos_nomes');
+			$data['module'] = "dashboard";
+			$data['page']   = "setting/__setting";
+			echo Modules::run('template/layout', $data);
+		}
 	}
 
 
@@ -138,6 +147,7 @@ class Setting extends MX_Controller {
 				'title' => 'Dynamic Admin Panel',
 				'address' => '124/A, Street, State-145, Demo',
 				'footer_text' => '2025&copy;Copyright',
+				'plano_negocio' => 'mercado_completo',
 			]);
 		}
 	}

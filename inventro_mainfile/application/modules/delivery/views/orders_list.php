@@ -58,6 +58,18 @@
                 </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
+                <div class="small-box" style="background:#e67e22;color:#fff;">
+                    <div class="inner">
+                        <h3><?php echo $status_counts['pronto_coleta'] ?? 0; ?></h3>
+                        <p>Pronto Coleta</p>
+                    </div>
+                    <div class="icon"><i class="fa fa-archive"></i></div>
+                    <a href="?status=pronto_coleta" class="small-box-footer" style="color:rgba(255,255,255,0.8);">
+                        Ver <i class="fa fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
                 <div class="small-box bg-blue">
                     <div class="inner">
                         <h3><?php echo $status_counts['saiu_entrega']; ?></h3>
@@ -190,8 +202,8 @@
                                                class="btn btn-info btn-xs" title="Ver Detalhes">
                                                 <i class="fa fa-eye"></i>
                                             </a>
-                                            <a href="<?php echo base_url('delivery/orders/print_order/' . $order->id); ?>" 
-                                               class="btn btn-default btn-xs" title="Imprimir" target="_blank">
+                                            <a href="<?php echo base_url('delivery/orders/print_order/' . (int)$order->id); ?>?auto=1"
+                                               class="btn btn-default btn-xs" title="Imprimir Cupom" target="_blank">
                                                 <i class="fa fa-print"></i>
                                             </a>
                                         </td>

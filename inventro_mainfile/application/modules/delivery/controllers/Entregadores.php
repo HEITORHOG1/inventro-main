@@ -59,15 +59,29 @@ class Entregadores extends MX_Controller {
         $this->form_validation->set_rules('nome', makeString(['nome']), 'required|max_length[255]');
         $this->form_validation->set_rules('telefone', makeString(['telefone']), 'required|max_length[20]');
         $this->form_validation->set_rules('veiculo', makeString(['veiculo']), 'required|in_list[moto,bicicleta,carro,a_pe]');
+        $this->form_validation->set_rules('taxa_entrega_fixa', 'Taxa por Entrega', 'required|numeric|greater_than_equal_to[0]');
+
+        $id = $this->input->post('id', TRUE);
+
+        // Senha obrigatória para novos entregadores
+        if (empty($id)) {
+            $this->form_validation->set_rules('senha', 'Senha do Portal', 'required|min_length[4]');
+        }
 
         if ($this->form_validation->run()) {
-            $id = $this->input->post('id', TRUE);
 
             $postData = array(
-                'nome'     => $this->input->post('nome', TRUE),
-                'telefone' => $this->input->post('telefone', TRUE),
-                'veiculo'  => $this->input->post('veiculo', TRUE),
+                'nome'              => $this->input->post('nome', TRUE),
+                'telefone'          => $this->input->post('telefone', TRUE),
+                'veiculo'           => $this->input->post('veiculo', TRUE),
+                'taxa_entrega_fixa' => (float) $this->input->post('taxa_entrega_fixa', TRUE),
             );
+
+            // Hash da senha com bcrypt (apenas se preenchida)
+            $senha = $this->input->post('senha', TRUE);
+            if (!empty($senha)) {
+                $postData['senha'] = password_hash($senha, PASSWORD_BCRYPT);
+            }
 
             if (empty($id)) {
                 // Criar novo entregador

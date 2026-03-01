@@ -99,11 +99,17 @@ class Permission
 	}
 
 	public function redirect()
-	{  
-		if ($this->permission) { 
+	{
+		if ($this->permission) {
 			return $this->permission;
 		} else {
-			$this->ci->session->set_flashdata('exception', "You do not have permission to access. Please contact with administrator.");
+			// Diferencia mensagem: restrição de plano vs falta de permissão
+			$module = !empty($this->module) ? $this->module : $this->ci->uri->segment(1);
+			if (!empty($module) && !$this->isModuleInPlan($module)) {
+				$this->ci->session->set_flashdata('exception', makeString(['modulo_nao_disponivel']));
+			} else {
+				$this->ci->session->set_flashdata('exception', "You do not have permission to access. Please contact with administrator.");
+			}
 			redirect($this->redirect);
 		}
 	}
@@ -194,15 +200,70 @@ class Permission
 		return $this;
 	}
 	 
+	/**
+	 * Verifica se um módulo está disponível no plano de negócio atual.
+	 * Módulos de infraestrutura (dashboard, template) são sempre permitidos.
+	 *
+	 * @param string $module Nome do módulo
+	 * @return bool
+	 */
+	protected function isModuleInPlan($module)
+	{
+		$planos = $this->ci->config->item('planos');
+		$always_allowed = $this->ci->config->item('planos_always_allowed');
+
+		// Módulos de infraestrutura são sempre permitidos
+		if (!empty($always_allowed) && in_array($module, $always_allowed)) {
+			return true;
+		}
+
+		// Busca plano da session (cache) ou do banco
+		$plano_atual = $this->ci->session->userdata('plano_negocio');
+
+		if (empty($plano_atual)) {
+			$setting = $this->ci->db->select('plano_negocio')
+				->from('setting')
+				->get()
+				->row();
+			$plano_atual = !empty($setting->plano_negocio) ? $setting->plano_negocio : 'mercado_completo';
+			$this->ci->session->set_userdata('plano_negocio', $plano_atual);
+		}
+
+		// Plano desconhecido — fail-open para não bloquear
+		if (empty($planos) || !isset($planos[$plano_atual])) {
+			return true;
+		}
+
+		return in_array($module, $planos[$plano_atual]);
+	}
+
+	/**
+	 * Método público para verificar se módulo está no plano.
+	 * Usado pelo sidebar.php para filtrar módulos.
+	 *
+	 * @param string $module Nome do módulo
+	 * @return bool
+	 */
+	public function moduleInPlan($module)
+	{
+		return $this->isModuleInPlan($module);
+	}
+
 	protected function checkModule($module = NULL)
-	{ 
+	{
 		$permission = $this->ci->session->userdata('permission');
 		$isAdmin    = $this->ci->session->userdata('isAdmin');
 		$isLogIn    = $this->ci->session->userdata('isLogIn');
 
-		if ($isLogIn && $isAdmin) { 
+		// Checagem de plano ANTES do bypass de admin
+		// Plano é decisão de negócio, não de acesso
+		if (!$this->isModuleInPlan($module)) {
+			return false;
+		}
+
+		if ($isLogIn && $isAdmin) {
 			return true;
-		} else if($isLogIn) { 
+		} else if($isLogIn) {
 
 			if ($permission!=NULL) {
 
@@ -261,10 +322,15 @@ class Permission
 
 
 	protected function checkMethod($module = null, $method = null)
-	{ 
+	{
 		$permission = $this->ci->session->userdata('permission');
 		$isAdmin    = $this->ci->session->userdata('isAdmin');
 		$isLogIn    = $this->ci->session->userdata('isLogIn');
+
+		// Checagem de plano antes de tudo
+		if (!$this->isModuleInPlan($module)) {
+			return false;
+		}
 
 		if ($isLogIn && $isAdmin) {
 			//action of administrator

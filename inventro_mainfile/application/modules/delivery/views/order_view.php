@@ -7,6 +7,7 @@
                 'pendente' => ['label' => 'Pendente', 'class' => 'warning'],
                 'confirmado' => ['label' => 'Confirmado', 'class' => 'info'],
                 'preparando' => ['label' => 'Preparando', 'class' => 'purple'],
+                'pronto_coleta' => ['label' => 'Pronto p/ Coleta', 'class' => 'warning'],
                 'saiu_entrega' => ['label' => 'Saiu Entrega', 'class' => 'primary'],
                 'entregue' => ['label' => 'Entregue', 'class' => 'success'],
                 'cancelado' => ['label' => 'Cancelado', 'class' => 'danger']
@@ -58,13 +59,14 @@
                         <h3 class="box-title"><i class="fa fa-flag"></i> Status do Pedido</h3>
                     </div>
                     <div class="box-body">
-                        <form action="<?php echo base_url('delivery/orders/update_status/' . (int)$order->id); ?>" method="POST" class="form-inline">
+                        <form action="<?php echo base_url('delivery/orders/update_status/' . (int)$order->id); ?>" method="POST" class="form-inline" id="formStatus">
                             <input type="hidden" name="csrf_test_name" value="<?php echo $this->security->get_csrf_hash(); ?>">
                             <div class="form-group">
-                                <select name="status" class="form-control input-lg">
+                                <select name="status" class="form-control input-lg" id="statusSelect">
                                     <option value="pendente" <?php echo $order->status == 'pendente' ? 'selected' : ''; ?>>Pendente</option>
                                     <option value="confirmado" <?php echo $order->status == 'confirmado' ? 'selected' : ''; ?>>Confirmado</option>
                                     <option value="preparando" <?php echo $order->status == 'preparando' ? 'selected' : ''; ?>>Preparando</option>
+                                    <option value="pronto_coleta" <?php echo $order->status == 'pronto_coleta' ? 'selected' : ''; ?>>Pronto p/ Coleta</option>
                                     <option value="saiu_entrega" <?php echo $order->status == 'saiu_entrega' ? 'selected' : ''; ?>>Saiu para Entrega</option>
                                     <option value="entregue" <?php echo $order->status == 'entregue' ? 'selected' : ''; ?>>Entregue</option>
                                     <option value="cancelado" <?php echo $order->status == 'cancelado' ? 'selected' : ''; ?>>Cancelado</option>
@@ -73,6 +75,9 @@
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fa fa-save"></i> Atualizar Status
                             </button>
+                            <label style="margin-left:15px;font-weight:normal;cursor:pointer;">
+                                <input type="checkbox" id="autoPrint" checked> <i class="fa fa-print"></i> Imprimir cupom
+                            </label>
                         </form>
 
                         <!-- Timeline de Status -->
@@ -93,6 +98,12 @@
                                 <li style="padding:5px 0;">
                                     <i class="fa fa-circle" style="color:#9b59b6;"></i>
                                     <strong>Preparando:</strong> <?php echo date('d/m H:i', strtotime($order->hora_preparando)); ?>
+                                </li>
+                                <?php endif; ?>
+                                <?php if (!empty($order->hora_pronto_coleta)): ?>
+                                <li style="padding:5px 0;">
+                                    <i class="fa fa-circle" style="color:#e67e22;"></i>
+                                    <strong>Pronto p/ Coleta:</strong> <?php echo date('d/m H:i', strtotime($order->hora_pronto_coleta)); ?>
                                 </li>
                                 <?php endif; ?>
                                 <?php if (!empty($order->hora_saiu_entrega)): ?>
@@ -374,9 +385,12 @@
                         </dl>
                     </div>
                     <div class="box-footer">
-                        <a href="<?php echo base_url('delivery/orders/print_order/' . (int)$order->id); ?>"
-                           target="_blank" class="btn btn-default btn-block">
-                            <i class="fa fa-print"></i> Imprimir Pedido
+                        <button type="button" class="btn btn-success btn-block" onclick="enviarCupomWhatsApp()">
+                            <i class="fa fa-whatsapp"></i> Enviar Cupom via WhatsApp
+                        </button>
+                        <a href="<?php echo base_url('delivery/orders/print_order/' . (int)$order->id); ?>?auto=1"
+                           target="_blank" class="btn btn-default btn-block" style="margin-top:5px;">
+                            <i class="fa fa-print"></i> Imprimir Cupom
                         </a>
                         <a href="<?php echo base_url('cardapio/acompanhar/' . html_escape($order->order_number)); ?>"
                            target="_blank" class="btn btn-info btn-block" style="margin-top:5px;">
@@ -411,6 +425,34 @@ var baseUrl = '<?php echo base_url(); ?>';
 var orderId = <?php echo (int)$order->id; ?>;
 var csrfName = 'csrf_test_name';
 var csrfHash = '<?php echo $this->security->get_csrf_hash(); ?>';
+
+// Enviar cupom não-fiscal via WhatsApp
+function enviarCupomWhatsApp() {
+    $.ajax({
+        url: baseUrl + 'delivery/orders/enviar_cupom/' + orderId,
+        type: 'GET',
+        dataType: 'json',
+        success: function(r) {
+            if (r.success && r.whatsapp_link) {
+                window.open(r.whatsapp_link, '_blank');
+            } else {
+                alert(r.message || 'Erro ao gerar cupom');
+            }
+        },
+        error: function() {
+            // Fallback: abrir via redirect
+            window.location.href = baseUrl + 'delivery/orders/enviar_cupom/' + orderId;
+        }
+    });
+}
+
+// Auto-print ao atualizar status
+document.getElementById('formStatus').addEventListener('submit', function() {
+    if (document.getElementById('autoPrint').checked) {
+        var printUrl = baseUrl + 'delivery/orders/print_order/' + orderId + '?auto=1';
+        window.open(printUrl, '_blank', 'width=350,height=600');
+    }
+});
 
 function atribuirEntregador() {
     var entregadorId = document.getElementById('entregadorSelect').value;

@@ -81,6 +81,47 @@
                 </div>
             </div>
         </div>
+
+        <hr>
+        <h5><i class="fas fa-mobile-alt"></i> Portal do Motoboy</h5>
+        <small class="text-muted d-block mb-3">Configure o acesso do entregador ao portal mobile em <strong><?php echo base_url('motoboy'); ?></strong></small>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="senha">
+                        Senha do Portal <?php if (empty($entregador->id)): ?><span class="text-danger">*</span><?php endif; ?>
+                    </label>
+                    <input type="password"
+                           class="form-control"
+                           id="senha"
+                           name="senha"
+                           placeholder="<?php echo !empty($entregador->id) ? 'Deixe vazio para manter a atual' : 'Senha de acesso ao portal'; ?>"
+                           minlength="4"
+                           <?php echo empty($entregador->id) ? 'required' : ''; ?>>
+                    <?php if (!empty($entregador->id) && !empty($entregador->senha)): ?>
+                        <small class="text-success"><i class="fas fa-check-circle"></i> Senha cadastrada</small>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="taxa_entrega_fixa">
+                        Taxa por Entrega (R$) <span class="text-danger">*</span>
+                    </label>
+                    <input type="number"
+                           class="form-control"
+                           id="taxa_entrega_fixa"
+                           name="taxa_entrega_fixa"
+                           placeholder="5.00"
+                           step="0.50"
+                           min="0"
+                           value="<?php echo isset($entregador->taxa_entrega_fixa) ? html_escape($entregador->taxa_entrega_fixa) : '5.00'; ?>"
+                           required>
+                    <small class="text-muted">Valor que o entregador ganha por cada entrega</small>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="card-footer">

@@ -90,9 +90,10 @@ class Auth extends MX_Controller {
 						'last_login'  => $user->row()->last_login,
 						'last_logout' => $user->row()->last_logout,
 						'ip_address'  => $user->row()->ip_address,
-						'permission'  => json_encode(@$permission), 
-						'label_permission'  => json_encode(@$permission1) 
-						);	
+						'permission'  => json_encode(@$permission),
+						'label_permission'  => json_encode(@$permission1),
+						'plano_negocio' => $this->_get_plano_negocio()
+						);
 
 
 						//store date to session 
@@ -118,12 +119,23 @@ class Auth extends MX_Controller {
 	}
   
 	public function logout()
-	{ 
+	{
 		//update database status
 		$this->auth_model->last_logout();
 		//destroy session
 		$this->session->sess_destroy();
 		redirect('login');
+	}
+
+	/**
+	 * Busca o plano de negócio da tabela setting.
+	 *
+	 * @return string
+	 */
+	private function _get_plano_negocio()
+	{
+		$setting = $this->db->select('plano_negocio')->from('setting')->get()->row();
+		return !empty($setting->plano_negocio) ? $setting->plano_negocio : 'mercado_completo';
 	}
 
 }

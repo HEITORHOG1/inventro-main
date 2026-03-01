@@ -109,7 +109,7 @@ class Orders extends MX_Controller {
         $this->permission->method('delivery', 'update')->redirect();
 
         $status = $this->input->post('status', TRUE);
-        $valid_statuses = ['pendente', 'confirmado', 'preparando', 'saiu_entrega', 'entregue', 'cancelado'];
+        $valid_statuses = ['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega', 'entregue', 'cancelado'];
 
         if (!in_array($status, $valid_statuses)) {
             $this->session->set_flashdata('exception', 'Status inválido.');
@@ -147,7 +147,7 @@ class Orders extends MX_Controller {
         $id = (int)$this->input->post('order_id', TRUE);
         $status = $this->input->post('status', TRUE);
 
-        $valid_statuses = ['pendente', 'confirmado', 'preparando', 'saiu_entrega', 'entregue', 'cancelado'];
+        $valid_statuses = ['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega', 'entregue', 'cancelado'];
         if (!in_array($status, $valid_statuses)) {
             echo json_encode(['success' => false, 'message' => 'Status inválido']);
             return;
@@ -297,10 +297,11 @@ class Orders extends MX_Controller {
      */
     private function _get_status_timestamp_data($status) {
         $map = [
-            'confirmado'    => 'hora_confirmado',
-            'preparando'    => 'hora_preparando',
-            'saiu_entrega'  => 'hora_saiu_entrega',
-            'entregue'      => 'hora_entregue'
+            'confirmado'     => 'hora_confirmado',
+            'preparando'     => 'hora_preparando',
+            'pronto_coleta'  => 'hora_pronto_coleta',
+            'saiu_entrega'   => 'hora_saiu_entrega',
+            'entregue'       => 'hora_entregue'
         ];
 
         $data = [];
@@ -312,17 +313,24 @@ class Orders extends MX_Controller {
 
     /**
      * Gera link wa.me com mensagem de status para o cliente
+     * No status 'confirmado', inclui o cupom completo (nota não-fiscal)
      */
     private function _gerar_whatsapp_status($order, $status) {
         $num = $order->order_number;
-        $base_url = base_url("cardapio/acompanhar/{$num}");
+        $acompanhar_url = base_url("cardapio/acompanhar/{$num}");
+        $cupom_url = base_url("cardapio/cupom/{$num}");
+
+        if ($status === 'confirmado') {
+            // Cupom não-fiscal completo na confirmação
+            $msg = $this->_gerar_cupom_whatsapp($order);
+            $msg .= "\n📍 Acompanhe seu pedido:\n{$acompanhar_url}";
+            return $this->_gerar_link_whatsapp($order->cliente_telefone, $msg);
+        }
 
         $mensagens = [
-            'confirmado'   => "✅ Seu pedido *#{$num}* foi confirmado! Tempo estimado: " .
-                              ($order->zona_nome ? "conforme zona {$order->zona_nome}" : "em breve") .
-                              ".\n\n📍 Acompanhe: {$base_url}",
-            'preparando'   => "👨‍🍳 Seu pedido *#{$num}* está sendo preparado!\n\n📍 Acompanhe: {$base_url}",
-            'saiu_entrega' => "🛵 Seu pedido *#{$num}* saiu para entrega!\n\n📍 Acompanhe: {$base_url}",
+            'preparando'    => "👨‍🍳 Seu pedido *#{$num}* está sendo preparado!\n\n📍 Acompanhe: {$acompanhar_url}",
+            'pronto_coleta' => "📦 Seu pedido *#{$num}* está pronto! Aguardando entregador.\n\n📍 Acompanhe: {$acompanhar_url}",
+            'saiu_entrega'  => "🛵 Seu pedido *#{$num}* saiu para entrega!\n\n📍 Acompanhe: {$acompanhar_url}",
             'entregue'     => "✅ Pedido *#{$num}* entregue! Obrigado pela preferência! 😊\n\n" .
                               "⭐ Avalie seu pedido: " . base_url("cardapio/avaliar/{$num}"),
             'cancelado'    => "❌ Seu pedido *#{$num}* foi cancelado. Entre em contato para mais informações."
@@ -333,6 +341,125 @@ class Orders extends MX_Controller {
         }
 
         return $this->_gerar_link_whatsapp($order->cliente_telefone, $mensagens[$status]);
+    }
+
+    /**
+     * Gera o cupom não-fiscal formatado para WhatsApp
+     */
+    private function _gerar_cupom_whatsapp($order) {
+        $loja = $this->db->get('setting')->row();
+        $loja_nome = $loja->title ?? 'Loja';
+        $num = $order->order_number;
+
+        $msg = "✅ *PEDIDO CONFIRMADO!*\n";
+        $msg .= "━━━━━━━━━━━━━━━━\n";
+        $msg .= "*{$loja_nome}*\n";
+        if (!empty($loja->address)) {
+            $msg .= "{$loja->address}\n";
+        }
+        if (!empty($loja->cnpj)) {
+            $msg .= "CNPJ: {$loja->cnpj}\n";
+        }
+        $msg .= "━━━━━━━━━━━━━━━━\n";
+        $msg .= "*CUPOM NÃO-FISCAL*\n";
+        $msg .= "*Pedido #{$num}*\n";
+        $msg .= date('d/m/Y H:i', strtotime($order->created_at)) . "\n";
+
+        $tipo = ($order->tipo_entrega ?? 'entrega') === 'retirada' ? 'Retirada' : 'Entrega';
+        $msg .= "Tipo: {$tipo}\n";
+        $msg .= "━━━━━━━━━━━━━━━━\n";
+
+        // Itens
+        $msg .= "*ITENS:*\n";
+        if (!empty($order->items)) {
+            foreach ($order->items as $item) {
+                $total_item = number_format($item->total_price, 2, ',', '.');
+                $msg .= "• {$item->quantity}x {$item->product_name}";
+                if ($item->quantity > 1) {
+                    $unit = number_format($item->unit_price, 2, ',', '.');
+                    $msg .= " (R$ {$unit} cada)";
+                }
+                $msg .= " — R$ {$total_item}\n";
+            }
+        }
+        $msg .= "━━━━━━━━━━━━━━━━\n";
+
+        // Totais
+        $msg .= "Subtotal: R$ " . number_format($order->subtotal, 2, ',', '.') . "\n";
+
+        if (($order->tipo_entrega ?? 'entrega') !== 'retirada') {
+            if ($order->taxa_entrega == 0) {
+                $msg .= "Taxa Entrega: *GRÁTIS*\n";
+            } else {
+                $msg .= "Taxa Entrega: R$ " . number_format($order->taxa_entrega, 2, ',', '.') . "\n";
+            }
+        }
+
+        if (!empty($order->desconto) && $order->desconto > 0) {
+            $msg .= "Desconto: - R$ " . number_format($order->desconto, 2, ',', '.') . "\n";
+        }
+        if (!empty($order->desconto_cupom) && $order->desconto_cupom > 0) {
+            $cupom_cod = !empty($order->cupom_codigo) ? " ({$order->cupom_codigo})" : '';
+            $msg .= "Cupom{$cupom_cod}: - R$ " . number_format($order->desconto_cupom, 2, ',', '.') . "\n";
+        }
+
+        $msg .= "━━━━━━━━━━━━━━━━\n";
+        $msg .= "*TOTAL: R$ " . number_format($order->total, 2, ',', '.') . "*\n";
+        $msg .= "━━━━━━━━━━━━━━━━\n";
+
+        // Pagamento
+        $pagamentos = ['dinheiro' => 'Dinheiro', 'cartao' => 'Cartão', 'pix' => 'PIX'];
+        $pag = $pagamentos[$order->forma_pagamento] ?? $order->forma_pagamento;
+        $msg .= "Pagamento: *{$pag}*\n";
+
+        if ($order->forma_pagamento === 'dinheiro' && !empty($order->troco_para) && $order->troco_para > 0) {
+            $msg .= "Troco para: R$ " . number_format($order->troco_para, 2, ',', '.') . "\n";
+            $msg .= "Troco: R$ " . number_format($order->troco_para - $order->total, 2, ',', '.') . "\n";
+        }
+
+        // Tempo estimado
+        if (!empty($order->zona_nome)) {
+            $msg .= "\n⏱ Tempo estimado conforme zona {$order->zona_nome}\n";
+        }
+
+        $msg .= "\n_Documento sem valor fiscal_\n";
+        $msg .= "\n🛒 *Obrigado pela preferência!*\n";
+
+        // Link para cupom web
+        $cupom_url = base_url("cardapio/cupom/{$order->order_number}");
+        $msg .= "\n📄 Ver cupom completo:\n{$cupom_url}\n";
+
+        return $msg;
+    }
+
+    /**
+     * Enviar cupom avulso via WhatsApp (para reenvio manual)
+     */
+    public function enviar_cupom($id) {
+        $order = $this->delivery_model->get_order($id);
+
+        if (!$order || empty($order->cliente_telefone)) {
+            if ($this->input->is_ajax_request()) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Pedido ou telefone não encontrado']);
+                return;
+            }
+            $this->session->set_flashdata('exception', 'Pedido ou telefone não encontrado.');
+            redirect('delivery/orders');
+            return;
+        }
+
+        $msg = $this->_gerar_cupom_whatsapp($order);
+        $link = $this->_gerar_link_whatsapp($order->cliente_telefone, $msg);
+
+        if ($this->input->is_ajax_request()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'whatsapp_link' => $link]);
+            return;
+        }
+
+        $this->session->set_flashdata('whatsapp_link', $link);
+        redirect('delivery/orders/view/' . (int)$id);
     }
 
     /**

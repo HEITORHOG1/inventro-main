@@ -98,16 +98,16 @@ CREATE TABLE IF NOT EXISTS `cardapio_config` (
 INSERT INTO `cardapio_config` (`chave`, `valor`, `descricao`) VALUES
 ('taxa_entrega', '5.00', 'Taxa de entrega fixa'),
 ('tempo_medio_entrega', '45', 'Tempo médio de entrega em minutos'),
-('horario_abertura', '08:00', 'Horário de abertura'),
-('horario_fechamento', '22:00', 'Horário de fechamento'),
-('dias_funcionamento', '1,2,3,4,5,6', 'Dias da semana (0=dom, 6=sab)'),
+('horario_abertura', '00:00', 'Horário de abertura'),
+('horario_fechamento', '23:59', 'Horário de fechamento'),
+('dias_funcionamento', '0,1,2,3,4,5,6', 'Dias da semana (0=dom, 6=sab)'),
 ('pedido_minimo', '0.00', 'Valor mínimo do pedido'),
 ('aceita_dinheiro', '1', 'Aceita pagamento em dinheiro'),
 ('aceita_cartao', '1', 'Aceita cartão na entrega'),
 ('aceita_pix', '1', 'Aceita Pix'),
 ('pix_chave', '', 'Chave Pix para pagamento'),
 ('pix_tipo', 'telefone', 'Tipo da chave Pix (telefone/cpf/cnpj/email/aleatoria)'),
-('whatsapp_numero', '11999998888', 'Número WhatsApp para pedidos'),
+('whatsapp_numero', '24999998888', 'Número WhatsApp para pedidos'),
 ('entrega_ativa', '1', 'Delivery ativo'),
 ('retirada_ativa', '1', 'Retirada no local ativa'),
 ('mensagem_confirmacao', 'Seu pedido foi recebido! Em breve entraremos em contato.', 'Mensagem de confirmação')
@@ -119,15 +119,17 @@ ON DUPLICATE KEY UPDATE `valor` = VALUES(`valor`);
 
 INSERT INTO `delivery_zones` (`nome`, `taxa`, `tempo_min`, `tempo_max`, `ativo`) VALUES
 ('Centro', 0.00, 15, 25, 1),
-('Vila Maria', 5.00, 20, 35, 1),
-('Pinheiros', 6.00, 25, 40, 1),
-('Mooca', 5.00, 20, 35, 1),
-('Santana', 7.00, 30, 45, 1),
-('Tatuapé', 8.00, 35, 50, 1),
-('Lapa', 6.00, 25, 40, 1),
-('Bela Vista', 4.00, 15, 30, 1),
-('Liberdade', 4.00, 15, 30, 1),
-('Consolação', 5.00, 20, 35, 1)
+('Quitandinha', 4.00, 15, 30, 1),
+('Valparaiso', 5.00, 20, 35, 1),
+('Alto da Serra', 5.00, 20, 35, 1),
+('Castelania', 6.00, 25, 40, 1),
+('Morin', 4.00, 15, 30, 1),
+('Coronel Veiga', 5.00, 20, 35, 1),
+('Itaipava', 8.00, 35, 50, 1),
+('Bingen', 4.00, 15, 30, 1),
+('Simerinha', 6.00, 25, 40, 1),
+('Mosela', 5.00, 20, 35, 1),
+('Retiro', 3.00, 10, 20, 1)
 ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
 
 -- ============================================

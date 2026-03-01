@@ -118,16 +118,28 @@
             "contas_a_receber" => array("controller" => "contas_receber","method" => "lista","permission" => "read"),
             "nova_conta_receber" => array("controller" => "contas_receber","method" => "form","permission" => "create")
 		);
-	 $HmvcMenu2["menu"] = array("icon"           => " <i class='nav-icon fa fa-fw fa-list'></i> ", 
-    	 "add_role" => array("controller" => "crole","method"     => "add_role","permission" => "create"),     
-    	 "role_list" => array("controller" => "crole","method"     => "role_list","permission" => "read"),  
-         "role_assign" => array("controller" => "crole","method"     => "role_assign","permission" => "create"),     
-         "assigned_userrole_list" => array("controller" => "crole","method"     => "assigned_role_list","permission" => "read")   
+	 // Módulo Delivery - Pedidos Online, Kanban, Entregadores, Cupons, Zonas, Config
+	 $HmvcMenu2["delivery"] = array(
+			"icon" => " <i class='nav-icon fas fa-motorcycle'></i> ",
+			"pedidos_online" => array("controller" => "orders","method" => "index","permission" => "read"),
+			"kanban_pedidos" => array("controller" => "orders","method" => "kanban","permission" => "read"),
+			"zonas_entrega" => array("controller" => "zones","method" => "index","permission" => "read"),
+			"entregadores" => array("controller" => "entregadores","method" => "index","permission" => "read"),
+			"cupons_desconto" => array("controller" => "cupons","method" => "index","permission" => "read"),
+			"config_delivery" => array("controller" => "config","method" => "index","permission" => "read")
+	 );
+	 $HmvcMenu2["menu"] = array("icon"           => " <i class='nav-icon fa fa-fw fa-list'></i> ",
+    	 "add_role" => array("controller" => "crole","method"     => "add_role","permission" => "create"),
+    	 "role_list" => array("controller" => "crole","method"     => "role_list","permission" => "read"),
+         "role_assign" => array("controller" => "crole","method"     => "role_assign","permission" => "create"),
+         "assigned_userrole_list" => array("controller" => "crole","method"     => "assigned_role_list","permission" => "read")
 	 );
 	 
 	
  if(isset($HmvcMenu2) && $HmvcMenu2!=null && sizeof($HmvcMenu2) > 0)
         	foreach ($HmvcMenu2 as $moduleName => $moduleData) {
+            	// Filtra módulos pelo plano de negócio antes de checar permissão
+            	if (!$this->permission->moduleInPlan($moduleName)) continue;
             	if ($this->permission->module($moduleName)->access()) {
               			$this->permission->module($moduleName)->access();
         ?>

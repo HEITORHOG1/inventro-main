@@ -103,7 +103,7 @@ $autoload['helper'] = array('url', 'file', 'html','form', 'text', 'lang','direct
 | config files.  Otherwise, leave it blank.
 |
 */
-$autoload['config'] = array();
+$autoload['config'] = array('planos');
 
 /*
 | -------------------------------------------------------------------

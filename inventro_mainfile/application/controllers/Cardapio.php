@@ -61,35 +61,46 @@ class Cardapio extends CI_Controller {
     }
 
     /**
-     * API para buscar cliente por telefone
+     * API para buscar cliente por telefone ou CPF
      * Retorna dados se encontrar, ou vazio se não encontrar
      */
     public function api_buscar_cliente() {
         header('Content-Type: application/json');
         header('Access-Control-Allow-Origin: *');
-        
+
         $telefone = $this->input->get('telefone', true);
-        
-        if (empty($telefone)) {
+        $cpf = $this->input->get('cpf', true);
+
+        if (empty($telefone) && empty($cpf)) {
             echo json_encode(['found' => false]);
             return;
         }
-        
-        // Limpar telefone para busca (remover formatação)
-        $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone);
-        
-        // Buscar cliente pelo telefone - remover formatação de ambos os lados
-        // Usamos REPLACE para remover caracteres especiais do campo mobile no MySQL
+
         $this->db->select('id, name, mobile, address, cpf, cep, cidade, estado');
         $this->db->from('customer_tbl');
         $this->db->where('status', 1);
-        
-        // Comparar telefone limpo — escape_like_str previne SQL Injection
-        $telefone_escaped = $this->db->escape_like_str($telefone_limpo);
-        $this->db->where("REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(mobile, '(', ''), ')', ''), '-', ''), ' ', ''), '+', '') LIKE '%" . $telefone_escaped . "%'", NULL, FALSE);
-        
+
+        if (!empty($cpf)) {
+            // Buscar por CPF (limpar formatação) — query segura via bind
+            $cpf_limpo = preg_replace('/[^0-9]/', '', $cpf);
+            if (strlen($cpf_limpo) >= 11) {
+                $this->db->where("REPLACE(REPLACE(cpf, '.', ''), '-', '') = ?", [$cpf_limpo]);
+            } else {
+                echo json_encode(['found' => false]);
+                return;
+            }
+        } else {
+            // Buscar por telefone (limpar formatação) — query segura via like()
+            $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone);
+            if (strlen($telefone_limpo) < 8) {
+                echo json_encode(['found' => false]);
+                return;
+            }
+            $this->db->like('mobile', $telefone_limpo);
+        }
+
         $cliente = $this->db->get()->row();
-        
+
         if ($cliente) {
             // Montar endereço completo
             $endereco_completo = $cliente->address;
@@ -99,16 +110,73 @@ class Cardapio extends CI_Controller {
             if (!empty($cliente->estado)) {
                 $endereco_completo .= '/' . $cliente->estado;
             }
-            
+
             echo json_encode([
                 'found' => true,
                 'cliente' => [
-                    'id' => $cliente->id,
-                    'nome' => $cliente->name,
+                    'id'       => $cliente->id,
+                    'nome'     => $cliente->name,
                     'telefone' => $cliente->mobile,
                     'endereco' => $endereco_completo,
-                    'cpf' => $cliente->cpf ?? '',
-                    'cep' => $cliente->cep ?? ''
+                    'cpf'      => $cliente->cpf ?? '',
+                    'cep'      => $cliente->cep ?? '',
+                    'cidade'   => $cliente->cidade ?? '',
+                    'estado'   => $cliente->estado ?? ''
+                ]
+            ]);
+        } else {
+            echo json_encode(['found' => false]);
+        }
+    }
+
+    /**
+     * API para detectar zona de entrega pelo bairro
+     * Compara o bairro retornado pelo ViaCEP com as zonas cadastradas
+     */
+    public function api_detectar_zona() {
+        header('Content-Type: application/json');
+
+        $bairro = $this->input->get('bairro', true);
+        if (empty($bairro)) {
+            echo json_encode(['found' => false]);
+            return;
+        }
+
+        $bairro_limpo = mb_strtolower(trim($bairro), 'UTF-8');
+
+        // Buscar todas as zonas ativas
+        $zonas = $this->db->where('ativo', 1)->get('delivery_zones')->result();
+
+        $zona_encontrada = null;
+
+        // 1. Busca exata (case-insensitive)
+        foreach ($zonas as $z) {
+            if (mb_strtolower(trim($z->nome), 'UTF-8') === $bairro_limpo) {
+                $zona_encontrada = $z;
+                break;
+            }
+        }
+
+        // 2. Busca parcial (bairro contém nome da zona ou vice-versa)
+        if (!$zona_encontrada) {
+            foreach ($zonas as $z) {
+                $zona_limpa = mb_strtolower(trim($z->nome), 'UTF-8');
+                if (mb_strpos($bairro_limpo, $zona_limpa) !== false || mb_strpos($zona_limpa, $bairro_limpo) !== false) {
+                    $zona_encontrada = $z;
+                    break;
+                }
+            }
+        }
+
+        if ($zona_encontrada) {
+            echo json_encode([
+                'found' => true,
+                'zona' => [
+                    'id'        => (int) $zona_encontrada->id,
+                    'nome'      => $zona_encontrada->nome,
+                    'taxa'      => (float) $zona_encontrada->taxa,
+                    'tempo_min' => (int) ($zona_encontrada->tempo_min ?? 20),
+                    'tempo_max' => (int) ($zona_encontrada->tempo_max ?? 40)
                 ]
             ]);
         } else {
@@ -136,6 +204,7 @@ class Cardapio extends CI_Controller {
         $input['cliente_telefone'] = preg_replace('/[^0-9()\-\s+]/', '', $input['cliente_telefone'] ?? '');
         $input['cliente_endereco'] = strip_tags(trim($input['cliente_endereco'] ?? ''));
         $input['cliente_complemento'] = strip_tags(trim($input['cliente_complemento'] ?? ''));
+        $input['cliente_cep'] = preg_replace('/[^0-9\-]/', '', $input['cliente_cep'] ?? '');
         $input['observacao'] = strip_tags(trim($input['observacao'] ?? ''));
 
         $required = ['cliente_nome', 'cliente_telefone', 'forma_pagamento', 'items'];
@@ -263,6 +332,18 @@ class Cardapio extends CI_Controller {
         $result = $this->delivery_model->create_order($order_data, $items_to_save);
 
         if ($result) {
+            // Auto-cadastrar ou atualizar cliente na customer_tbl
+            $this->_registrar_cliente(
+                $input['cliente_nome'],
+                $input['cliente_telefone'],
+                $input['cliente_endereco'],
+                $cpf_nota,
+                $input['cliente_complemento'] ?? '',
+                $input['cliente_cep'] ?? '',
+                $input['cliente_cidade'] ?? '',
+                $input['cliente_estado'] ?? ''
+            );
+
             echo json_encode([
                 'success' => true,
                 'order_id' => $result['order_id'],
@@ -374,6 +455,7 @@ class Cardapio extends CI_Controller {
             'status' => $order->status,
             'hora_confirmado' => $order->hora_confirmado ?? null,
             'hora_preparando' => $order->hora_preparando ?? null,
+            'hora_pronto_coleta' => $order->hora_pronto_coleta ?? null,
             'hora_saiu_entrega' => $order->hora_saiu_entrega ?? null,
             'hora_entregue' => $order->hora_entregue ?? null,
             'tipo_entrega' => $order->tipo_entrega ?? 'entrega',
@@ -436,11 +518,10 @@ class Cardapio extends CI_Controller {
         }
 
         $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone);
-        $telefone_escaped = $this->db->escape_like_str($telefone_limpo);
 
         $this->db->select('o.id, o.order_number, o.created_at');
         $this->db->from('orders o');
-        $this->db->where("REPLACE(REPLACE(REPLACE(o.cliente_telefone, '(', ''), ')', ''), '-', '') LIKE '%" . $telefone_escaped . "%'", NULL, FALSE);
+        $this->db->like('o.cliente_telefone', $telefone_limpo);
         $this->db->where('o.status !=', 'cancelado');
         $this->db->order_by('o.created_at', 'DESC');
         $this->db->limit(1);
@@ -620,9 +701,125 @@ self.addEventListener('activate', function(event) {
         $this->load->view('cardapio/offline_view', $data);
     }
 
+    /**
+     * API para buscar pedidos pendentes (não entregues/cancelados) por telefone
+     */
+    public function api_pedidos_pendentes() {
+        header('Content-Type: application/json');
+        header('Access-Control-Allow-Origin: *');
+
+        $telefone = $this->input->get('tel', TRUE);
+        if (empty($telefone)) {
+            echo json_encode(['success' => false, 'pedidos' => []]);
+            return;
+        }
+
+        $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone);
+        if (strlen($telefone_limpo) < 8) {
+            echo json_encode(['success' => false, 'pedidos' => []]);
+            return;
+        }
+
+        // Buscar pedidos que NÃO estão entregues ou cancelados — query segura via like()
+        $this->db->select('id, order_number, status, total, forma_pagamento, tipo_entrega, created_at');
+        $this->db->from('orders');
+        $this->db->like('cliente_telefone', $telefone_limpo);
+        $this->db->where_not_in('status', ['entregue', 'cancelado']);
+        $this->db->order_by('created_at', 'DESC');
+        $this->db->limit(5);
+        $pedidos = $this->db->get()->result();
+
+        $result = [];
+        foreach ($pedidos as $pedido) {
+            $status_label = [
+                'pendente' => 'Aguardando confirmacao',
+                'confirmado' => 'Confirmado',
+                'preparando' => 'Em preparo',
+                'saiu_entrega' => 'Saiu para entrega'
+            ];
+            $result[] = [
+                'order_number' => $pedido->order_number,
+                'status' => $pedido->status,
+                'status_label' => $status_label[$pedido->status] ?? $pedido->status,
+                'total' => (float)$pedido->total,
+                'forma_pagamento' => $pedido->forma_pagamento,
+                'tipo_entrega' => $pedido->tipo_entrega ?? 'entrega',
+                'created_at' => $pedido->created_at
+            ];
+        }
+
+        echo json_encode(['success' => true, 'pedidos' => $result]);
+    }
+
     // =========================================
     // Métodos privados
     // =========================================
+
+    /**
+     * Registra ou atualiza cliente na customer_tbl a partir do pedido.
+     * Usa telefone como identificador único.
+     */
+    private function _registrar_cliente($nome, $telefone, $endereco, $cpf = null, $complemento = '', $cep = '', $cidade = '', $estado = '') {
+        if (empty($nome) || empty($telefone)) {
+            return;
+        }
+
+        // Limpar telefone para comparação
+        $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone);
+        if (strlen($telefone_limpo) < 8) {
+            return;
+        }
+
+        // Verificar se cliente já existe pelo telefone — query segura via like()
+        $cliente_existente = $this->db->select('id')
+            ->from('customer_tbl')
+            ->like('mobile', $telefone_limpo)
+            ->get()
+            ->row();
+
+        if ($cliente_existente) {
+            // Atualizar dados do cliente existente (endereço pode ter mudado)
+            $update_data = [
+                'name' => $nome,
+                'address' => $endereco,
+                'updated_date' => date('Y-m-d H:i:s')
+            ];
+            if (!empty($cpf)) {
+                $update_data['cpf'] = $cpf;
+            }
+            if (!empty($cep)) {
+                $update_data['cep'] = preg_replace('/[^0-9]/', '', $cep);
+            }
+            if (!empty($cidade)) {
+                $update_data['cidade'] = $cidade;
+            }
+            if (!empty($estado)) {
+                $update_data['estado'] = $estado;
+            }
+            $this->db->where('id', $cliente_existente->id)->update('customer_tbl', $update_data);
+        } else {
+            // Gerar customerid no padrão existente (Cus_001, Cus_002, etc.)
+            $last = $this->db->select('id')->from('customer_tbl')->order_by('id', 'DESC')->limit(1)->get()->row();
+            $next_id = ($last ? $last->id : 0) + 1;
+            $customerid = 'Cus_' . str_pad($next_id, 3, '0', STR_PAD_LEFT);
+
+            $insert_data = [
+                'customerid' => $customerid,
+                'name' => $nome,
+                'mobile' => $telefone,
+                'address' => $endereco,
+                'cpf' => $cpf,
+                'cep' => !empty($cep) ? preg_replace('/[^0-9]/', '', $cep) : null,
+                'cidade' => !empty($cidade) ? $cidade : null,
+                'estado' => !empty($estado) ? $estado : null,
+                'tipo_pessoa' => 'F',
+                'status' => 1,
+                'created_by' => 'cardapio',
+                'created_date' => date('Y-m-d H:i:s')
+            ];
+            $this->db->insert('customer_tbl', $insert_data);
+        }
+    }
 
     /**
      * Verifica se a loja está aberta (horário + dia + pausa)

@@ -9,19 +9,21 @@
 
 // Status progression map for "Avancar" button
 $status_next = [
-    'pendente'     => 'confirmado',
-    'confirmado'   => 'preparando',
-    'preparando'   => 'saiu_entrega',
-    'saiu_entrega' => 'entregue',
+    'pendente'      => 'confirmado',
+    'confirmado'    => 'preparando',
+    'preparando'    => 'pronto_coleta',
+    'pronto_coleta' => 'saiu_entrega',
+    'saiu_entrega'  => 'entregue',
 ];
 
 // Kanban columns configuration (cancelado excluded from board columns)
 $kanban_columns = [
-    'pendente'     => ['label' => 'Novos',      'color' => '#f39c12', 'icon' => 'fa-clock-o'],
-    'confirmado'   => ['label' => 'Confirmado',  'color' => '#00bcd4', 'icon' => 'fa-check'],
-    'preparando'   => ['label' => 'Preparando',  'color' => '#9b59b6', 'icon' => 'fa-cutlery'],
-    'saiu_entrega' => ['label' => 'A Caminho',   'color' => '#3498db', 'icon' => 'fa-motorcycle'],
-    'entregue'     => ['label' => 'Entregue',    'color' => '#27ae60', 'icon' => 'fa-check-circle'],
+    'pendente'      => ['label' => 'Novos',           'color' => '#f39c12', 'icon' => 'fa-clock-o'],
+    'confirmado'    => ['label' => 'Confirmado',       'color' => '#00bcd4', 'icon' => 'fa-check'],
+    'preparando'    => ['label' => 'Preparando',       'color' => '#9b59b6', 'icon' => 'fa-cutlery'],
+    'pronto_coleta' => ['label' => 'Pronto p/ Coleta', 'color' => '#e67e22', 'icon' => 'fa-archive'],
+    'saiu_entrega'  => ['label' => 'A Caminho',        'color' => '#3498db', 'icon' => 'fa-motorcycle'],
+    'entregue'      => ['label' => 'Entregue',         'color' => '#27ae60', 'icon' => 'fa-check-circle'],
 ];
 
 // Payment method icons
@@ -33,7 +35,7 @@ $pagamento_icons = [
 
 // Count active orders (non-entregue) for title badge
 $active_count = 0;
-foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
+foreach (['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega'] as $s) {
     $active_count += count($orders_by_status[$s] ?? []);
 }
 ?>
@@ -125,10 +127,11 @@ foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
                             $pag_icon = $pagamento_icons[$order->forma_pagamento] ?? 'fa-question';
                             $next_status = $status_next[$status_key] ?? null;
                             $next_label_map = [
-                                'confirmado'   => 'Confirmar',
-                                'preparando'   => 'Preparar',
-                                'saiu_entrega' => 'Saiu Entrega',
-                                'entregue'     => 'Entregue',
+                                'confirmado'    => 'Confirmar',
+                                'preparando'    => 'Preparar',
+                                'pronto_coleta' => 'Pronto Coleta',
+                                'saiu_entrega'  => 'Saiu Entrega',
+                                'entregue'      => 'Entregue',
                             ];
                             ?>
                             <div class="kanban-card" id="order-card-<?php echo (int)$order->id; ?>" data-order-id="<?php echo (int)$order->id; ?>">
@@ -172,13 +175,17 @@ foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
                                         </button>
                                     <?php endif; ?>
                                     <div class="btn-group btn-group-sm mt-1" style="width:100%;">
-                                        <a href="<?php echo base_url('delivery/orders/print_order/' . (int)$order->id); ?>"
-                                           target="_blank" class="btn btn-default" style="width:50%;" title="Imprimir">
-                                            <i class="fa fa-print"></i> Imprimir
+                                        <button type="button" class="btn btn-default btn-enviar-cupom" style="width:34%;"
+                                                data-order-id="<?php echo (int)$order->id; ?>" title="Enviar Cupom WhatsApp">
+                                            <i class="fa fa-whatsapp"></i>
+                                        </button>
+                                        <a href="<?php echo base_url('delivery/orders/print_order/' . (int)$order->id); ?>?auto=1"
+                                           target="_blank" class="btn btn-default" style="width:33%;" title="Imprimir Cupom">
+                                            <i class="fa fa-print"></i>
                                         </a>
                                         <a href="<?php echo base_url('delivery/orders/view/' . (int)$order->id); ?>"
-                                           class="btn btn-default" style="width:50%;" title="Ver detalhes">
-                                            <i class="fa fa-eye"></i> Ver
+                                           class="btn btn-default" style="width:33%;" title="Ver detalhes">
+                                            <i class="fa fa-eye"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -291,8 +298,9 @@ foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
 /* Card border colors per parent column */
 .kanban-column[data-status="pendente"] .kanban-card     { border-left-color: #f39c12; }
 .kanban-column[data-status="confirmado"] .kanban-card   { border-left-color: #00bcd4; }
-.kanban-column[data-status="preparando"] .kanban-card   { border-left-color: #9b59b6; }
-.kanban-column[data-status="saiu_entrega"] .kanban-card { border-left-color: #3498db; }
+.kanban-column[data-status="preparando"] .kanban-card    { border-left-color: #9b59b6; }
+.kanban-column[data-status="pronto_coleta"] .kanban-card { border-left-color: #e67e22; }
+.kanban-column[data-status="saiu_entrega"] .kanban-card  { border-left-color: #3498db; }
 .kanban-column[data-status="entregue"] .kanban-card     { border-left-color: #27ae60; }
 
 /* Card highlight animation for new orders */
@@ -364,25 +372,28 @@ foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
 
     // Status progression map (matches PHP)
     var statusNext = {
-        'pendente':     'confirmado',
-        'confirmado':   'preparando',
-        'preparando':   'saiu_entrega',
-        'saiu_entrega': 'entregue'
+        'pendente':      'confirmado',
+        'confirmado':    'preparando',
+        'preparando':    'pronto_coleta',
+        'pronto_coleta': 'saiu_entrega',
+        'saiu_entrega':  'entregue'
     };
 
     var nextLabelMap = {
-        'confirmado':   'Confirmar',
-        'preparando':   'Preparar',
-        'saiu_entrega': 'Saiu Entrega',
-        'entregue':     'Entregue'
+        'confirmado':    'Confirmar',
+        'preparando':    'Preparar',
+        'pronto_coleta': 'Pronto Coleta',
+        'saiu_entrega':  'Saiu Entrega',
+        'entregue':      'Entregue'
     };
 
     var statusColors = {
-        'pendente':     '#f39c12',
-        'confirmado':   '#00bcd4',
-        'preparando':   '#9b59b6',
-        'saiu_entrega': '#3498db',
-        'entregue':     '#27ae60'
+        'pendente':      '#f39c12',
+        'confirmado':    '#00bcd4',
+        'preparando':    '#9b59b6',
+        'pronto_coleta': '#e67e22',
+        'saiu_entrega':  '#3498db',
+        'entregue':      '#27ae60'
     };
 
     var pagamentoIcons = {
@@ -541,10 +552,12 @@ foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
             html += '</button>';
         }
         html += '<div class="btn-group btn-group-sm mt-1" style="width:100%;">';
-        html += '<a href="' + baseUrl + 'delivery/orders/print_order/' + parseInt(order.id) + '" target="_blank" class="btn btn-default" style="width:50%;" title="Imprimir">';
-        html += '<i class="fa fa-print"></i> Imprimir</a>';
-        html += '<a href="' + baseUrl + 'delivery/orders/view/' + parseInt(order.id) + '" class="btn btn-default" style="width:50%;" title="Ver detalhes">';
-        html += '<i class="fa fa-eye"></i> Ver</a>';
+        html += '<button type="button" class="btn btn-default btn-enviar-cupom" style="width:34%;" data-order-id="' + parseInt(order.id) + '" title="Enviar Cupom WhatsApp">';
+        html += '<i class="fa fa-whatsapp"></i></button>';
+        html += '<a href="' + baseUrl + 'delivery/orders/print_order/' + parseInt(order.id) + '?auto=1" target="_blank" class="btn btn-default" style="width:33%;" title="Imprimir Cupom">';
+        html += '<i class="fa fa-print"></i></a>';
+        html += '<a href="' + baseUrl + 'delivery/orders/view/' + parseInt(order.id) + '" class="btn btn-default" style="width:33%;" title="Ver detalhes">';
+        html += '<i class="fa fa-eye"></i></a>';
         html += '</div></div></div>';
 
         return html;
@@ -617,6 +630,11 @@ foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
                     });
 
                     updateColumnCounts();
+
+                    // Auto-print cupom ao confirmar pedido
+                    if (nextStatus === 'confirmado') {
+                        window.open(baseUrl + 'delivery/orders/print_order/' + orderId + '?auto=1', '_blank', 'width=350,height=600');
+                    }
 
                     // Open WhatsApp if link provided
                     if (response.whatsapp_link) {
@@ -752,7 +770,7 @@ foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
                 // Update counts from server
                 if (response.counts) {
                     var activeCnt = 0;
-                    var statuses = ['pendente', 'confirmado', 'preparando', 'saiu_entrega', 'entregue'];
+                    var statuses = ['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega', 'entregue'];
                     for (var i = 0; i < statuses.length; i++) {
                         var s = statuses[i];
                         var cnt = parseInt(response.counts[s]) || 0;
@@ -810,6 +828,24 @@ foreach (['pendente', 'confirmado', 'preparando', 'saiu_entrega'] as $s) {
             if (orderId && nextStatus) {
                 advanceStatus(orderId, nextStatus, $btn);
             }
+        });
+
+        // Enviar cupom via WhatsApp
+        $(document).on('click', '.btn-enviar-cupom', function(e) {
+            e.preventDefault();
+            var orderId = parseInt($(this).data('order-id'));
+            $.ajax({
+                url: baseUrl + 'delivery/orders/enviar_cupom/' + orderId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(r) {
+                    if (r.success && r.whatsapp_link) {
+                        window.open(r.whatsapp_link, '_blank');
+                    } else {
+                        alert(r.message || 'Erro ao gerar cupom');
+                    }
+                }
+            });
         });
 
         // Toggle store pause

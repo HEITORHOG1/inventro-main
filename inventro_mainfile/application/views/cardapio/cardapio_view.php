@@ -142,6 +142,13 @@
         .form-row { display: flex; gap: 10px; }
         .form-row .form-group { flex: 1; }
 
+        /* CEP / Endereço */
+        .cep-row { display: flex; gap: 8px; align-items: center; }
+        .btn-buscar-cep { padding: 12px 16px; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.8rem; text-decoration: none; white-space: nowrap; transition: all 0.3s; }
+        .btn-buscar-cep:hover { border-color: var(--primary); color: var(--primary); }
+        #enderecoDetalhes .form-control[readonly] { cursor: default; }
+        #enderecoDetalhes .form-control[readonly]:focus { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); }
+
         /* Payment Options */
         .payment-options { display: flex; gap: 10px; flex-wrap: wrap; }
         .payment-option { flex: 1; min-width: 90px; padding: 12px; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; background: transparent; color: var(--text-primary); cursor: pointer; text-align: center; transition: all 0.3s; }
@@ -222,6 +229,21 @@
         .toggle-label input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; }
         .toggle-text { color: var(--text-secondary); font-size: 0.9rem; }
         .cpf-field { animation: slideIn 0.3s ease; }
+
+        /* Pedidos Pendentes Banner */
+        .pedidos-pendentes-banner { background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.4); border-radius: 12px; padding: 15px 20px; max-width: 1200px; margin: 10px auto; animation: slideIn 0.3s ease; }
+        .pedidos-pendentes-banner .banner-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--accent); font-weight: 600; font-size: 0.95rem; }
+        .pedidos-pendentes-banner .banner-header i { font-size: 1.2rem; }
+        .pedido-pendente-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 6px; font-size: 0.85rem; }
+        .pedido-pendente-item:last-child { margin-bottom: 0; }
+        .pedido-pendente-info { display: flex; align-items: center; gap: 10px; }
+        .pedido-pendente-status { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .status-pendente { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .status-confirmado { background: rgba(33, 150, 243, 0.2); color: #2196f3; }
+        .status-preparando { background: rgba(156, 39, 176, 0.2); color: #ce93d8; }
+        .status-saiu_entrega { background: rgba(37, 211, 102, 0.2); color: var(--primary); }
+        .pedido-pendente-link { color: var(--primary); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+        .pedido-pendente-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -275,6 +297,9 @@
         Pedido minimo: <strong>R$ <?php echo number_format($pedido_minimo, 2, ',', '.'); ?></strong>
     </div>
     <?php endif; ?>
+
+    <!-- Pedidos Pendentes Banner (preenchido via JS) -->
+    <div id="pedidosPendentesBanner" class="pedidos-pendentes-banner" style="display:none;"></div>
 
     <!-- Categories -->
     <section class="categories">
@@ -391,31 +416,13 @@
                 </div>
             </div>
 
-            <!-- Zona de Entrega -->
-            <div id="zonaEntregaGroup" class="form-group">
-                <label>Zona de Entrega *</label>
-                <?php if (!empty($zonas)): ?>
-                <select class="form-control" id="zonaEntrega" onchange="updateZona()">
-                    <option value="">-- Selecione seu bairro --</option>
-                    <?php foreach ($zonas as $zona): ?>
-                        <option value="<?php echo (int)$zona->id; ?>"
-                                data-taxa="<?php echo (float)$zona->taxa; ?>"
-                                data-tempo-min="<?php echo (int)($zona->tempo_min ?? 20); ?>"
-                                data-tempo-max="<?php echo (int)($zona->tempo_max ?? 40); ?>">
-                            <?php echo html_escape($zona->nome); ?> — R$ <?php echo number_format($zona->taxa, 2, ',', '.'); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <?php else: ?>
-                <p style="color:var(--text-secondary);font-size:0.85rem;">Nenhuma zona configurada</p>
-                <?php endif; ?>
-            </div>
-
-            <!-- Taxa de Entrega Info -->
-            <div class="taxa-info" id="taxaInfo">
+            <!-- Taxa de Entrega Info (detectada automaticamente pelo CEP) -->
+            <div class="taxa-info" id="taxaInfo" style="display:none;">
                 <i class="fas fa-motorcycle"></i>
-                <span id="taxaInfoText">Selecione a zona de entrega</span>
+                <span id="taxaInfoText"></span>
             </div>
+            <input type="hidden" id="zonaDetectadaId" value="">
+            <input type="hidden" id="zonaDetectadaNome" value="">
             
             <div class="form-group">
                 <label>Telefone/WhatsApp *</label>
@@ -433,16 +440,14 @@
                 <div class="cliente-info">
                     <i class="fas fa-user-check"></i>
                     <div>
-                        <strong id="clienteEncontradoNome">João Silva</strong>
-                        <p id="clienteEncontradoEndereco">Rua...</p>
+                        <strong id="clienteEncontradoNome"></strong>
+                        <p id="clienteEncontradoEndereco"></p>
+                        <small style="color:var(--success);font-size:0.7rem;">Dados preenchidos automaticamente</small>
                     </div>
                 </div>
                 <div class="cliente-actions">
-                    <button type="button" class="btn-usar-dados" onclick="usarDadosCliente()">
-                        <i class="fas fa-check"></i> Usar estes dados
-                    </button>
                     <button type="button" class="btn-editar-dados" onclick="editarDados()">
-                        <i class="fas fa-edit"></i> Editar
+                        <i class="fas fa-edit"></i> Editar dados
                     </button>
                 </div>
             </div>
@@ -452,9 +457,35 @@
                 <input type="text" class="form-control" id="clienteNome" placeholder="Seu nome">
             </div>
             
-            <div class="form-group">
-                <label>Endereço completo *</label>
-                <input type="text" class="form-control" id="clienteEndereco" placeholder="Rua, número, bairro">
+            <div class="form-group endereco-group" id="enderecoGroup">
+                <label>Endereço de entrega *</label>
+                <div class="cep-row">
+                    <div style="flex:1;position:relative;">
+                        <input type="text" class="form-control" id="clienteCep" placeholder="00000-000" maxlength="9" inputmode="numeric">
+                        <div id="cepLoading" style="display:none;position:absolute;right:15px;top:50%;transform:translateY(-50%);">
+                            <i class="fas fa-spinner fa-spin" style="color:var(--primary);"></i>
+                        </div>
+                    </div>
+                    <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" class="btn-buscar-cep" title="Não sei meu CEP">
+                        <i class="fas fa-search"></i> Buscar CEP
+                    </a>
+                </div>
+                <div id="cepMsg" style="font-size:0.8rem;margin-top:4px;display:none;"></div>
+
+                <div id="enderecoDetalhes" style="display:none;margin-top:10px;">
+                    <input type="text" class="form-control" id="clienteRua" placeholder="Rua / Logradouro" readonly style="margin-bottom:8px;opacity:0.8;">
+                    <input type="text" class="form-control" id="clienteBairro" placeholder="Bairro" readonly style="margin-bottom:8px;opacity:0.8;">
+                    <div style="display:flex;gap:8px;margin-bottom:8px;">
+                        <input type="text" class="form-control" id="clienteCidade" placeholder="Cidade" readonly style="flex:1;opacity:0.8;">
+                        <input type="text" class="form-control" id="clienteEstado" placeholder="UF" readonly style="width:70px;text-align:center;opacity:0.8;">
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <input type="text" class="form-control" id="clienteNumero" placeholder="Número *" style="width:120px;" inputmode="numeric">
+                        <input type="text" class="form-control" id="clienteComplemento" placeholder="Complemento (apto, bloco...)" style="flex:1;">
+                    </div>
+                </div>
+                <!-- Campo hidden para manter compatibilidade -->
+                <input type="hidden" id="clienteEndereco" value="">
             </div>
             
             <div class="form-group">
@@ -573,23 +604,55 @@
         // Buscar cliente por telefone
         async function buscarCliente(telefone) {
             if (telefone.length < 10) return;
-            
+
             const loading = document.getElementById('loadingIndicator');
             loading.style.display = 'block';
-            
+
             try {
                 const response = await fetch(baseUrl + 'cardapio/api_buscar_cliente?telefone=' + encodeURIComponent(telefone));
                 const data = await response.json();
-                
+
                 if (data.found && data.cliente) {
                     clienteEncontradoData = data.cliente;
+
+                    // Preencher nome automaticamente
+                    document.getElementById('clienteNome').value = data.cliente.nome;
+
+                    // Preencher CEP e endereco se disponivel
+                    if (data.cliente.cep) {
+                        document.getElementById('clienteCep').value = formatCEP(data.cliente.cep);
+                        buscarCEP(data.cliente.cep);
+                    } else if (data.cliente.endereco) {
+                        document.getElementById('clienteEndereco').value = data.cliente.endereco;
+                    }
+
+                    // Preencher CPF se disponivel
+                    if (data.cliente.cpf) {
+                        document.getElementById('querCpf').checked = true;
+                        document.getElementById('cpfField').style.display = 'block';
+                        document.getElementById('cpfNota').value = data.cliente.cpf;
+                    }
+
+                    // Mostrar indicador visual no campo telefone
+                    var telInput = document.getElementById('clienteTelefone');
+                    telInput.style.borderColor = 'var(--success)';
+                    telInput.style.boxShadow = '0 0 0 2px rgba(40,167,69,0.15)';
+
+                    // Mostrar banner com opcao de editar
                     document.getElementById('clienteEncontradoNome').textContent = data.cliente.nome;
-                    document.getElementById('clienteEncontradoEndereco').textContent = data.cliente.endereco;
+                    document.getElementById('clienteEncontradoEndereco').textContent = data.cliente.endereco || 'Endereco nao cadastrado';
                     document.getElementById('clienteEncontrado').style.display = 'block';
-                    showToast('Cliente encontrado!');
+
+                    showToast('Cliente encontrado! Dados preenchidos.');
+                    validateForm();
                 } else {
                     document.getElementById('clienteEncontrado').style.display = 'none';
                     clienteEncontradoData = null;
+
+                    // Resetar estilo do campo telefone
+                    var telInput = document.getElementById('clienteTelefone');
+                    telInput.style.borderColor = '';
+                    telInput.style.boxShadow = '';
                 }
             } catch (error) {
                 console.error('Erro ao buscar cliente:', error);
@@ -598,26 +661,10 @@
             }
         }
 
-        function usarDadosCliente() {
-            if (!clienteEncontradoData) return;
-            
-            document.getElementById('clienteNome').value = clienteEncontradoData.nome;
-            document.getElementById('clienteEndereco').value = clienteEncontradoData.endereco;
-            
-            if (clienteEncontradoData.cpf) {
-                document.getElementById('querCpf').checked = true;
-                document.getElementById('cpfField').style.display = 'block';
-                document.getElementById('cpfNota').value = clienteEncontradoData.cpf;
-            }
-            
-            document.getElementById('clienteEncontrado').style.display = 'none';
-            showToast('Dados preenchidos!');
-            validateForm();
-        }
-
         function editarDados() {
             document.getElementById('clienteEncontrado').style.display = 'none';
             document.getElementById('clienteNome').focus();
+            document.getElementById('clienteNome').select();
         }
 
         function toggleCpfField() {
@@ -637,48 +684,171 @@
             return v;
         }
 
+        function formatCEP(value) {
+            let v = value.replace(/\D/g, '').slice(0, 8);
+            if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+            return v;
+        }
+
+        async function buscarCEP(cep) {
+            var cepLimpo = cep.replace(/\D/g, '');
+            var cepMsg = document.getElementById('cepMsg');
+            var cepLoading = document.getElementById('cepLoading');
+            var detalhes = document.getElementById('enderecoDetalhes');
+
+            if (cepLimpo.length !== 8) {
+                return;
+            }
+
+            cepLoading.style.display = 'block';
+            cepMsg.style.display = 'none';
+
+            try {
+                var response = await fetch('https://viacep.com.br/ws/' + cepLimpo + '/json/');
+                var data = await response.json();
+
+                if (data.erro) {
+                    cepMsg.style.display = 'block';
+                    cepMsg.style.color = 'var(--danger)';
+                    cepMsg.innerHTML = '<i class="fas fa-times-circle"></i> CEP não encontrado';
+                    detalhes.style.display = 'none';
+                    return;
+                }
+
+                // Preencher campos
+                document.getElementById('clienteRua').value = data.logradouro || '';
+                document.getElementById('clienteBairro').value = data.bairro || '';
+                document.getElementById('clienteCidade').value = data.localidade || '';
+                document.getElementById('clienteEstado').value = data.uf || '';
+
+                // Se logradouro veio vazio (CEP genérico), permitir edição
+                if (!data.logradouro) {
+                    document.getElementById('clienteRua').removeAttribute('readonly');
+                    document.getElementById('clienteRua').style.opacity = '1';
+                } else {
+                    document.getElementById('clienteRua').setAttribute('readonly', true);
+                    document.getElementById('clienteRua').style.opacity = '0.8';
+                }
+                if (!data.bairro) {
+                    document.getElementById('clienteBairro').removeAttribute('readonly');
+                    document.getElementById('clienteBairro').style.opacity = '1';
+                } else {
+                    document.getElementById('clienteBairro').setAttribute('readonly', true);
+                    document.getElementById('clienteBairro').style.opacity = '0.8';
+                }
+
+                detalhes.style.display = 'block';
+                cepMsg.style.display = 'block';
+                cepMsg.style.color = 'var(--success)';
+                cepMsg.innerHTML = '<i class="fas fa-check-circle"></i> ' + (data.logradouro ? data.logradouro + ', ' : '') + data.localidade + '/' + data.uf;
+
+                // Focar no campo número
+                document.getElementById('clienteNumero').focus();
+
+                composerEndereco();
+
+                // Detectar zona de entrega automaticamente pelo bairro
+                if (data.bairro && tipoEntrega === 'entrega') {
+                    detectarZona(data.bairro);
+                }
+            } catch (error) {
+                cepMsg.style.display = 'block';
+                cepMsg.style.color = 'var(--danger)';
+                cepMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro ao buscar CEP. Tente novamente.';
+            } finally {
+                cepLoading.style.display = 'none';
+            }
+        }
+
+        function composerEndereco() {
+            var rua = document.getElementById('clienteRua').value.trim();
+            var numero = document.getElementById('clienteNumero').value.trim();
+            var complemento = document.getElementById('clienteComplemento').value.trim();
+            var bairro = document.getElementById('clienteBairro').value.trim();
+            var cidade = document.getElementById('clienteCidade').value.trim();
+            var estado = document.getElementById('clienteEstado').value.trim();
+
+            var partes = [];
+            if (rua) partes.push(rua);
+            if (numero) partes.push(numero);
+            if (complemento) partes.push(complemento);
+            if (bairro) partes.push(bairro);
+
+            var endereco = partes.join(', ');
+            if (cidade) endereco += ' - ' + cidade;
+            if (estado) endereco += '/' + estado;
+
+            document.getElementById('clienteEndereco').value = endereco;
+            validateForm();
+        }
 
         function setTipoEntrega(tipo) {
             tipoEntrega = tipo;
             document.querySelectorAll('[data-tipo]').forEach(function(btn) {
                 btn.classList.toggle('selected', btn.dataset.tipo === tipo);
             });
-            var zonaGroup = document.getElementById('zonaEntregaGroup');
-            var enderecoField = document.getElementById('clienteEndereco');
+            var enderecoGroup = document.getElementById('enderecoGroup');
+            var taxaInfoEl = document.getElementById('taxaInfo');
             if (tipo === 'retirada') {
-                if (zonaGroup) zonaGroup.style.display = 'none';
-                if (enderecoField) enderecoField.placeholder = 'Opcional para retirada';
+                if (enderecoGroup) enderecoGroup.style.display = 'none';
+                if (taxaInfoEl) taxaInfoEl.style.display = 'none';
                 taxaEntrega = 0;
                 selectedZonaId = null;
             } else {
-                if (zonaGroup) zonaGroup.style.display = 'block';
-                if (enderecoField) enderecoField.placeholder = 'Rua, numero, bairro';
-                updateZona();
+                if (enderecoGroup) enderecoGroup.style.display = 'block';
+                // Mostrar taxa se ja foi detectada
+                if (selectedZonaId && taxaInfoEl) taxaInfoEl.style.display = 'flex';
             }
             updateCartUI();
         }
 
-        function updateZona() {
-            var select = document.getElementById('zonaEntrega');
-            var taxaInfo = document.getElementById('taxaInfoText');
-            if (!select) {
+        // Detectar zona automaticamente pelo bairro (chamado apos buscar CEP)
+        async function detectarZona(bairro) {
+            if (!bairro) return;
+
+            try {
+                var response = await fetch(baseUrl + 'cardapio/api_detectar_zona?bairro=' + encodeURIComponent(bairro));
+                var data = await response.json();
+                var taxaInfo = document.getElementById('taxaInfo');
+                var taxaInfoText = document.getElementById('taxaInfoText');
+
+                if (data.found && data.zona) {
+                    selectedZonaId = data.zona.id;
+                    taxaEntrega = data.zona.taxa;
+                    document.getElementById('zonaDetectadaId').value = data.zona.id;
+                    document.getElementById('zonaDetectadaNome').value = data.zona.nome;
+
+                    var tempoText = data.zona.tempo_min + '-' + data.zona.tempo_max + ' min';
+                    if (taxaEntrega == 0) {
+                        taxaInfoText.innerHTML = '<strong>' + data.zona.nome + '</strong> &bull; Entrega em ' + tempoText + ' &bull; <strong style="color:var(--success)">GRATIS</strong>';
+                    } else {
+                        taxaInfoText.innerHTML = '<strong>' + data.zona.nome + '</strong> &bull; Entrega em ' + tempoText + ' &bull; Taxa: <strong>R$ ' + taxaEntrega.toFixed(2).replace('.', ',') + '</strong>';
+                    }
+                    taxaInfo.style.display = 'flex';
+                    taxaInfo.style.borderColor = 'var(--success)';
+                } else {
+                    // Bairro nao encontrado nas zonas — usar taxa fixa padrao
+                    selectedZonaId = null;
+                    taxaEntrega = taxaFixa;
+                    document.getElementById('zonaDetectadaId').value = '';
+                    document.getElementById('zonaDetectadaNome').value = '';
+
+                    if (taxaEntrega > 0) {
+                        taxaInfoText.innerHTML = 'Taxa de entrega: <strong>R$ ' + taxaEntrega.toFixed(2).replace('.', ',') + '</strong>';
+                    } else {
+                        taxaInfoText.innerHTML = '<strong style="color:var(--success)">Entrega GRATIS</strong>';
+                    }
+                    taxaInfo.style.display = 'flex';
+                    taxaInfo.style.borderColor = '';
+                }
+            } catch (error) {
+                console.error('Erro ao detectar zona:', error);
+                // Fallback para taxa fixa
                 taxaEntrega = taxaFixa;
-                if (taxaInfo) taxaInfo.textContent = taxaEntrega == 0 ? 'GRATIS' : 'Taxa: R$ ' + taxaEntrega.toFixed(2).replace('.', ',');
-                return;
-            }
-            var option = select.options[select.selectedIndex];
-            if (option && option.value) {
-                selectedZonaId = parseInt(option.value);
-                taxaEntrega = parseFloat(option.dataset.taxa) || 0;
-                var tMin = option.dataset.tempoMin || '?';
-                var tMax = option.dataset.tempoMax || '?';
-                if (taxaInfo) taxaInfo.innerHTML = 'Entrega em ' + tMin + '-' + tMax + ' min &bull; Taxa: <strong>R$ ' + taxaEntrega.toFixed(2).replace('.', ',') + '</strong>';
-            } else {
                 selectedZonaId = null;
-                taxaEntrega = 0;
-                if (taxaInfo) taxaInfo.textContent = 'Selecione a zona de entrega';
             }
             updateCartUI();
+            validateForm();
         }
 
         function addToCart(btn) {
@@ -784,19 +954,16 @@
         function validateForm() {
             var nome = document.getElementById('clienteNome').value.trim();
             var telefone = document.getElementById('clienteTelefone').value.trim();
-            var endereco = document.getElementById('clienteEndereco').value.trim();
             var subtotal = cart.reduce(function(sum, item) { return sum + (item.price * item.qty); }, 0);
 
             var isValid = cart.length > 0 && nome && telefone && selectedPayment;
 
             // Endereco obrigatorio apenas para entrega
             if (tipoEntrega === 'entrega') {
-                isValid = isValid && endereco;
-                // Zona obrigatoria se tem zonas
-                var zonaSelect = document.getElementById('zonaEntrega');
-                if (zonaSelect && zonaSelect.options.length > 1) {
-                    isValid = isValid && selectedZonaId;
-                }
+                var cep = document.getElementById('clienteCep').value.replace(/\D/g, '');
+                var rua = document.getElementById('clienteRua').value.trim();
+                var numero = document.getElementById('clienteNumero').value.trim();
+                isValid = isValid && cep.length === 8 && rua && numero;
             }
 
             // Loja fechada
@@ -833,10 +1000,16 @@
 
         function getFormData() {
             const cpfNota = document.getElementById('querCpf').checked ? document.getElementById('cpfNota').value.trim() : '';
+            // Compor endereço antes de capturar
+            composerEndereco();
             return {
                 cliente_nome: document.getElementById('clienteNome').value.trim(),
                 cliente_telefone: document.getElementById('clienteTelefone').value.trim(),
                 cliente_endereco: document.getElementById('clienteEndereco').value.trim(),
+                cliente_cep: document.getElementById('clienteCep').value.trim(),
+                cliente_complemento: document.getElementById('clienteComplemento').value.trim(),
+                cliente_cidade: document.getElementById('clienteCidade').value.trim(),
+                cliente_estado: document.getElementById('clienteEstado').value.trim(),
                 forma_pagamento: selectedPayment,
                 troco_para: document.getElementById('trocoPara').value.trim(),
                 observacao: document.getElementById('observacao').value.trim(),
@@ -891,7 +1064,18 @@
                 message += '\n*Obs:* ' + data.observacao + '\n';
             }
 
-            saveOrder('whatsapp').then(function() {
+            saveOrder('whatsapp').then(function(response) {
+                if (response.success) {
+                    // Salvar telefone para identificar pedidos pendentes
+                    localStorage.setItem('cliente_telefone', data.cliente_telefone);
+                    // Limpar carrinho
+                    cart = [];
+                    updateCartUI();
+                    toggleCart();
+                    showToast('Pedido #' + response.order_number + ' registrado!');
+                    // Verificar pedidos pendentes
+                    verificarPedidosPendentes();
+                }
                 window.open('https://wa.me/55' + whatsappNumber + '?text=' + encodeURIComponent(message), '_blank');
             });
         }
@@ -909,6 +1093,8 @@
 
             saveOrder('site').then(function(response) {
                 if (response.success) {
+                    // Salvar telefone para identificar pedidos pendentes
+                    localStorage.setItem('cliente_telefone', data.cliente_telefone);
                     window.location.href = baseUrl + 'cardapio/confirmacao/' + response.order_number;
                 } else {
                     showToast('Erro: ' + (response.message || 'Tente novamente'));
@@ -922,7 +1108,9 @@
             data.tipo_entrega = tipoEntrega;
             data.items = cart;
             data.taxa_entrega = taxaEntrega;
-            if (selectedZonaId) data.zona_id = selectedZonaId;
+            var zonaId = document.getElementById('zonaDetectadaId').value;
+            if (zonaId) data.zona_id = parseInt(zonaId);
+            else if (selectedZonaId) data.zona_id = selectedZonaId;
             if (cupomAplicado) {
                 data.cupom_codigo = cupomAplicado.codigo;
                 data.desconto_cupom = cupomAplicado.desconto;
@@ -972,6 +1160,41 @@
             }
         }
 
+        async function verificarPedidosPendentes() {
+            const telefone = localStorage.getItem('cliente_telefone');
+            if (!telefone) return;
+
+            try {
+                const telLimpo = telefone.replace(/\D/g, '');
+                const response = await fetch(baseUrl + 'cardapio/api/pedidos_pendentes?tel=' + encodeURIComponent(telLimpo));
+                const data = await response.json();
+
+                const banner = document.getElementById('pedidosPendentesBanner');
+                if (data.success && data.pedidos.length > 0) {
+                    let html = '<div class="banner-header"><i class="fas fa-bell"></i> Voce tem ' + data.pedidos.length + ' pedido(s) em andamento</div>';
+                    data.pedidos.forEach(function(pedido) {
+                        const total = parseFloat(pedido.total).toFixed(2).replace('.', ',');
+                        html += '<div class="pedido-pendente-item">' +
+                            '<div class="pedido-pendente-info">' +
+                                '<strong>#' + pedido.order_number + '</strong>' +
+                                '<span class="pedido-pendente-status status-' + pedido.status + '">' + pedido.status_label + '</span>' +
+                                '<span>R$ ' + total + '</span>' +
+                            '</div>' +
+                            '<a href="' + baseUrl + 'cardapio/acompanhar/' + pedido.order_number + '" class="pedido-pendente-link">' +
+                                'Acompanhar <i class="fas fa-chevron-right"></i>' +
+                            '</a>' +
+                        '</div>';
+                    });
+                    banner.innerHTML = html;
+                    banner.style.display = 'block';
+                } else {
+                    banner.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Erro ao verificar pedidos:', e);
+            }
+        }
+
         function showToast(message) {
             const toast = document.getElementById('toast');
             document.getElementById('toastMessage').textContent = message;
@@ -984,6 +1207,16 @@
             if (savedCart) {
                 cart = JSON.parse(savedCart);
                 updateCartUI();
+            }
+
+            // Verificar pedidos pendentes do cliente (imediato + a cada 30s)
+            verificarPedidosPendentes();
+            setInterval(verificarPedidosPendentes, 30000);
+
+            // Preencher telefone salvo no campo, se existir
+            const savedTel = localStorage.getItem('cliente_telefone');
+            if (savedTel && document.getElementById('clienteTelefone').value === '') {
+                document.getElementById('clienteTelefone').value = savedTel;
             }
 
             document.querySelectorAll('.payment-option[data-payment]').forEach(option => {
@@ -999,8 +1232,13 @@
                 });
             });
 
-            ['clienteNome', 'clienteTelefone', 'clienteEndereco'].forEach(id => {
+            ['clienteNome', 'clienteTelefone', 'clienteNumero', 'clienteComplemento'].forEach(id => {
                 document.getElementById(id).addEventListener('input', validateForm);
+            });
+
+            // Atualizar endereço composto ao editar número/complemento
+            ['clienteNumero', 'clienteComplemento', 'clienteRua', 'clienteBairro'].forEach(id => {
+                document.getElementById(id).addEventListener('input', composerEndereco);
             });
 
             document.getElementById('clienteTelefone').addEventListener('input', function(e) {
@@ -1010,13 +1248,22 @@
                 else if (val.length > 2) val = '(' + val.slice(0,2) + ') ' + val.slice(2);
                 else if (val.length > 0) val = '(' + val;
                 e.target.value = val;
+
+                // Buscar cliente automaticamente quando completar 10-11 digitos
+                if (val.replace(/\D/g, '').length >= 10) {
+                    clearTimeout(window._buscaClienteTimer);
+                    window._buscaClienteTimer = setTimeout(function() {
+                        buscarCliente(val.replace(/\D/g, ''));
+                    }, 500);
+                }
             });
 
-            // Buscar cliente quando terminar de digitar telefone
-            document.getElementById('clienteTelefone').addEventListener('blur', function(e) {
-                const telefone = e.target.value.replace(/\D/g, '');
-                if (telefone.length >= 10) {
-                    buscarCliente(telefone);
+            // Formatação e busca do CEP
+            document.getElementById('clienteCep').addEventListener('input', function(e) {
+                e.target.value = formatCEP(e.target.value);
+                var cepLimpo = e.target.value.replace(/\D/g, '');
+                if (cepLimpo.length === 8) {
+                    buscarCEP(cepLimpo);
                 }
             });
 

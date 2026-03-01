@@ -81,7 +81,7 @@ ON DUPLICATE KEY UPDATE currencyname = VALUES(currencyname);
 -- --------------------------------------------------------
 
 INSERT INTO `setting` (`id`, `title`, `address`, `email`, `phone`, `logo`, `favicon`, `language`, `site_align`, `currency`, `footer_text`, `timezone`) VALUES
-(2, 'Mercadinho do Bairro', 'Rua Principal, 100 - Centro - São Paulo/SP', 'contato@mercadinhodobairro.com.br', '11999998888', NULL, NULL, 'portugues', 'ltr', '5', '©2024 Inventro - Sistema de Gestão', 'America/Sao_Paulo')
+(2, 'Mercadinho do Bairro', 'Rua do Imperador, 500 - Centro - Petropolis/RJ', 'contato@mercadinhodobairro.com.br', '24999998888', NULL, NULL, 'portugues', 'ltr', '5', '©2024 Inventro - Sistema de Gestão', 'America/Sao_Paulo')
 ON DUPLICATE KEY UPDATE 
     title = VALUES(title),
     address = VALUES(address),

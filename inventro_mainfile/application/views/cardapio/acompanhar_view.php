@@ -574,7 +574,7 @@
 
                     <?php
                         // Define status order for comparison
-                        $status_order = ['recebido' => 0, 'confirmado' => 1, 'preparando' => 2, 'saiu_entrega' => 3, 'entregue' => 4];
+                        $status_order = ['recebido' => 0, 'confirmado' => 1, 'preparando' => 2, 'pronto_coleta' => 3, 'saiu_entrega' => 4, 'entregue' => 5];
                         $current_status = isset($order->status) ? $order->status : 'recebido';
                         $current_index = isset($status_order[$current_status]) ? $status_order[$current_status] : 0;
 
@@ -597,6 +597,12 @@
                                 'icon'  => 'fa-fire-burner',
                                 'label' => 'Preparando',
                                 'time'  => isset($order->hora_preparando) ? $order->hora_preparando : null,
+                            ],
+                            [
+                                'key'   => 'pronto_coleta',
+                                'icon'  => 'fa-box-open',
+                                'label' => 'Pedido Pronto!',
+                                'time'  => isset($order->hora_pronto_coleta) ? $order->hora_pronto_coleta : null,
                             ],
                             [
                                 'key'   => 'saiu_entrega',
@@ -758,8 +764,9 @@
                         'recebido': 0,
                         'confirmado': 1,
                         'preparando': 2,
-                        'saiu_entrega': 3,
-                        'entregue': 4
+                        'pronto_coleta': 3,
+                        'saiu_entrega': 4,
+                        'entregue': 5
                     };
 
                     // Labels for each step
@@ -767,6 +774,7 @@
                         'recebido': 'Recebido',
                         'confirmado': 'Confirmado',
                         'preparando': 'Preparando',
+                        'pronto_coleta': 'Pedido Pronto!',
                         'saiu_entrega': isRetirada ? 'Pronto para Retirada' : 'A caminho',
                         'entregue': isRetirada ? 'Retirado' : 'Entregue'
                     };
@@ -776,6 +784,7 @@
                         'recebido': 'fa-clipboard-check',
                         'confirmado': 'fa-thumbs-up',
                         'preparando': 'fa-fire-burner',
+                        'pronto_coleta': 'fa-box-open',
                         'saiu_entrega': isRetirada ? 'fa-bag-shopping' : 'fa-motorcycle',
                         'entregue': 'fa-circle-check'
                     };
@@ -816,12 +825,13 @@
                             'recebido': data.created_at || null,
                             'confirmado': data.hora_confirmado || null,
                             'preparando': data.hora_preparando || null,
+                            'pronto_coleta': data.hora_pronto_coleta || null,
                             'saiu_entrega': data.hora_saiu_entrega || null,
                             'entregue': data.hora_entregue || null
                         };
 
                         var steps = document.querySelectorAll('.timeline-step');
-                        var keys = ['recebido', 'confirmado', 'preparando', 'saiu_entrega', 'entregue'];
+                        var keys = ['recebido', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega', 'entregue'];
 
                         steps.forEach(function(stepEl, i) {
                             var stepKey = keys[i];

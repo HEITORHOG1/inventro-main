@@ -62,10 +62,62 @@ $route['cardapio/acompanhar/(:any)'] = 'cardapio/acompanhar/$1';
 $route['cardapio/api/status/(:any)'] = 'cardapio/api_status/$1';
 $route['cardapio/avaliar/(:any)'] = 'cardapio/avaliar/$1';
 $route['cardapio/api/validar_cupom'] = 'cardapio/api_validar_cupom';
+$route['cardapio/api_detectar_zona'] = 'cardapio/api_detectar_zona';
 $route['cardapio/api/ultimo_pedido'] = 'cardapio/api_ultimo_pedido';
+$route['cardapio/api/pedidos_pendentes'] = 'cardapio/api_pedidos_pendentes';
 $route['cardapio/manifest.json'] = 'cardapio/manifest';
 $route['cardapio/sw.js'] = 'cardapio/service_worker';
 $route['cardapio/offline'] = 'cardapio/offline';
+
+// Rotas públicas - Portal do Motoboy (auth própria, sem RBAC)
+$route['motoboy'] = 'motoboy/index';
+$route['motoboy/login'] = 'motoboy/login';
+$route['motoboy/logout'] = 'motoboy/logout';
+$route['motoboy/dashboard'] = 'motoboy/dashboard';
+$route['motoboy/aceitar/(:num)'] = 'motoboy/aceitar/$1';
+$route['motoboy/coletar/(:num)'] = 'motoboy/coletar/$1';
+$route['motoboy/entregar/(:num)'] = 'motoboy/entregar/$1';
+$route['motoboy/historico'] = 'motoboy/historico';
+$route['motoboy/api/pool'] = 'motoboy/api_pool';
+$route['motoboy/api/minha'] = 'motoboy/api_minha_entrega';
+$route['motoboy/api/historico'] = 'motoboy/api_historico';
+
+// =========================================
+// API v1 — Endpoints para apps nativos Android/iOS
+// =========================================
+
+// Cardápio (público, sem auth)
+$route['api/v1/cardapio/produtos']                = 'api/v1_cardapio/produtos';
+$route['api/v1/cardapio/categorias']              = 'api/v1_cardapio/categorias';
+$route['api/v1/cardapio/zonas']                   = 'api/v1_cardapio/zonas';
+$route['api/v1/cardapio/zona/detectar']           = 'api/v1_cardapio/detectar_zona';
+$route['api/v1/cardapio/config']                  = 'api/v1_cardapio/config';
+$route['api/v1/cardapio/pedido']                  = 'api/v1_cardapio/criar_pedido';
+$route['api/v1/cardapio/pedido/(:any)/status']    = 'api/v1_cardapio/status_pedido/$1';
+$route['api/v1/cardapio/pedido/(:any)/avaliar']   = 'api/v1_cardapio/avaliar_pedido/$1';
+$route['api/v1/cardapio/cupom/validar']           = 'api/v1_cardapio/validar_cupom';
+$route['api/v1/cardapio/cliente/(:any)/pedidos']  = 'api/v1_cardapio/pedidos_cliente/$1';
+$route['api/v1/cardapio/cliente/(:any)']          = 'api/v1_cardapio/buscar_cliente/$1';
+
+// Motoboy — Auth
+$route['api/v1/motoboy/auth/login']               = 'api/v1_motoboy/login';
+$route['api/v1/motoboy/auth/refresh']             = 'api/v1_motoboy/refresh';
+$route['api/v1/motoboy/auth/logout']              = 'api/v1_motoboy/logout';
+
+// Motoboy — Endpoints protegidos (JWT)
+$route['api/v1/motoboy/perfil']                   = 'api/v1_motoboy/perfil';
+$route['api/v1/motoboy/pool']                     = 'api/v1_motoboy/pool';
+$route['api/v1/motoboy/entrega/ativa']            = 'api/v1_motoboy/entrega_ativa';
+$route['api/v1/motoboy/entrega/(:num)/aceitar']   = 'api/v1_motoboy/aceitar/$1';
+$route['api/v1/motoboy/entrega/(:num)/coletar']   = 'api/v1_motoboy/coletar/$1';
+$route['api/v1/motoboy/entrega/(:num)/entregar']  = 'api/v1_motoboy/entregar/$1';
+$route['api/v1/motoboy/historico']                = 'api/v1_motoboy/historico';
+$route['api/v1/motoboy/ganhos']                   = 'api/v1_motoboy/ganhos';
+$route['api/v1/motoboy/device']                   = 'api/v1_motoboy/registrar_device';
+
+// Swagger UI (dev only)
+$route['api/docs']                                = 'api/v1_docs/index';
+$route['api/docs/openapi.json']                   = 'api/v1_docs/spec';
 
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

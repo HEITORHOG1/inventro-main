@@ -487,7 +487,9 @@ $config['csrf_exclude_uris'] = array(
     'cardapio/buscar',
     'delivery/zones/api_list',
     'delivery/orders/api_list',
-    'delivery/zones/toggle_status/.*'
+    'delivery/zones/toggle_status/.*',
+    // API v1 — apps nativos usam JWT, não CSRF
+    'api/v1/.*'
 );
 
 /*
