@@ -115,6 +115,23 @@ $route['api/v1/motoboy/historico']                = 'api/v1_motoboy/historico';
 $route['api/v1/motoboy/ganhos']                   = 'api/v1_motoboy/ganhos';
 $route['api/v1/motoboy/device']                   = 'api/v1_motoboy/registrar_device';
 
+// Rotas públicas - Portal do Cliente (auth própria, sem RBAC)
+$route['cliente'] = 'customer_portal/index';
+$route['cliente/login'] = 'customer_portal/login';
+$route['cliente/registrar'] = 'customer_portal/registrar';
+$route['cliente/logout'] = 'customer_portal/logout';
+$route['cliente/esqueci-senha'] = 'customer_portal/esqueci_senha';
+$route['cliente/redefinir-senha/(:any)'] = 'customer_portal/redefinir_senha/$1';
+$route['cliente/dashboard'] = 'customer_portal/dashboard';
+$route['cliente/pedidos'] = 'customer_portal/pedidos';
+$route['cliente/pedido/(:any)'] = 'customer_portal/pedido_detalhe/$1';
+$route['cliente/perfil'] = 'customer_portal/perfil';
+$route['cliente/alterar-senha'] = 'customer_portal/alterar_senha';
+$route['cliente/pagamentos'] = 'customer_portal/pagamentos';
+
+// Efi Pay PIX webhook (publico, sem auth)
+$route['efi_webhook/pix'] = 'efi_webhook/pix';
+
 // Swagger UI (dev only)
 $route['api/docs']                                = 'api/v1_docs/index';
 $route['api/docs/openapi.json']                   = 'api/v1_docs/spec';

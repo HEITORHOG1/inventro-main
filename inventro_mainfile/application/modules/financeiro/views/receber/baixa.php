@@ -125,7 +125,13 @@ $position = $get_appsetting->position;
                 <button type="submit" class="btn btn-success btn-lg">
                     <i class="fas fa-check"></i> <?php echo makeString(['registrar_baixa']); ?>
                 </button>
-                <a href="<?php echo base_url('financeiro/contas_receber/lista') ?>" class="btn btn-secondary">
+                <a href="<?php echo base_url('financeiro/contas_receber/gerar_pix/' . $conta->id); ?>" class="btn btn-primary btn-lg ml-2">
+                    <i class="fas fa-qrcode"></i> <?php echo makeString(['gerar_pix']); ?>
+                </a>
+                <a href="<?php echo base_url('financeiro/contas_receber/cobrar_cartao/' . $conta->id); ?>" class="btn btn-dark btn-lg ml-2">
+                    <i class="fas fa-credit-card"></i> <?php echo makeString(['cobrar_cartao']); ?>
+                </a>
+                <a href="<?php echo base_url('financeiro/contas_receber/lista') ?>" class="btn btn-secondary ml-2">
                     <?php echo makeString(['cancel']); ?>
                 </a>
             </div>

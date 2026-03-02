@@ -314,7 +314,13 @@ class Cardapio extends CI_Controller {
             }
         }
 
+        // Vincular ao cliente logado (se houver)
+        $customer_id = $this->session->userdata('cliente_logado')
+            ? (int) $this->session->userdata('cliente_id')
+            : null;
+
         $order_data = [
+            'customer_id' => $customer_id,
             'cliente_nome' => $input['cliente_nome'],
             'cliente_telefone' => $input['cliente_telefone'],
             'cliente_endereco' => $input['cliente_endereco'],
@@ -331,7 +337,7 @@ class Cardapio extends CI_Controller {
                             : null,
             'tipo_checkout' => $input['tipo_checkout'] ?? 'site',
             'tipo_entrega' => $tipo_entrega,
-            'status' => 'pendente',
+            'status' => $this->_get_status_inicial($input['tipo_checkout'] ?? 'site', $input['forma_pagamento']),
             'observacao' => $input['observacao'] ?: null,
             'cpf_nota' => $cpf_nota
         ];
@@ -372,13 +378,25 @@ class Cardapio extends CI_Controller {
                 $input['cliente_estado'] ?? ''
             );
 
-            echo json_encode([
+            $response = [
                 'success' => true,
                 'order_id' => $result['order_id'],
                 'order_number' => $result['order_number'],
                 'total' => $total,
                 'message' => 'Pedido realizado com sucesso!'
-            ]);
+            ];
+
+            // Para site + pix/cartao: redirecionar para pagina de pagamento
+            $status_inicial = $order_data['status'];
+            if ($status_inicial === 'pendente_pagamento') {
+                if ($input['forma_pagamento'] === 'pix') {
+                    $response['redirect_url'] = base_url('cardapio/pagamento_pix/' . $result['order_number']);
+                } else {
+                    $response['redirect_url'] = base_url('cardapio/pagamento_cartao/' . $result['order_number']);
+                }
+            }
+
+            echo json_encode($response);
         } else {
             echo json_encode(['success' => false, 'message' => 'Erro ao processar pedido']);
         }
@@ -391,15 +409,27 @@ class Cardapio extends CI_Controller {
         }
 
         $data['order'] = $this->delivery_model->get_order_by_number($order_number);
-        
+
         if (!$data['order']) {
             redirect('cardapio');
             return;
         }
 
+        // Se pendente_pagamento, redirecionar para pagina de pagamento
+        if ($data['order']->status === 'pendente_pagamento') {
+            if ($data['order']->forma_pagamento === 'pix') {
+                redirect('cardapio/pagamento_pix/' . $order_number);
+            } else {
+                redirect('cardapio/pagamento_cartao/' . $order_number);
+            }
+            return;
+        }
+
         $data['loja'] = $this->db->get('setting')->row();
-        $data['whatsapp'] = preg_replace('/[^0-9]/', '', $data['loja']->phone ?? '');
-        
+        $config = $this->delivery_model->get_config();
+        $whatsapp_raw = !empty($config['whatsapp_numero']) ? $config['whatsapp_numero'] : ($data['loja']->phone ?? '');
+        $data['whatsapp'] = preg_replace('/[^0-9]/', '', $whatsapp_raw);
+
         $this->load->view('cardapio/confirmacao_view', $data);
     }
 
@@ -760,6 +790,7 @@ self.addEventListener('activate', function(event) {
         $result = [];
         foreach ($pedidos as $pedido) {
             $status_label = [
+                'pendente_pagamento' => 'Aguardando pagamento',
                 'pendente' => 'Aguardando confirmacao',
                 'confirmado' => 'Confirmado',
                 'preparando' => 'Em preparo',
@@ -777,6 +808,353 @@ self.addEventListener('activate', function(event) {
         }
 
         echo json_encode(['success' => true, 'pedidos' => $result]);
+    }
+
+    // =========================================
+    // Pagamento Online (PIX / Cartao)
+    // =========================================
+
+    /**
+     * Pagina publica de pagamento PIX
+     */
+    public function pagamento_pix($order_number = null) {
+        if (!$order_number) { redirect('cardapio'); return; }
+
+        $order = $this->delivery_model->get_order_by_number($order_number);
+        if (!$order || $order->status !== 'pendente_pagamento' || $order->forma_pagamento !== 'pix') {
+            redirect('cardapio/confirmacao/' . $order_number);
+            return;
+        }
+
+        $data['order'] = $order;
+        $data['loja'] = $this->db->get('setting')->row();
+
+        // Verificar se ja existe charge PIX ativa para este pedido
+        $this->load->model('financeiro/Efi_pix_model');
+        $existing = $this->Efi_pix_model->get_active_charge_by_order($order->id);
+        if ($existing) {
+            $data['pix_charge'] = $existing;
+        }
+
+        // Flag sandbox para botao de simulacao
+        $this->load->library('Efi_pay');
+        $data['is_sandbox'] = $this->efi_pay->get_config('efipay_sandbox', '1') === '1';
+
+        $this->load->view('cardapio/pagamento_pix_view', $data);
+    }
+
+    /**
+     * Pagina publica de pagamento Cartao
+     */
+    public function pagamento_cartao($order_number = null) {
+        if (!$order_number) { redirect('cardapio'); return; }
+
+        $order = $this->delivery_model->get_order_by_number($order_number);
+        if (!$order || $order->status !== 'pendente_pagamento' || $order->forma_pagamento !== 'cartao') {
+            redirect('cardapio/confirmacao/' . $order_number);
+            return;
+        }
+
+        $data['order'] = $order;
+        $data['loja'] = $this->db->get('setting')->row();
+
+        // Account ID para tokenizacao JS
+        $this->load->library('Efi_pay');
+        $data['account_id'] = $this->efi_pay->get_config('efipay_account_id', '');
+        $data['is_sandbox'] = $this->efi_pay->get_config('efipay_sandbox', '1') === '1';
+
+        $this->load->view('cardapio/pagamento_cartao_view', $data);
+    }
+
+    /**
+     * API: Cria cobranca PIX para pedido delivery
+     */
+    public function api_criar_pix_pedido() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Metodo nao permitido']);
+            return;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $order_number = $input['order_number'] ?? '';
+
+        $order = $this->delivery_model->get_order_by_number($order_number);
+        if (!$order || $order->status !== 'pendente_pagamento' || $order->forma_pagamento !== 'pix') {
+            echo json_encode(['success' => false, 'message' => 'Pedido nao encontrado ou ja pago']);
+            return;
+        }
+
+        // Verificar se ja existe charge ativa
+        $this->load->model('financeiro/Efi_pix_model');
+        $existing = $this->Efi_pix_model->get_active_charge_by_order($order->id);
+        if ($existing) {
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'txid' => $existing->txid,
+                    'qrcode_base64' => $existing->qrcode_base64,
+                    'pix_copia_cola' => $existing->pix_copia_cola,
+                    'expiracao' => (int)$existing->expiracao,
+                    'created_at' => $existing->created_at,
+                ]
+            ]);
+            return;
+        }
+
+        // Criar nova cobranca PIX via Efi Pay
+        $this->load->library('Efi_pay');
+        if (!$this->efi_pay->is_active()) {
+            echo json_encode(['success' => false, 'message' => 'Pagamento PIX nao disponivel']);
+            return;
+        }
+
+        $descricao = 'Pedido #' . $order->order_number;
+        $cpf = !empty($order->cpf_nota) ? $order->cpf_nota : null;
+
+        $result = $this->efi_pay->create_pix_charge(
+            (float)$order->total,
+            $descricao,
+            $order->cliente_nome,
+            $cpf
+        );
+
+        if (!$result['success']) {
+            log_message('error', 'api_criar_pix_pedido: Erro Efi - ' . $result['error']);
+            echo json_encode(['success' => false, 'message' => 'Erro ao gerar PIX: ' . $result['error']]);
+            return;
+        }
+
+        // Salvar charge no banco
+        $charge_data = [
+            'order_id' => $order->id,
+            'txid' => $result['data']['txid'],
+            'location_id' => $result['data']['location_id'],
+            'location_url' => $result['data']['location_url'],
+            'qrcode_base64' => $result['data']['qrcode_base64'],
+            'pix_copia_cola' => $result['data']['pix_copia_cola'],
+            'valor' => (float)$order->total,
+            'status' => 'pending',
+            'expiracao' => $result['data']['expiracao'],
+            'devedor_nome' => $order->cliente_nome,
+            'devedor_cpf' => $cpf ? preg_replace('/\D/', '', $cpf) : null,
+            'efi_response' => json_encode($result['data']['raw_response']),
+        ];
+        $this->Efi_pix_model->create($charge_data);
+
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'txid' => $result['data']['txid'],
+                'qrcode_base64' => $result['data']['qrcode_base64'],
+                'pix_copia_cola' => $result['data']['pix_copia_cola'],
+                'expiracao' => $result['data']['expiracao'],
+                'created_at' => date('Y-m-d H:i:s'),
+            ]
+        ]);
+    }
+
+    /**
+     * API: Processa pagamento cartao para pedido delivery
+     */
+    public function api_processar_cartao_pedido() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Metodo nao permitido']);
+            return;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $order_number = $input['order_number'] ?? '';
+        $payment_token = $input['payment_token'] ?? '';
+        $parcelas = max(1, (int)($input['parcelas'] ?? 1));
+        $cliente_nome = strip_tags(trim($input['cliente_nome'] ?? ''));
+        $cliente_cpf = preg_replace('/\D/', '', $input['cliente_cpf'] ?? '');
+        $cliente_email = filter_var($input['cliente_email'] ?? '', FILTER_SANITIZE_EMAIL);
+        $cliente_telefone = preg_replace('/\D/', '', $input['cliente_telefone'] ?? '');
+
+        if (empty($payment_token) || empty($order_number)) {
+            echo json_encode(['success' => false, 'message' => 'Dados incompletos']);
+            return;
+        }
+
+        $order = $this->delivery_model->get_order_by_number($order_number);
+        if (!$order || $order->status !== 'pendente_pagamento' || $order->forma_pagamento !== 'cartao') {
+            echo json_encode(['success' => false, 'message' => 'Pedido nao encontrado ou ja pago']);
+            return;
+        }
+
+        $this->load->library('Efi_pay');
+        if (!$this->efi_pay->is_card_active()) {
+            echo json_encode(['success' => false, 'message' => 'Pagamento por cartao nao disponivel']);
+            return;
+        }
+
+        // Montar items para Efi (valor em centavos)
+        $items = [
+            [
+                'name' => 'Pedido #' . $order->order_number,
+                'value' => (int)round((float)$order->total * 100),
+                'amount' => 1,
+            ]
+        ];
+
+        // Montar customer
+        $customer = [
+            'name' => $cliente_nome ?: $order->cliente_nome,
+            'cpf' => $cliente_cpf,
+            'email' => $cliente_email,
+            'phone_number' => $cliente_telefone ?: preg_replace('/\D/', '', $order->cliente_telefone),
+        ];
+
+        $result = $this->efi_pay->create_card_charge_onestep($items, $customer, $payment_token, $parcelas);
+
+        // Salvar charge no banco
+        $this->load->model('financeiro/Efi_card_model', 'efi_card_model');
+        $charge_data = [
+            'order_id' => $order->id,
+            'charge_id' => isset($result['data']['charge_id']) ? $result['data']['charge_id'] : null,
+            'valor' => (float)$order->total,
+            'parcelas' => $parcelas,
+            'status' => $result['success'] ? 'approved' : 'error',
+            'cliente_nome' => $customer['name'],
+            'cliente_cpf' => $cliente_cpf,
+            'cliente_email' => $cliente_email,
+            'efi_response' => json_encode($result['data'] ?? $result['error']),
+        ];
+
+        // Tentar extrair charge_id da resposta
+        if ($result['success'] && isset($result['data']['data']['charge_id'])) {
+            $charge_data['charge_id'] = $result['data']['data']['charge_id'];
+        }
+
+        $this->db->insert('efi_card_charges', $charge_data);
+
+        if ($result['success']) {
+            // Pagamento aprovado — atualizar pedido para pendente
+            $this->delivery_model->update_order_status($order->id, 'pendente', [
+                'pagamento_confirmado' => 1
+            ]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Pagamento aprovado!',
+                'redirect_url' => base_url('cardapio/confirmacao/' . $order->order_number)
+            ]);
+        } else {
+            log_message('error', 'api_processar_cartao_pedido: Erro Efi - ' . ($result['error'] ?? 'desconhecido'));
+            echo json_encode([
+                'success' => false,
+                'message' => 'Pagamento recusado: ' . ($result['error'] ?? 'Tente novamente')
+            ]);
+        }
+    }
+
+    /**
+     * API: Verifica status do pagamento (polling)
+     */
+    public function api_check_pagamento($order_number = null) {
+        header('Content-Type: application/json');
+
+        if (!$order_number) {
+            echo json_encode(['success' => false, 'message' => 'Numero do pedido obrigatorio']);
+            return;
+        }
+
+        $order = $this->delivery_model->get_order_by_number($order_number);
+        if (!$order) {
+            echo json_encode(['success' => false, 'message' => 'Pedido nao encontrado']);
+            return;
+        }
+
+        // Se o pedido ja nao esta mais em pendente_pagamento, pagamento foi confirmado
+        if ($order->status !== 'pendente_pagamento') {
+            echo json_encode([
+                'success' => true,
+                'paid' => true,
+                'status' => $order->status,
+                'redirect_url' => base_url('cardapio/confirmacao/' . $order->order_number)
+            ]);
+            return;
+        }
+
+        // Ainda aguardando pagamento
+        echo json_encode([
+            'success' => true,
+            'paid' => false,
+            'status' => 'pendente_pagamento'
+        ]);
+    }
+
+    /**
+     * API: Simula pagamento PIX/Cartao em ambiente sandbox
+     * Apenas funciona quando efipay_sandbox = 1
+     */
+    public function api_simular_pagamento() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Metodo nao permitido']);
+            return;
+        }
+
+        // Verificar se estamos em sandbox
+        $this->load->library('Efi_pay');
+        $is_sandbox = $this->efi_pay->get_config('efipay_sandbox', '0') === '1';
+        if (!$is_sandbox) {
+            echo json_encode(['success' => false, 'message' => 'Simulacao disponivel apenas em modo sandbox']);
+            return;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $order_number = $input['order_number'] ?? '';
+
+        $order = $this->delivery_model->get_order_by_number($order_number);
+        if (!$order || $order->status !== 'pendente_pagamento') {
+            echo json_encode(['success' => false, 'message' => 'Pedido nao encontrado ou ja pago']);
+            return;
+        }
+
+        // Marcar charge PIX como confirmada (se existir)
+        if ($order->forma_pagamento === 'pix') {
+            $this->load->model('financeiro/Efi_pix_model');
+            $charge = $this->Efi_pix_model->get_active_charge_by_order($order->id);
+            if ($charge) {
+                $this->Efi_pix_model->mark_as_confirmed(
+                    $charge->txid,
+                    'SANDBOX_SIMULATED_' . time(),
+                    json_encode(['sandbox' => true, 'simulated_at' => date('Y-m-d H:i:s')])
+                );
+            }
+        }
+
+        // Marcar charge Cartao como aprovada (se existir)
+        if ($order->forma_pagamento === 'cartao') {
+            $this->load->model('financeiro/Efi_card_model', 'efi_card_model');
+            $charge = $this->db->where('order_id', (int)$order->id)
+                ->where('status', 'waiting')
+                ->order_by('created_at', 'desc')
+                ->get('efi_card_charges')
+                ->row();
+            if ($charge) {
+                $this->db->where('id', $charge->id)->update('efi_card_charges', [
+                    'status' => 'approved',
+                    'efi_response' => json_encode(['sandbox' => true, 'simulated_at' => date('Y-m-d H:i:s')])
+                ]);
+            }
+        }
+
+        // Atualizar pedido para pendente (pagamento confirmado)
+        $this->delivery_model->update_order_status($order->id, 'pendente', [
+            'pagamento_confirmado' => 1
+        ]);
+
+        log_message('info', 'SANDBOX: Pagamento simulado para pedido #' . $order->order_number . ' (' . $order->forma_pagamento . ')');
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Pagamento simulado com sucesso (sandbox)',
+            'redirect_url' => base_url('cardapio/confirmacao/' . $order->order_number)
+        ]);
     }
 
     // =========================================
@@ -847,6 +1225,22 @@ self.addEventListener('activate', function(event) {
             ];
             $this->db->insert('customer_tbl', $insert_data);
         }
+    }
+
+    /**
+     * Determina status inicial do pedido baseado no tipo de checkout e pagamento.
+     * Site + PIX/Cartao = pendente_pagamento (precisa pagar antes)
+     * Dinheiro ou WhatsApp = pendente (pagamento na entrega/manual)
+     */
+    private function _get_status_inicial($tipo_checkout, $forma_pagamento) {
+        if ($tipo_checkout === 'site' && in_array($forma_pagamento, ['pix', 'cartao'])) {
+            // Verificar se Efi Pay esta ativo para processar pagamento online
+            $this->load->library('Efi_pay');
+            if ($this->efi_pay->is_active()) {
+                return 'pendente_pagamento';
+            }
+        }
+        return 'pendente';
     }
 
     /**

@@ -134,6 +134,8 @@ class Contas_receber_model extends CI_Model {
             $button = '';
             if ($record->status != 'recebido' && $record->status != 'cancelado') {
                 $button .= '<a href="'.$base_url.'financeiro/contas_receber/baixa/'.$record->id.'" class="btn btn-success btn-sm" title="'.makeString(['dar_baixa']).'"><i class="fas fa-dollar-sign"></i></a> ';
+                $button .= '<a href="'.$base_url.'financeiro/contas_receber/gerar_pix/'.$record->id.'" class="btn btn-primary btn-sm" title="'.makeString(['gerar_pix']).'"><i class="fas fa-qrcode"></i></a> ';
+                $button .= '<a href="'.$base_url.'financeiro/contas_receber/cobrar_cartao/'.$record->id.'" class="btn btn-dark btn-sm" title="'.makeString(['cobrar_cartao']).'"><i class="fas fa-credit-card"></i></a> ';
             }
             $button .= '<a href="'.$base_url.'financeiro/contas_receber/form/'.$record->id.'" class="btn btn-info btn-sm" title="'.makeString(['edit']).'"><i class="fas fa-edit"></i></a> ';
             if ($record->status != 'recebido') {

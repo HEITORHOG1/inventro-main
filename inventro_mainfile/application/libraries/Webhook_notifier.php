@@ -9,7 +9,7 @@
  * Uso:
  *   $this->load->library('Webhook_notifier');
  *   $enviado = $this->webhook_notifier->send('pedido.criado', $dados);
- *   if (!$enviado) { /* fallback manual */ }
+ *   if (!$enviado) { // fallback manual }
  */
 class Webhook_notifier {
 

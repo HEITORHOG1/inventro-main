@@ -480,6 +480,10 @@ $config['csrf_expire'] = 7200;
 $config['csrf_regenerate'] = TRUE;
 $config['csrf_exclude_uris'] = array(
     'cardapio/processar_pedido',
+    'cardapio/api_criar_pix_pedido',
+    'cardapio/api_processar_cartao_pedido',
+    'cardapio/api_check_pagamento/.*',
+    'cardapio/api_simular_pagamento',
     'cardapio/api_produtos',
     'cardapio/api_buscar_cliente',
     'cardapio/api_zonas',
@@ -488,7 +492,9 @@ $config['csrf_exclude_uris'] = array(
     // API v1 — apps nativos usam JWT, não CSRF
     'api/v1/.*',
     // API interna para n8n gerar cupom PDF (autenticado via X-Internal-Key)
-    'delivery/orders/api_cupom_pdf/.*'
+    'delivery/orders/api_cupom_pdf/.*',
+    // Efi Pay PIX webhook (validado por IP whitelist)
+    'efi_webhook/.*'
 );
 
 /*

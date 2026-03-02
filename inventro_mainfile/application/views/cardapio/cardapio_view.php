@@ -70,6 +70,11 @@
         .search-box input::placeholder { color: var(--text-secondary); }
         .search-box i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
 
+        .minha-conta-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 50px; background: rgba(255,255,255,0.1); color: var(--text-primary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: all 0.3s; white-space: nowrap; flex-shrink: 0; }
+        .minha-conta-btn:hover { background: rgba(37, 211, 102, 0.2); color: var(--primary); }
+        .minha-conta-btn i { font-size: 1.3rem; }
+        .minha-conta-nome { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+
         /* Categories */
         .categories { padding: 20px; max-width: 1200px; margin: 0 auto; }
         .categories-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth; }
@@ -189,6 +194,7 @@
             .header-content { flex-direction: column; text-align: center; }
             .search-box { width: 100%; max-width: none; }
             .logo-section { flex-direction: column; }
+            .minha-conta-nome { display: none; }
             .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
             .product-image { height: 140px; }
             .product-info { padding: 12px; }
@@ -275,6 +281,12 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="Buscar produtos...">
             </div>
+            <a href="<?php echo base_url('cliente'); ?>" class="minha-conta-btn" title="Minha Conta">
+                <i class="fas fa-user-circle"></i>
+                <?php if ($this->session->userdata('cliente_logado')): ?>
+                    <span class="minha-conta-nome"><?php echo html_escape($this->session->userdata('cliente_nome')); ?></span>
+                <?php endif; ?>
+            </a>
         </div>
     </header>
 
@@ -1095,7 +1107,13 @@
                 if (response.success) {
                     // Salvar telefone para identificar pedidos pendentes
                     localStorage.setItem('cliente_telefone', data.cliente_telefone);
-                    window.location.href = baseUrl + 'cardapio/confirmacao/' + response.order_number;
+                    // Se tem redirect_url (PIX/Cartao), ir para pagina de pagamento
+                    if (response.redirect_url) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        // Dinheiro — ir direto para confirmacao
+                        window.location.href = baseUrl + 'cardapio/confirmacao/' + response.order_number;
+                    }
                 } else {
                     showToast('Erro: ' + (response.message || 'Tente novamente'));
                 }

@@ -116,7 +116,8 @@
             "contas_a_pagar" => array("controller" => "contas_pagar","method" => "lista","permission" => "read"),
             "nova_conta_pagar" => array("controller" => "contas_pagar","method" => "form","permission" => "create"),
             "contas_a_receber" => array("controller" => "contas_receber","method" => "lista","permission" => "read"),
-            "nova_conta_receber" => array("controller" => "contas_receber","method" => "form","permission" => "create")
+            "nova_conta_receber" => array("controller" => "contas_receber","method" => "form","permission" => "create"),
+            "efi_pay_config" => array("controller" => "efi_config","method" => "index","permission" => "update")
 		);
 	 // Módulo Delivery - Pedidos Online, Kanban, Entregadores, Cupons, Zonas, Config
 	 $HmvcMenu2["delivery"] = array(

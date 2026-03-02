@@ -171,12 +171,26 @@
             <i class="fas fa-check"></i>
         </div>
 
-        <h1>Pedido Confirmado!</h1>
-        <p class="order-number">#<?php echo $order->order_number; ?></p>
+        <?php
+        // Mensagem contextual baseada no pagamento
+        $pago_online = !empty($order->pagamento_confirmado) && $order->pagamento_confirmado == 1;
+        $eh_dinheiro = $order->forma_pagamento === 'dinheiro';
+        ?>
+
+        <h1><?php echo $pago_online ? 'Pagamento Aprovado!' : 'Pedido Recebido!'; ?></h1>
+        <p class="order-number">#<?php echo html_escape($order->order_number); ?></p>
 
         <div class="message-box">
-            <i class="fas fa-bell"></i>
-            <p>Seu pedido foi recebido! Em breve entraremos em contato via WhatsApp para confirmar.</p>
+            <?php if ($pago_online): ?>
+                <i class="fas fa-check-circle"></i>
+                <p>Pagamento confirmado! Seu pedido foi recebido e esta sendo preparado.</p>
+            <?php elseif ($eh_dinheiro): ?>
+                <i class="fas fa-money-bill-wave"></i>
+                <p>Pedido recebido! Tenha o valor em maos para o pagamento na entrega/retirada.</p>
+            <?php else: ?>
+                <i class="fas fa-bell"></i>
+                <p>Seu pedido foi recebido! Em breve entraremos em contato para confirmar.</p>
+            <?php endif; ?>
         </div>
 
         <!-- Itens do Pedido -->

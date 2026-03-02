@@ -1,0 +1,117 @@
+-- ============================================================
+-- Efi Pay Integration (PIX + Cartao de Credito)
+-- ============================================================
+
+-- Tabela de cobrancas PIX
+CREATE TABLE IF NOT EXISTS `efi_pix_charges` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `conta_receber_id` INT(11) DEFAULT NULL COMMENT 'FK contas_receber.id',
+  `order_id` INT(11) DEFAULT NULL COMMENT 'FK orders.id (delivery)',
+  `txid` VARCHAR(35) NOT NULL COMMENT 'PIX txid from Efi Pay',
+  `e2e_id` VARCHAR(100) DEFAULT NULL COMMENT 'endToEndId da confirmacao',
+  `location_id` INT(11) DEFAULT NULL COMMENT 'Efi location ID para QR code',
+  `location_url` VARCHAR(500) DEFAULT NULL COMMENT 'Location URL (copia e cola)',
+  `qrcode_base64` TEXT DEFAULT NULL COMMENT 'QR code image em base64',
+  `pix_copia_cola` TEXT DEFAULT NULL COMMENT 'PIX copia e cola string',
+  `valor` DECIMAL(10,2) NOT NULL,
+  `status` ENUM('pending','confirmed','expired','refunded','error') DEFAULT 'pending',
+  `expiracao` INT(11) DEFAULT 600 COMMENT 'Expiracao em segundos',
+  `devedor_nome` VARCHAR(255) DEFAULT NULL,
+  `devedor_cpf` VARCHAR(14) DEFAULT NULL,
+  `devedor_cnpj` VARCHAR(18) DEFAULT NULL,
+  `efi_response` TEXT DEFAULT NULL COMMENT 'JSON completo da resposta Efi API',
+  `webhook_payload` TEXT DEFAULT NULL COMMENT 'JSON do webhook recebido',
+  `paid_at` DATETIME DEFAULT NULL,
+  `created_by` INT(11) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_txid` (`txid`),
+  INDEX `idx_conta_receber` (`conta_receber_id`),
+  INDEX `idx_order` (`order_id`),
+  INDEX `idx_status` (`status`),
+  INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabela de cobrancas Cartao de Credito
+CREATE TABLE IF NOT EXISTS `efi_card_charges` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `conta_receber_id` INT(11) DEFAULT NULL COMMENT 'FK contas_receber.id',
+  `order_id` INT(11) DEFAULT NULL COMMENT 'FK orders.id (delivery)',
+  `charge_id` INT(11) DEFAULT NULL COMMENT 'ID da cobranca na Efi',
+  `valor` DECIMAL(10,2) NOT NULL,
+  `parcelas` INT(11) DEFAULT 1,
+  `bandeira` VARCHAR(30) DEFAULT NULL COMMENT 'visa, mastercard, etc',
+  `ultimos_digitos` VARCHAR(4) DEFAULT NULL COMMENT 'Ultimos 4 digitos',
+  `status` ENUM('approved','waiting','unpaid','refunded','canceled','error') DEFAULT 'waiting',
+  `cliente_nome` VARCHAR(255) DEFAULT NULL,
+  `cliente_cpf` VARCHAR(14) DEFAULT NULL,
+  `cliente_email` VARCHAR(255) DEFAULT NULL,
+  `efi_response` TEXT DEFAULT NULL COMMENT 'JSON completo da resposta',
+  `created_by` INT(11) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_conta_receber` (`conta_receber_id`),
+  INDEX `idx_order` (`order_id`),
+  INDEX `idx_charge_id` (`charge_id`),
+  INDEX `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Configuracoes Efi Pay no cardapio_config (key-value)
+INSERT IGNORE INTO `cardapio_config` (`chave`, `valor`, `descricao`) VALUES
+('efipay_ativo',              '0',                'Ativar integracao Efi Pay'),
+('efipay_sandbox',            '1',                'Usar ambiente sandbox (teste)'),
+('efipay_client_id',          '',                 'Client ID da aplicacao Efi Pay'),
+('efipay_client_secret',      '',                 'Client Secret (criptografado)'),
+('efipay_certificate_path',   '',                 'Caminho absoluto do certificado .pem/.p12'),
+('efipay_pix_chave',          '',                 'Chave PIX cadastrada na Efi Pay'),
+('efipay_pix_chave_tipo',     '',                 'Tipo: cpf, cnpj, email, telefone, aleatoria'),
+('efipay_webhook_url',        '',                 'URL publica para webhooks Efi Pay'),
+('efipay_skip_mtls',          '1',                'Pular verificacao mTLS (usar IP whitelist)'),
+('efipay_expiracao_padrao',   '600',              'Expiracao padrao do PIX em segundos (10 min)'),
+('efipay_status',             'nao_configurado',  'Status: nao_configurado, conectado, erro'),
+('efipay_ultimo_teste',       '',                 'Data/hora do ultimo teste'),
+('efipay_cartao_ativo',       '0',                'Ativar cobranca por cartao de credito'),
+('efipay_account_id',         '',                 'Account ID para tokenizacao JS');
+
+-- Traducoes (tabela: language, colunas: phrase, english, portugues)
+INSERT INTO `language` (`phrase`, `english`, `portugues`) VALUES
+('efi_pay_config',         'Efi Pay Settings',                'Configuracoes Efi Pay'),
+('efi_pay_pix',            'Efi Pay PIX',                     'Efi Pay PIX'),
+('gerar_pix',              'Generate PIX',                    'Gerar PIX'),
+('cobranca_pix',           'PIX Charge',                      'Cobranca PIX'),
+('qrcode_pix',             'PIX QR Code',                     'QR Code PIX'),
+('pix_copia_cola',         'PIX Copy & Paste',                'PIX Copia e Cola'),
+('aguardando_pagamento',   'Awaiting Payment',                'Aguardando Pagamento'),
+('pagamento_confirmado',   'Payment Confirmed',               'Pagamento Confirmado'),
+('pix_expirado',           'PIX Expired',                     'PIX Expirado'),
+('gerar_novo_pix',         'Generate New PIX',                'Gerar Novo PIX'),
+('efi_pay_sandbox',        'Sandbox Mode',                    'Modo Sandbox'),
+('efi_pay_producao',       'Production Mode',                 'Modo Producao'),
+('certificado_efi',        'Efi Certificate',                 'Certificado Efi'),
+('upload_certificado',     'Upload Certificate',              'Enviar Certificado'),
+('chave_pix',              'PIX Key',                         'Chave PIX'),
+('tipo_chave_pix',         'PIX Key Type',                    'Tipo da Chave PIX'),
+('testar_conexao_efi',     'Test Efi Connection',             'Testar Conexao Efi'),
+('registrar_webhook_efi',  'Register Efi Webhook',            'Registrar Webhook Efi'),
+('pix_gerado_sucesso',     'PIX charge created successfully', 'Cobranca PIX gerada com sucesso'),
+('pix_pagamento_auto',     'Payment auto-confirmed via PIX',  'Pagamento confirmado automaticamente via PIX'),
+('efi_erro_conexao',       'Efi Pay connection error',        'Erro de conexao com Efi Pay'),
+('valor_cobranca_pix',     'PIX Charge Amount',               'Valor da Cobranca PIX'),
+('expiracao_pix',          'PIX Expiration',                  'Expiracao do PIX'),
+('cobrar_cartao',          'Charge Card',                     'Cobrar Cartao'),
+('pagamento_cartao',       'Card Payment',                    'Pagamento por Cartao'),
+('numero_cartao',          'Card Number',                     'Numero do Cartao'),
+('nome_cartao',            'Cardholder Name',                 'Nome no Cartao'),
+('validade_cartao',        'Expiry Date',                     'Validade'),
+('parcelas',               'Installments',                    'Parcelas'),
+('bandeira',               'Card Brand',                      'Bandeira'),
+('pagamento_aprovado',     'Payment Approved',                'Pagamento Aprovado'),
+('pagamento_recusado',     'Payment Declined',                'Pagamento Recusado'),
+('efi_credenciais',        'Efi Credentials',                 'Credenciais Efi'),
+('efi_webhook',            'Efi Webhook',                     'Webhook Efi'),
+('webhook_registrado',     'Webhook Registered',              'Webhook Registrado'),
+('conexao_ok',             'Connection OK',                   'Conexao OK'),
+('efi_pay_cartao',         'Efi Pay Credit Card',             'Efi Pay Cartao de Credito')
+ON DUPLICATE KEY UPDATE `portugues` = VALUES(`portugues`);

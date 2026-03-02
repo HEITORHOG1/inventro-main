@@ -12,7 +12,8 @@
   },
   "require": {
     "php": ">=7.4",
-    "mpdf/mpdf": "^8.2"
+    "mpdf/mpdf": "^8.2",
+    "efipay/sdk-php-apis-efi": "^1.0"
   },
   "suggest": {
     "paragonie/random_compat": "Provides better randomness in PHP 5.x"
