@@ -65,3 +65,26 @@ services:
       options:
         max-size: "5m"
         max-file: "2"
+
+  # =========================================
+  # Override n8n para desenvolvimento
+  # =========================================
+  n8n:
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      N8N_LOG_LEVEL: debug
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
+  # =========================================
+  # Override Redis para desenvolvimento
+  # =========================================
+  redis:
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"

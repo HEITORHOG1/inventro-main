@@ -22,3 +22,31 @@ services:
     environment:
       APP_ENV: production
       CI_COOKIE_SECURE: "true"
+
+  # =========================================
+  # Override n8n para produção
+  # =========================================
+  n8n:
+    restart: always
+    # NÃO expor porta — acesso via reverse proxy ou rede interna
+    # ports: []  # Removido intencionalmente
+    environment:
+      N8N_LOG_LEVEL: warn
+      N8N_SECURE_COOKIE: "true"
+      N8N_PROTOCOL: https
+      # Trocar pelo domínio real em produção
+      N8N_HOST: ${N8N_HOST:-n8n.inventro.com.br}
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL:-https://n8n.inventro.com.br/}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  # =========================================
+  # Override Redis para produção
+  # =========================================
+  redis:
+    restart: always
+    # NÃO expor porta em produção
+    # ports: []

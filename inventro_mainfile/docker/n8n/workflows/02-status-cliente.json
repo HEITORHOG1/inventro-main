@@ -1,0 +1,82 @@
+{
+  "id": "2",
+  "name": "02 - Status Pedido → Notificar Cliente",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inventro/status-cliente",
+        "options": {}
+      },
+      "name": "Webhook Inventro",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "inv-wh-status-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "operation": "startsWith",
+              "value2": "pedido.status."
+            }
+          ]
+        }
+      },
+      "name": "IF Status Cliente",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
+        "recipientPhoneNumber": "={{ $json.data.cliente_telefone_e164 }}",
+        "operation": "sendTemplate",
+        "templateName": "={{ $json.whatsapp_template_name }}",
+        "language": "pt_BR",
+        "templateParameters": {
+          "parameters": [
+            {
+              "type": "body",
+              "parameters": [
+                { "type": "text", "text": "={{ $json.data.cliente_nome }}" },
+                { "type": "text", "text": "={{ $json.data.order_number }}" },
+                { "type": "text", "text": "={{ $json.data.acompanhar_url }}" }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "WhatsApp Cliente",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [650, 200],
+      "credentials": {
+        "whatsAppApi": {
+          "name": "WhatsApp Business"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Inventro": {
+      "main": [
+        [{ "node": "IF Status Cliente", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF Status Cliente": {
+      "main": [
+        [{ "node": "WhatsApp Cliente", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{ "name": "inventro" }]
+}

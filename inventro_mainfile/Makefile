@@ -13,7 +13,7 @@
 #   make db       — Abrir shell no MySQL
 #   make status   — Ver status dos containers
 
-.PHONY: dev prod down reset logs shell db status build
+.PHONY: dev dev-n8n prod prod-n8n down reset logs shell db status build n8n-up n8n-down n8n-logs
 
 # ---- Desenvolvimento (padrão) ----
 # Carrega docker-compose.yml + docker-compose.override.yml automaticamente
@@ -27,6 +27,34 @@ dev:
 	@echo "   MySQL:      localhost:$${DB_EXTERNAL_PORT:-3307}"
 	@echo "   Swagger:    http://localhost:$${APP_PORT:-8080}/api/docs"
 
+# ---- Desenvolvimento com n8n (WhatsApp automação) ----
+# Carrega docker-compose.yml + override + profile n8n
+dev-n8n:
+	@echo "🚀 Subindo ambiente de DEV + n8n..."
+	docker compose --profile n8n up -d --build
+	@echo ""
+	@echo "✅ Ambiente dev + n8n pronto!"
+	@echo "   App:        http://localhost:$${APP_PORT:-8080}"
+	@echo "   phpMyAdmin: http://localhost:$${PMA_PORT:-8081}"
+	@echo "   MySQL:      localhost:$${DB_EXTERNAL_PORT:-3307}"
+	@echo "   n8n:        http://localhost:$${N8N_PORT:-5678}"
+	@echo "   Swagger:    http://localhost:$${APP_PORT:-8080}/api/docs"
+
+# ---- n8n: subir apenas n8n + redis ----
+n8n-up:
+	@echo "🚀 Subindo n8n + Redis..."
+	docker compose --profile n8n up -d n8n redis
+	@echo "✅ n8n pronto em http://localhost:$${N8N_PORT:-5678}"
+
+# ---- n8n: parar apenas n8n + redis ----
+n8n-down:
+	@echo "⏹️  Parando n8n + Redis..."
+	docker compose stop n8n redis
+
+# ---- n8n: logs ----
+n8n-logs:
+	docker compose logs -f n8n
+
 # ---- Produção (Hostiger) ----
 # Carrega APENAS docker-compose.yml + docker-compose.prod.yml (sem override)
 prod:
@@ -35,6 +63,15 @@ prod:
 	@echo ""
 	@echo "✅ Ambiente prod pronto!"
 	@echo "   App: http://localhost:$${APP_PORT:-80}"
+
+# ---- Produção com n8n ----
+prod-n8n:
+	@echo "🚀 Subindo ambiente de PRODUÇÃO + n8n..."
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile n8n up -d --build
+	@echo ""
+	@echo "✅ Ambiente prod + n8n pronto!"
+	@echo "   App: http://localhost:$${APP_PORT:-80}"
+	@echo "   n8n: acesso via rede interna (sem porta exposta)"
 
 # ---- Parar containers ----
 down:

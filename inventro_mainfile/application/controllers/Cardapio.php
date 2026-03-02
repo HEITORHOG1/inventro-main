@@ -92,13 +92,16 @@ class Cardapio extends CI_Controller {
         } else {
             // Buscar por telefone (limpar formatação no PHP e no SQL)
             $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone);
-            if (strlen($telefone_limpo) < 8) {
+            if (strlen($telefone_limpo) < 8 || !ctype_digit($telefone_limpo)) {
                 echo json_encode(['found' => false]);
                 return;
             }
-            // Strip formatting in SQL before comparing — $telefone_limpo is digits only (safe)
+            // SEGURO: $telefone_limpo contem apenas digitos (ctype_digit + preg_replace)
+            // e escape_like_str() escapa caracteres especiais do LIKE.
+            // FALSE no where() e necessario para o REPLACE() customizado.
+            $escaped_tel = $this->db->escape_like_str($telefone_limpo);
             $this->db->where(
-                "REPLACE(REPLACE(REPLACE(REPLACE(mobile, '(', ''), ')', ''), ' ', ''), '-', '') LIKE '%" . $this->db->escape_like_str($telefone_limpo) . "%'",
+                "REPLACE(REPLACE(REPLACE(REPLACE(mobile, '(', ''), ')', ''), ' ', ''), '-', '') LIKE '%{$escaped_tel}%'",
                 null, false
             );
         }
@@ -336,6 +339,27 @@ class Cardapio extends CI_Controller {
         $result = $this->delivery_model->create_order($order_data, $items_to_save);
 
         if ($result) {
+            // Notificar via n8n (fire-and-forget, sem fallback — processar_pedido retorna JSON)
+            $this->load->library('Webhook_notifier');
+            $this->webhook_notifier->send('pedido.criado', array(
+                'order_id'          => $result['order_id'],
+                'order_number'      => $result['order_number'],
+                'cliente_nome'      => $input['cliente_nome'],
+                'cliente_telefone'  => $input['cliente_telefone'],
+                'total'             => $total,
+                'forma_pagamento'   => $input['forma_pagamento'],
+                'tipo_entrega'      => $tipo_entrega,
+                'acompanhar_url'    => base_url('cardapio/acompanhar/' . $result['order_number']),
+            ));
+            $this->webhook_notifier->send('pedido.criado.motoboy', array(
+                'order_id'          => $result['order_id'],
+                'order_number'      => $result['order_number'],
+                'cliente_nome'      => $input['cliente_nome'],
+                'cliente_endereco'  => $input['cliente_endereco'],
+                'total'             => $total,
+                'forma_pagamento'   => $input['forma_pagamento'],
+            ));
+
             // Auto-cadastrar ou atualizar cliente na customer_tbl
             $this->_registrar_cliente(
                 $input['cliente_nome'],

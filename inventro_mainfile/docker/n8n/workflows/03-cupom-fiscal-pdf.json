@@ -1,0 +1,102 @@
+{
+  "id": "3",
+  "name": "03 - Cupom Fiscal → Enviar PDF via WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inventro/cupom-fiscal",
+        "options": {}
+      },
+      "name": "Webhook Inventro",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "inv-wh-cupom-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "value2": "pedido.cupom_fiscal"
+            }
+          ]
+        }
+      },
+      "name": "IF Cupom Fiscal",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "=http://app:80/delivery/orders/api_cupom_pdf/{{ $json.data.order_id }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Key",
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        }
+      },
+      "name": "Buscar PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
+        "recipientPhoneNumber": "={{ $node['Webhook Inventro'].json.data.cliente_telefone_e164 }}",
+        "operation": "sendTemplate",
+        "templateName": "={{ $node['Webhook Inventro'].json.whatsapp_template_name }}",
+        "language": "pt_BR",
+        "additionalFields": {
+          "headerType": "document",
+          "documentUrl": "={{ $json.headers.location || '' }}"
+        }
+      },
+      "name": "WhatsApp PDF",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [850, 200],
+      "credentials": {
+        "whatsAppApi": {
+          "name": "WhatsApp Business"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Inventro": {
+      "main": [
+        [{ "node": "IF Cupom Fiscal", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF Cupom Fiscal": {
+      "main": [
+        [{ "node": "Buscar PDF", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Buscar PDF": {
+      "main": [
+        [{ "node": "WhatsApp PDF", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{ "name": "inventro" }]
+}

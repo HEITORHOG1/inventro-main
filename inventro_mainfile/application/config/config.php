@@ -486,7 +486,9 @@ $config['csrf_exclude_uris'] = array(
     'cardapio/api_categorias',
     'cardapio/buscar',
     // API v1 — apps nativos usam JWT, não CSRF
-    'api/v1/.*'
+    'api/v1/.*',
+    // API interna para n8n gerar cupom PDF (autenticado via X-Internal-Key)
+    'delivery/orders/api_cupom_pdf/.*'
 );
 
 /*

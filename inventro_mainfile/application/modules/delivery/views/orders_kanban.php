@@ -636,8 +636,10 @@ foreach (['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega
                         window.open(baseUrl + 'delivery/orders/print_order/' + orderId + '?auto=1', '_blank', 'width=350,height=600');
                     }
 
-                    // Open WhatsApp if link provided
-                    if (response.whatsapp_link) {
+                    // WhatsApp: automatico ou manual
+                    if (response.auto_notified) {
+                        toastr.success('Notificacao WhatsApp enviada automaticamente!');
+                    } else if (response.whatsapp_link) {
                         window.open(response.whatsapp_link, '_blank');
                     }
                 } else {

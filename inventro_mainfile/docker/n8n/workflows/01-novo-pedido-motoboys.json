@@ -1,0 +1,113 @@
+{
+  "id": "1",
+  "name": "01 - Novo Pedido → Notificar Motoboys",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inventro/pedido-motoboys",
+        "options": {}
+      },
+      "name": "Webhook Inventro",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "inv-wh-motoboys-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "value2": "pedido.criado.motoboy"
+            }
+          ]
+        }
+      },
+      "name": "IF Evento Motoboy",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT nome, telefone FROM entregadores WHERE ativo = 1 AND status = 'disponivel'"
+      },
+      "name": "Buscar Motoboys Ativos",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2,
+      "position": [650, 200],
+      "credentials": {
+        "mySql": {
+          "name": "Inventro MySQL"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "name": "Loop Motoboys",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
+        "recipientPhoneNumber": "={{ $json.telefone }}",
+        "operation": "sendTemplate",
+        "templateName": "={{ $node['Webhook Inventro'].json.whatsapp_template_name }}",
+        "language": "pt_BR",
+        "templateParameters": {
+          "parameters": [
+            {
+              "type": "body",
+              "parameters": [
+                { "type": "text", "text": "={{ $node['Webhook Inventro'].json.data.order_number }}" },
+                { "type": "text", "text": "={{ $node['Webhook Inventro'].json.data.cliente_endereco }}" },
+                { "type": "text", "text": "={{ $node['Webhook Inventro'].json.data.total }}" }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "WhatsApp Motoboy",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [1050, 200],
+      "credentials": {
+        "whatsAppApi": {
+          "name": "WhatsApp Business"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Inventro": {
+      "main": [
+        [{ "node": "IF Evento Motoboy", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF Evento Motoboy": {
+      "main": [
+        [{ "node": "Buscar Motoboys Ativos", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Buscar Motoboys Ativos": {
+      "main": [
+        [{ "node": "Loop Motoboys", "type": "main", "index": 0 }]
+      ]
+    },
+    "Loop Motoboys": {
+      "main": [
+        [{ "node": "WhatsApp Motoboy", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{ "name": "inventro" }]
+}

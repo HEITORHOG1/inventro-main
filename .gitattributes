@@ -1,0 +1,7 @@
+# Force LF on shell scripts (evita CRLF quebrando containers Linux)
+*.sh text eol=lf
+docker/n8n/*.js text eol=lf
+Makefile text eol=lf
+
+# Defaults
+* text=auto

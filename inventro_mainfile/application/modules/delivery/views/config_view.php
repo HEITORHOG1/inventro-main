@@ -220,6 +220,9 @@
                         <a href="<?php echo base_url('cardapio'); ?>" target="_blank" class="btn btn-info btn-lg">
                             <i class="fas fa-external-link-alt"></i> Ver Cardápio
                         </a>
+                        <a href="<?php echo base_url('delivery/config/n8n'); ?>" class="btn btn-success btn-lg">
+                            <i class="fab fa-whatsapp"></i> WhatsApp & Automacao
+                        </a>
                     </div>
                 </div>
             </form>

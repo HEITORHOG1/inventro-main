@@ -1,0 +1,92 @@
+{
+  "id": "5",
+  "name": "05 - Resumo Diario → Admin WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 23,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()) as total_pedidos,\n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'entregue') as entregues,\n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'cancelado') as cancelados,\n  (SELECT COALESCE(SUM(total), 0) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'entregue') as faturamento,\n  (SELECT valor FROM cardapio_config WHERE chave = 'notif_admin_telefone') as admin_telefone,\n  (SELECT valor FROM cardapio_config WHERE chave = 'notif_resumo_diario') as resumo_ativo"
+      },
+      "name": "Buscar Stats",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "mySql": {
+          "name": "Inventro MySQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.resumo_ativo }}",
+              "value2": "1"
+            }
+          ]
+        }
+      },
+      "name": "IF Resumo Ativo",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
+        "recipientPhoneNumber": "={{ $json.admin_telefone }}",
+        "operation": "sendMessage",
+        "textBody": "=📊 *RESUMO DO DIA*\n\n📦 Pedidos: {{ $json.total_pedidos }}\n✅ Entregues: {{ $json.entregues }}\n❌ Cancelados: {{ $json.cancelados }}\n💰 Faturamento: R$ {{ Number($json.faturamento).toFixed(2).replace('.', ',') }}\n\n_Resumo automatico - Inventro_"
+      },
+      "name": "WhatsApp Admin",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [850, 200],
+      "credentials": {
+        "whatsAppApi": {
+          "name": "WhatsApp Business"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [{ "node": "Buscar Stats", "type": "main", "index": 0 }]
+      ]
+    },
+    "Buscar Stats": {
+      "main": [
+        [{ "node": "IF Resumo Ativo", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF Resumo Ativo": {
+      "main": [
+        [{ "node": "WhatsApp Admin", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{ "name": "inventro" }]
+}

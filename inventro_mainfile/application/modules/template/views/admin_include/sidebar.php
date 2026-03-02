@@ -126,7 +126,8 @@
 			"zonas_entrega" => array("controller" => "zones","method" => "index","permission" => "read"),
 			"entregadores" => array("controller" => "entregadores","method" => "index","permission" => "read"),
 			"cupons_desconto" => array("controller" => "cupons","method" => "index","permission" => "read"),
-			"config_delivery" => array("controller" => "config","method" => "index","permission" => "read")
+			"config_delivery" => array("controller" => "config","method" => "index","permission" => "read"),
+			"whatsapp_automacao" => array("controller" => "config","method" => "n8n","permission" => "update")
 	 );
 	 $HmvcMenu2["menu"] = array("icon"           => " <i class='nav-icon fa fa-fw fa-list'></i> ",
     	 "add_role" => array("controller" => "crole","method"     => "add_role","permission" => "create"),

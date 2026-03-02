@@ -1,0 +1,83 @@
+{
+  "id": "4",
+  "name": "04 - Motoboy Atribuido → Notificar Motoboy",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inventro/motoboy-atribuido",
+        "options": {}
+      },
+      "name": "Webhook Inventro",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "inv-wh-motoboy-attr-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "value2": "pedido.motoboy_atribuido"
+            }
+          ]
+        }
+      },
+      "name": "IF Motoboy Atribuido",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
+        "recipientPhoneNumber": "={{ $json.data.motoboy_telefone_e164 }}",
+        "operation": "sendTemplate",
+        "templateName": "={{ $json.whatsapp_template_name }}",
+        "language": "pt_BR",
+        "templateParameters": {
+          "parameters": [
+            {
+              "type": "body",
+              "parameters": [
+                { "type": "text", "text": "={{ $json.data.order_number }}" },
+                { "type": "text", "text": "={{ $json.data.cliente_nome }}" },
+                { "type": "text", "text": "={{ $json.data.cliente_endereco }}" },
+                { "type": "text", "text": "={{ $json.data.total }}" },
+                { "type": "text", "text": "={{ $json.data.forma_pagamento }}" }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "WhatsApp Motoboy",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [650, 200],
+      "credentials": {
+        "whatsAppApi": {
+          "name": "WhatsApp Business"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Inventro": {
+      "main": [
+        [{ "node": "IF Motoboy Atribuido", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF Motoboy Atribuido": {
+      "main": [
+        [{ "node": "WhatsApp Motoboy", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{ "name": "inventro" }]
+}

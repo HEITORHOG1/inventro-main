@@ -12,7 +12,7 @@ function addInputField(t) {
             e = document.createElement("tr");
         e.innerHTML = "<td>\n\
 <select class='form-control placeholder-single common_product' id='" + a +
-            "' name='product_id[]' onchange='service_cals(" + count + ")' data-placeholder='-- select one --'><option value=''></option><?php foreach ($get_products as $product) { ?><option value='<?php echo $product->product_id; ?>'><?php echo $product->name; ?></option><?php } ?></select></td>\n\
+            "' name='product_id[]' onchange='service_cals(" + count + ")' data-placeholder='-- select one --'><option value=''></option><?php foreach ($get_products as $product) { ?><option value='<?php echo html_escape($product->product_id); ?>'><?php echo html_escape($product->name); ?></option><?php } ?></select></td>\n\
 <td><input type='text' class='form-control common_available_qtn' name='available_qnt[]' id='available_qnt_" + count + "' onkeyup='' onchange='' value='' readonly style='text-align:right'></td>\n\
 <td><input type='text' class='form-control common_qnt' name='product_quantity[]' id='quantity_" + count +
             "' onkeyup='quantity_calculate(" + count + ")' onchange='quantity_calculate(" + count + ")' placeholder='0.00' value='' style='text-align:right'></td>\n\

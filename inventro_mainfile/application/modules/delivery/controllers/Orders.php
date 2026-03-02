@@ -121,14 +121,42 @@ class Orders extends MX_Controller {
         $extra_data = $this->_get_status_timestamp_data($status);
 
         if ($this->delivery_model->update_order_status($id, $status, $extra_data)) {
-            $this->session->set_flashdata('message', 'Status atualizado para: ' . ucfirst(str_replace('_', ' ', $status)));
-
-            // Gerar link WhatsApp para notificar cliente
             $order = $this->delivery_model->get_order($id);
-            if ($order && !empty($order->cliente_telefone)) {
-                $whatsapp_link = $this->_gerar_whatsapp_status($order, $status);
-                if ($whatsapp_link) {
-                    $this->session->set_flashdata('whatsapp_link', $whatsapp_link);
+
+            // Tentar notificacao automatica via n8n (se ativo)
+            $auto_notified = false;
+            $status_event_map = array(
+                'confirmado'    => 'pedido.status.confirmado',
+                'preparando'    => 'pedido.status.preparando',
+                'pronto_coleta' => 'pedido.status.pronto',
+                'saiu_entrega'  => 'pedido.status.saiu_entrega',
+                'entregue'      => 'pedido.status.entregue',
+                'cancelado'     => 'pedido.status.cancelado',
+            );
+            $event = isset($status_event_map[$status]) ? $status_event_map[$status] : null;
+            if ($event && $order) {
+                $this->load->library('Webhook_notifier');
+                $auto_notified = $this->webhook_notifier->send($event, array(
+                    'order_id'          => $order->id,
+                    'order_number'      => $order->order_number,
+                    'status'            => $status,
+                    'cliente_nome'      => $order->cliente_nome,
+                    'cliente_telefone'  => $order->cliente_telefone,
+                    'total'             => $order->total,
+                    'acompanhar_url'    => base_url('cardapio/acompanhar/' . $order->order_number),
+                ));
+            }
+
+            if ($auto_notified) {
+                $this->session->set_flashdata('message', 'Status atualizado para: ' . ucfirst(str_replace('_', ' ', $status)) . '. Notificacao enviada automaticamente!');
+            } else {
+                $this->session->set_flashdata('message', 'Status atualizado para: ' . ucfirst(str_replace('_', ' ', $status)));
+                // Fallback: gerar link WhatsApp manual
+                if ($order && !empty($order->cliente_telefone)) {
+                    $whatsapp_link = $this->_gerar_whatsapp_status($order, $status);
+                    if ($whatsapp_link) {
+                        $this->session->set_flashdata('whatsapp_link', $whatsapp_link);
+                    }
                 }
             }
         } else {
@@ -157,17 +185,44 @@ class Orders extends MX_Controller {
         $result = $this->delivery_model->update_order_status($id, $status, $extra_data);
 
         $whatsapp_link = null;
+        $auto_notified = false;
         if ($result) {
             $order = $this->delivery_model->get_order($id);
-            if ($order && !empty($order->cliente_telefone)) {
+
+            // Tentar notificacao automatica via n8n
+            $status_event_map = array(
+                'confirmado'    => 'pedido.status.confirmado',
+                'preparando'    => 'pedido.status.preparando',
+                'pronto_coleta' => 'pedido.status.pronto',
+                'saiu_entrega'  => 'pedido.status.saiu_entrega',
+                'entregue'      => 'pedido.status.entregue',
+                'cancelado'     => 'pedido.status.cancelado',
+            );
+            $event = isset($status_event_map[$status]) ? $status_event_map[$status] : null;
+            if ($event && $order) {
+                $this->load->library('Webhook_notifier');
+                $auto_notified = $this->webhook_notifier->send($event, array(
+                    'order_id'          => $order->id,
+                    'order_number'      => $order->order_number,
+                    'status'            => $status,
+                    'cliente_nome'      => $order->cliente_nome,
+                    'cliente_telefone'  => $order->cliente_telefone,
+                    'total'             => $order->total,
+                    'acompanhar_url'    => base_url('cardapio/acompanhar/' . $order->order_number),
+                ));
+            }
+
+            // Fallback: gerar link WhatsApp manual (so se n8n nao enviou)
+            if (!$auto_notified && $order && !empty($order->cliente_telefone)) {
                 $whatsapp_link = $this->_gerar_whatsapp_status($order, $status);
             }
         }
 
         echo json_encode([
             'success' => (bool)$result,
-            'message' => $result ? 'Status atualizado!' : 'Erro ao atualizar',
-            'whatsapp_link' => $whatsapp_link
+            'message' => $result ? ($auto_notified ? 'Status atualizado! Notificacao enviada.' : 'Status atualizado!') : 'Erro ao atualizar',
+            'whatsapp_link' => $whatsapp_link,
+            'auto_notified' => $auto_notified
         ]);
     }
 
@@ -194,8 +249,24 @@ class Orders extends MX_Controller {
         // Atualizar status do entregador
         $this->db->where('id', $entregador_id)->update('entregadores', ['status' => 'em_entrega']);
 
-        // Gerar link WhatsApp para o entregador
+        // Notificar motoboy via n8n (fire-and-forget)
         $order = $this->delivery_model->get_order($order_id);
+        if ($order) {
+            $this->load->library('Webhook_notifier');
+            $this->webhook_notifier->send('pedido.motoboy_atribuido', array(
+                'order_id'           => $order->id,
+                'order_number'       => $order->order_number,
+                'motoboy_nome'       => $entregador->nome,
+                'motoboy_telefone'   => $entregador->telefone,
+                'cliente_nome'       => $order->cliente_nome,
+                'cliente_endereco'   => $order->cliente_endereco,
+                'cliente_telefone'   => $order->cliente_telefone,
+                'total'              => $order->total,
+                'forma_pagamento'    => $order->forma_pagamento,
+            ));
+        }
+
+        // Gerar link WhatsApp manual para o entregador (sempre, como backup)
         $whatsapp_link = null;
         if ($order) {
             $msg = "🚀 *Novo Pedido #{$order->order_number}*\n\n";
@@ -286,6 +357,76 @@ class Orders extends MX_Controller {
         $stats = $this->delivery_model->get_stats($period);
 
         echo json_encode(['success' => true, 'stats' => $stats]);
+    }
+
+    /**
+     * API interna: gera cupom em PDF (chamado pelo n8n via rede Docker)
+     * Protegido por header X-Internal-Key + verificacao de IP interno
+     */
+    public function api_cupom_pdf($id) {
+        // Verificar IP interno (Docker network ou localhost)
+        $ip = $this->input->ip_address();
+        $is_internal = (
+            strpos($ip, '172.') === 0 ||
+            strpos($ip, '10.') === 0 ||
+            strpos($ip, '192.168.') === 0 ||
+            $ip === '127.0.0.1' ||
+            $ip === '::1'
+        );
+
+        if (!$is_internal) {
+            header('HTTP/1.1 403 Forbidden');
+            echo 'Acesso negado: IP externo';
+            return;
+        }
+
+        // Verificar chave interna
+        $this->load->model('delivery/delivery_model');
+        $secret = $this->delivery_model->get_config('n8n_webhook_secret', '');
+        $provided_key = $this->input->get_request_header('X-Internal-Key');
+
+        if (empty($secret) || $provided_key !== $secret) {
+            header('HTTP/1.1 401 Unauthorized');
+            echo 'Chave invalida';
+            return;
+        }
+
+        $id = (int)$id;
+        $order = $this->delivery_model->get_order($id);
+        if (!$order) {
+            header('HTTP/1.1 404 Not Found');
+            echo 'Pedido nao encontrado';
+            return;
+        }
+
+        $data['order'] = $order;
+        $data['loja'] = $this->db->get('setting')->row();
+
+        // Renderizar view HTML
+        $html = $this->load->view('delivery/order_print', $data, true);
+
+        // Gerar PDF com mPDF
+        try {
+            $mpdf = new \Mpdf\Mpdf([
+                'mode' => 'utf-8',
+                'format' => [80, 200],
+                'margin_left' => 5,
+                'margin_right' => 5,
+                'margin_top' => 5,
+                'margin_bottom' => 5,
+                'tempDir' => sys_get_temp_dir() . '/mpdf',
+            ]);
+
+            $mpdf->WriteHTML($html);
+
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="cupom_' . $order->order_number . '.pdf"');
+            echo $mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN);
+        } catch (Exception $e) {
+            log_message('error', 'api_cupom_pdf: Erro ao gerar PDF - ' . $e->getMessage());
+            header('HTTP/1.1 500 Internal Server Error');
+            echo 'Erro ao gerar PDF';
+        }
     }
 
     // =========================================
