@@ -19,7 +19,7 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{ $json.event }}",
+              "value1": "={{ $json.body.event }}",
               "value2": "pedido.motoboy_atribuido"
             }
           ]
@@ -32,33 +32,48 @@
     },
     {
       "parameters": {
-        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
-        "recipientPhoneNumber": "={{ $json.data.motoboy_telefone_e164 }}",
-        "operation": "sendTemplate",
-        "templateName": "={{ $json.whatsapp_template_name }}",
-        "language": "pt_BR",
-        "templateParameters": {
-          "parameters": [
+        "jsCode": "const items = $input.all();\nconst body = items[0].json.body;\nconst data = body.data;\n\n// Validacao do telefone\nconst telefone = (data.motoboy_telefone_e164 || '').toString().trim();\nconst telefoneValido = /^55\\d{2}9\\d{8}$/.test(telefone);\n\nif (!telefoneValido) {\n  return [{ json: { telefone: '', mensagem: '', erro: 'Telefone invalido ou ausente: ' + (data.motoboy_telefone || '(vazio)') + ' -> ' + telefone, enviar: false } }];\n}\n\nconst order = data.order_number || '';\nconst clienteNome = data.cliente_nome || '';\nconst endereco = data.cliente_endereco || 'Endereco nao informado';\nconst totalNum = data.total ? Number(data.total).toFixed(2).replace('.', ',') : '0,00';\nconst pagamento = data.forma_pagamento || '';\nconst pagMap = { dinheiro: 'Dinheiro', cartao: 'Cartao', pix: 'PIX' };\nconst pagLabel = pagMap[pagamento] || pagamento;\n\nconst msg = '\\ud83c\\udfcd\\ufe0f *Entrega Atribuida!*\\n'\n  + '\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\n'\n  + '\\ud83d\\udccb Pedido *#' + order + '*\\n'\n  + '\\ud83d\\udc64 Cliente: ' + clienteNome + '\\n'\n  + '\\ud83d\\udccd ' + endereco + '\\n'\n  + '\\ud83d\\udcb0 Valor: *R$ ' + totalNum + '*\\n'\n  + (pagLabel ? '\\ud83d\\udcb3 Pagamento: ' + pagLabel + '\\n' : '')\n  + '\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\n\\n'\n  + 'Dirija-se ao estabelecimento para retirar o pedido. \\ud83d\\ude80';\n\nreturn [{ json: { telefone: telefone, mensagem: msg, enviar: true } }];"
+      },
+      "name": "Montar Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
             {
-              "type": "body",
-              "parameters": [
-                { "type": "text", "text": "={{ $json.data.order_number }}" },
-                { "type": "text", "text": "={{ $json.data.cliente_nome }}" },
-                { "type": "text", "text": "={{ $json.data.cliente_endereco }}" },
-                { "type": "text", "text": "={{ $json.data.total }}" },
-                { "type": "text", "text": "={{ $json.data.forma_pagamento }}" }
-              ]
+              "value1": "={{ $json.enviar }}",
+              "value2": true
             }
           ]
         }
       },
-      "name": "WhatsApp Motoboy",
-      "type": "n8n-nodes-base.whatsApp",
+      "name": "Telefone Valido?",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [650, 200],
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v22.0/985707381298189/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.telefone, type: 'text', text: { preview_url: false, body: $json.mensagem } }) }}",
+        "options": {}
+      },
+      "name": "WhatsApp Motoboy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 150],
       "credentials": {
         "whatsAppApi": {
-          "name": "WhatsApp Business"
+          "id": "hgzzTYvvhMIjAIbF",
+          "name": "WhatsApp account"
         }
       }
     }
@@ -70,6 +85,17 @@
       ]
     },
     "IF Motoboy Atribuido": {
+      "main": [
+        [{ "node": "Montar Mensagem", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Montar Mensagem": {
+      "main": [
+        [{ "node": "Telefone Valido?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Telefone Valido?": {
       "main": [
         [{ "node": "WhatsApp Motoboy", "type": "main", "index": 0 }],
         []

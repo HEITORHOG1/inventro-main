@@ -118,6 +118,8 @@ services:
       N8N_PROTOCOL: http
       WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://n8n:5678/}
       N8N_SECURE_COOKIE: "false"
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID:-985707381298189}
       GENERIC_TIMEZONE: ${TZ:-America/Sao_Paulo}
       TZ: ${TZ:-America/Sao_Paulo}
       # Auto-provisioning: credenciais do owner (criado automaticamente)

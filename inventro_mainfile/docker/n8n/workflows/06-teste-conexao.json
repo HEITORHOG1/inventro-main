@@ -18,7 +18,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\"success\": true, \"message\": \"n8n online\", \"event\": \"{{ $json.event }}\", \"timestamp\": \"{{ new Date().toISOString() }}\"}"
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'n8n online', timestamp: new Date().toISOString(), debug_keys: Object.keys($json), debug_has_body: typeof $json.body, debug_has_event: typeof $json.event, debug_full: $json }) }}"
       },
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",

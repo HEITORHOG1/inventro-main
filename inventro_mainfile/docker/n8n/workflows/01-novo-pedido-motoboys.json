@@ -19,7 +19,7 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{ $json.event }}",
+              "value1": "={{ $json.body.event }}",
               "value2": "pedido.criado.motoboy"
             }
           ]
@@ -41,44 +41,55 @@
       "position": [650, 200],
       "credentials": {
         "mySql": {
-          "name": "Inventro MySQL"
+          "id": "K3ZJcF4AGULzXcra",
+          "name": "MySQL account"
         }
       }
     },
     {
-      "parameters": {},
-      "name": "Loop Motoboys",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 1,
+      "parameters": {
+        "jsCode": "const motoboys = $input.all();\nconst webhookData = $('Webhook Inventro').first().json.body;\nconst data = webhookData.data;\n\nconst order = data.order_number || '';\nconst endereco = data.cliente_endereco || 'Endereco nao informado';\nconst totalNum = data.total ? Number(data.total).toFixed(2).replace('.', ',') : '0,00';\nconst pagamento = data.forma_pagamento || '';\nconst pagMap = { dinheiro: 'Dinheiro', cartao: 'Cartao', pix: 'PIX' };\nconst pagLabel = pagMap[pagamento] || pagamento;\n\nconst msg = '\\ud83c\\udd95 *Pedido Pronto para Coleta!*\\n'\n  + '\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\n'\n  + '\\ud83d\\udccb Pedido *#' + order + '*\\n'\n  + '\\ud83d\\udccd ' + endereco + '\\n'\n  + '\\ud83d\\udcb0 Valor: *R$ ' + totalNum + '*\\n'\n  + (pagLabel ? '\\ud83d\\udcb3 Pagamento: ' + pagLabel + '\\n' : '')\n  + '\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\n\\n'\n  + 'Acesse o app para aceitar a entrega! \\ud83d\\ude80';\n\n// Normaliza telefone BR: adiciona 55 se necessario\nfunction normalizarTelefone(tel) {\n  let digits = (tel || '').toString().replace(/\\D/g, '');\n  if (!digits) return '';\n  // Se ja tem 55 + 11 digitos = 13, ok\n  if (digits.length === 13 && digits.startsWith('55')) return digits;\n  // Se tem 12 e comeca com 55, pode ser fixo sem 9\n  if (digits.length === 12 && digits.startsWith('55')) {\n    const ddd = digits.substring(2, 4);\n    const num = digits.substring(4);\n    if (num[0] !== '9') return '55' + ddd + '9' + num;\n    return digits;\n  }\n  // 11 digitos (DDD + 9 + 8) -> adiciona 55\n  if (digits.length === 11) return '55' + digits;\n  // 10 digitos (DDD + 8 fixo) -> adiciona 55 + 9\n  if (digits.length === 10 && digits[2] !== '9') return '55' + digits.substring(0, 2) + '9' + digits.substring(2);\n  return digits;\n}\n\nreturn motoboys.map(m => {\n  const telefone = normalizarTelefone(m.json.telefone);\n  const telefoneValido = /^55\\d{2}9\\d{8}$/.test(telefone);\n\n  if (!telefoneValido) {\n    return { json: { telefone: '', nome: m.json.nome, mensagem: '', erro: 'Telefone invalido ou ausente: ' + (m.json.telefone || '(vazio)') + ' -> ' + telefone, enviar: false } };\n  }\n\n  return { json: { telefone: telefone, nome: m.json.nome, mensagem: msg, enviar: true } };\n});"
+      },
+      "name": "Montar Mensagens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [850, 200]
     },
     {
       "parameters": {
-        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
-        "recipientPhoneNumber": "={{ $json.telefone }}",
-        "operation": "sendTemplate",
-        "templateName": "={{ $node['Webhook Inventro'].json.whatsapp_template_name }}",
-        "language": "pt_BR",
-        "templateParameters": {
-          "parameters": [
+        "conditions": {
+          "boolean": [
             {
-              "type": "body",
-              "parameters": [
-                { "type": "text", "text": "={{ $node['Webhook Inventro'].json.data.order_number }}" },
-                { "type": "text", "text": "={{ $node['Webhook Inventro'].json.data.cliente_endereco }}" },
-                { "type": "text", "text": "={{ $node['Webhook Inventro'].json.data.total }}" }
-              ]
+              "value1": "={{ $json.enviar }}",
+              "value2": true
             }
           ]
         }
       },
-      "name": "WhatsApp Motoboy",
-      "type": "n8n-nodes-base.whatsApp",
+      "name": "Telefone Valido?",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1050, 200],
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v22.0/985707381298189/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.telefone, type: 'text', text: { preview_url: false, body: $json.mensagem } }) }}",
+        "options": {}
+      },
+      "name": "WhatsApp Motoboy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1250, 200],
       "credentials": {
         "whatsAppApi": {
-          "name": "WhatsApp Business"
+          "id": "hgzzTYvvhMIjAIbF",
+          "name": "WhatsApp account"
         }
       }
     }
@@ -97,12 +108,18 @@
     },
     "Buscar Motoboys Ativos": {
       "main": [
-        [{ "node": "Loop Motoboys", "type": "main", "index": 0 }]
+        [{ "node": "Montar Mensagens", "type": "main", "index": 0 }]
       ]
     },
-    "Loop Motoboys": {
+    "Montar Mensagens": {
       "main": [
-        [{ "node": "WhatsApp Motoboy", "type": "main", "index": 0 }]
+        [{ "node": "Telefone Valido?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Telefone Valido?": {
+      "main": [
+        [{ "node": "WhatsApp Motoboy", "type": "main", "index": 0 }],
+        []
       ]
     }
   },

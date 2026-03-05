@@ -21,7 +21,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT \n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()) as total_pedidos,\n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'entregue') as entregues,\n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'cancelado') as cancelados,\n  (SELECT COALESCE(SUM(total), 0) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'entregue') as faturamento,\n  (SELECT valor FROM cardapio_config WHERE chave = 'notif_admin_telefone') as admin_telefone,\n  (SELECT valor FROM cardapio_config WHERE chave = 'notif_resumo_diario') as resumo_ativo"
+        "query": "SELECT \n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()) as total_pedidos,\n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'entregue') as entregues,\n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'cancelado') as cancelados,\n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'preparando') as preparando,\n  (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE() AND status IN ('pendente','confirmado','pronto_coleta')) as em_andamento,\n  (SELECT COALESCE(SUM(total), 0) FROM orders WHERE DATE(created_at) = CURDATE() AND status = 'entregue') as faturamento,\n  (SELECT valor FROM cardapio_config WHERE chave = 'notif_admin_telefone') as admin_telefone,\n  (SELECT valor FROM cardapio_config WHERE chave = 'notif_resumo_diario') as resumo_ativo"
       },
       "name": "Buscar Stats",
       "type": "n8n-nodes-base.mySql",
@@ -29,7 +29,8 @@
       "position": [450, 300],
       "credentials": {
         "mySql": {
-          "name": "Inventro MySQL"
+          "id": "K3ZJcF4AGULzXcra",
+          "name": "MySQL account"
         }
       }
     },
@@ -51,18 +52,48 @@
     },
     {
       "parameters": {
-        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
-        "recipientPhoneNumber": "={{ $json.admin_telefone }}",
-        "operation": "sendMessage",
-        "textBody": "=📊 *RESUMO DO DIA*\n\n📦 Pedidos: {{ $json.total_pedidos }}\n✅ Entregues: {{ $json.entregues }}\n❌ Cancelados: {{ $json.cancelados }}\n💰 Faturamento: R$ {{ Number($json.faturamento).toFixed(2).replace('.', ',') }}\n\n_Resumo automatico - Inventro_"
+        "jsCode": "const items = $input.all();\nconst d = items[0].json;\n\n// Validacao do telefone\nconst telefone = (d.admin_telefone || '').toString().trim();\nconst telefoneValido = /^55\\d{2}9\\d{8}$/.test(telefone);\n\nif (!telefoneValido) {\n  return [{ json: { telefone: '', mensagem: '', erro: 'Telefone invalido ou ausente: ' + (d.admin_telefone || '(vazio)') + ' -> ' + telefone, enviar: false } }];\n}\n\nconst total = Number(d.total_pedidos) || 0;\nconst entregues = Number(d.entregues) || 0;\nconst cancelados = Number(d.cancelados) || 0;\nconst preparando = Number(d.preparando) || 0;\nconst emAndamento = Number(d.em_andamento) || 0;\nconst faturamento = Number(d.faturamento) || 0;\nconst fatStr = faturamento.toFixed(2).replace('.', ',');\n\nconst hoje = new Date();\nconst dia = String(hoje.getDate()).padStart(2, '0');\nconst mes = String(hoje.getMonth() + 1).padStart(2, '0');\nconst ano = hoje.getFullYear();\nconst dataStr = dia + '/' + mes + '/' + ano;\n\nconst msg = '\\ud83d\\udcca *RESUMO DO DIA*\\n'\n  + dataStr + '\\n'\n  + '\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\n\\n'\n  + '\\ud83d\\udce6 Pedidos: *' + total + '*\\n'\n  + '\\u2705 Entregues: *' + entregues + '*\\n'\n  + (preparando > 0 ? '\\ud83d\\udc68\\u200d\\ud83c\\udf73 Preparando: *' + preparando + '*\\n' : '')\n  + (emAndamento > 0 ? '\\u23f3 Em andamento: *' + emAndamento + '*\\n' : '')\n  + '\\u274c Cancelados: *' + cancelados + '*\\n\\n'\n  + '\\ud83d\\udcb0 *Faturamento: R$ ' + fatStr + '*\\n\\n'\n  + '\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\n'\n  + '_Resumo automatico - Inventro_';\n\nreturn [{ json: { telefone: telefone, mensagem: msg, enviar: true } }];"
+      },
+      "name": "Montar Resumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.enviar }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Telefone Valido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v22.0/985707381298189/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.telefone, type: 'text', text: { preview_url: false, body: $json.mensagem } }) }}",
+        "options": {}
       },
       "name": "WhatsApp Admin",
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1,
-      "position": [850, 200],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1250, 150],
       "credentials": {
         "whatsAppApi": {
-          "name": "WhatsApp Business"
+          "id": "hgzzTYvvhMIjAIbF",
+          "name": "WhatsApp account"
         }
       }
     }
@@ -79,6 +110,17 @@
       ]
     },
     "IF Resumo Ativo": {
+      "main": [
+        [{ "node": "Montar Resumo", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Montar Resumo": {
+      "main": [
+        [{ "node": "Telefone Valido?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Telefone Valido?": {
       "main": [
         [{ "node": "WhatsApp Admin", "type": "main", "index": 0 }],
         []

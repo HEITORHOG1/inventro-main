@@ -74,7 +74,8 @@ class Orders extends MX_Controller {
             'success' => true,
             'counts' => $counts,
             'orders' => $orders,
-            'timestamp' => date('Y-m-d H:i:s')
+            'timestamp' => date('Y-m-d H:i:s'),
+            'csrf_token' => $this->security->get_csrf_hash()
         ]);
     }
 
@@ -136,7 +137,7 @@ class Orders extends MX_Controller {
             $event = isset($status_event_map[$status]) ? $status_event_map[$status] : null;
             if ($event && $order) {
                 $this->load->library('Webhook_notifier');
-                $auto_notified = $this->webhook_notifier->send($event, array(
+                $webhook_data = array(
                     'order_id'          => $order->id,
                     'order_number'      => $order->order_number,
                     'status'            => $status,
@@ -144,7 +145,18 @@ class Orders extends MX_Controller {
                     'cliente_telefone'  => $order->cliente_telefone,
                     'total'             => $order->total,
                     'acompanhar_url'    => base_url('cardapio/acompanhar/' . $order->order_number),
-                ));
+                    'cupom_url'         => base_url('cardapio/cupom/' . $order->order_number),
+                    'avaliar_url'       => base_url('cardapio/avaliar/' . $order->order_number),
+                );
+                if ($status === 'confirmado') {
+                    $webhook_data['cupom_texto'] = $this->_gerar_cupom_whatsapp($order);
+                }
+                $auto_notified = $this->webhook_notifier->send($event, $webhook_data);
+
+                // Quando pronto para coleta, notificar motoboys disponíveis
+                if ($status === 'pronto_coleta') {
+                    $this->_notificar_motoboys_pool($order);
+                }
             }
 
             if ($auto_notified) {
@@ -201,7 +213,7 @@ class Orders extends MX_Controller {
             $event = isset($status_event_map[$status]) ? $status_event_map[$status] : null;
             if ($event && $order) {
                 $this->load->library('Webhook_notifier');
-                $auto_notified = $this->webhook_notifier->send($event, array(
+                $webhook_data = array(
                     'order_id'          => $order->id,
                     'order_number'      => $order->order_number,
                     'status'            => $status,
@@ -209,7 +221,18 @@ class Orders extends MX_Controller {
                     'cliente_telefone'  => $order->cliente_telefone,
                     'total'             => $order->total,
                     'acompanhar_url'    => base_url('cardapio/acompanhar/' . $order->order_number),
-                ));
+                    'cupom_url'         => base_url('cardapio/cupom/' . $order->order_number),
+                    'avaliar_url'       => base_url('cardapio/avaliar/' . $order->order_number),
+                );
+                if ($status === 'confirmado') {
+                    $webhook_data['cupom_texto'] = $this->_gerar_cupom_whatsapp($order);
+                }
+                $auto_notified = $this->webhook_notifier->send($event, $webhook_data);
+
+                // Quando pronto para coleta, notificar motoboys disponíveis
+                if ($status === 'pronto_coleta') {
+                    $this->_notificar_motoboys_pool($order);
+                }
             }
 
             // Fallback: gerar link WhatsApp manual (so se n8n nao enviou)
@@ -222,7 +245,8 @@ class Orders extends MX_Controller {
             'success' => (bool)$result,
             'message' => $result ? ($auto_notified ? 'Status atualizado! Notificacao enviada.' : 'Status atualizado!') : 'Erro ao atualizar',
             'whatsapp_link' => $whatsapp_link,
-            'auto_notified' => $auto_notified
+            'auto_notified' => $auto_notified,
+            'csrf_token' => $this->security->get_csrf_hash()
         ]);
     }
 
@@ -613,5 +637,28 @@ class Orders extends MX_Controller {
             $telefone = '55' . $telefone;
         }
         return 'https://wa.me/' . $telefone . '?text=' . rawurlencode($mensagem);
+    }
+
+    /**
+     * Notificar todos os motoboys disponíveis que há pedido pronto para coleta
+     * Dispara evento 'pedido.criado.motoboy' para o workflow 01 do n8n
+     */
+    private function _notificar_motoboys_pool($order) {
+        if (!$order) {
+            return;
+        }
+
+        $this->load->library('Webhook_notifier');
+        $this->webhook_notifier->send('pedido.criado.motoboy', array(
+            'order_id'          => $order->id,
+            'order_number'      => $order->order_number,
+            'cliente_nome'      => $order->cliente_nome,
+            'cliente_telefone'  => $order->cliente_telefone,
+            'cliente_endereco'  => $order->cliente_endereco,
+            'total'             => $order->total,
+            'forma_pagamento'   => $order->forma_pagamento,
+            'tipo_entrega'      => $order->tipo_entrega ?? 'entrega',
+            'acompanhar_url'    => base_url('cardapio/acompanhar/' . $order->order_number),
+        ));
     }
 }

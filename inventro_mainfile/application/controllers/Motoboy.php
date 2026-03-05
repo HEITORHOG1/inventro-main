@@ -137,6 +137,7 @@ class Motoboy extends CI_Controller {
         $result = $this->Motoboy_model->aceitar_entrega((int) $order_id, $motoboy_id, $motoboy_nome, $taxa);
 
         if ($this->input->is_ajax_request()) {
+            $result['csrf_token'] = $this->security->get_csrf_hash();
             header('Content-Type: application/json');
             echo json_encode($result);
             return;
@@ -161,6 +162,7 @@ class Motoboy extends CI_Controller {
         $result = $this->Motoboy_model->registrar_coleta((int) $order_id, $motoboy_id);
 
         if ($this->input->is_ajax_request()) {
+            $result['csrf_token'] = $this->security->get_csrf_hash();
             header('Content-Type: application/json');
             echo json_encode($result);
             return;
@@ -185,6 +187,7 @@ class Motoboy extends CI_Controller {
         $result = $this->Motoboy_model->registrar_entrega((int) $order_id, $motoboy_id);
 
         if ($this->input->is_ajax_request()) {
+            $result['csrf_token'] = $this->security->get_csrf_hash();
             header('Content-Type: application/json');
             echo json_encode($result);
             return;
@@ -253,6 +256,18 @@ class Motoboy extends CI_Controller {
             'success'  => true,
             'entregas' => $entregas,
             'resumo'   => $resumo
+        ]);
+    }
+
+    /**
+     * API: retorna CSRF token fresco (GET, não consome token)
+     */
+    public function api_csrf() {
+        $this->_check_auth_ajax();
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'csrf_token' => $this->security->get_csrf_hash()
         ]);
     }
 

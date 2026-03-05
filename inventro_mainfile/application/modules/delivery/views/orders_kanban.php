@@ -741,6 +741,12 @@ foreach (['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega
                 $('#polling-spinner').hide();
                 if (!response.success) return;
 
+                // Keep CSRF token fresh (fixes multi-tab invalidation)
+                if (response.csrf_token) {
+                    csrfHash = response.csrf_token;
+                    $('#csrf_token').val(csrfHash);
+                }
+
                 var now = new Date();
                 var timeStr = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
                 $('#last-update-label small').text('Atualizado ' + timeStr);

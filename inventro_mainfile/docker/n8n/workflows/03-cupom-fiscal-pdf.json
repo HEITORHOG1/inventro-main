@@ -1,6 +1,6 @@
 {
   "id": "3",
-  "name": "03 - Cupom Fiscal → Enviar PDF via WhatsApp",
+  "name": "03 - Cupom Fiscal → Enviar via WhatsApp",
   "nodes": [
     {
       "parameters": {
@@ -19,7 +19,7 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{ $json.event }}",
+              "value1": "={{ $json.body.event }}",
               "value2": "pedido.cupom_fiscal"
             }
           ]
@@ -32,47 +32,48 @@
     },
     {
       "parameters": {
-        "url": "=http://app:80/delivery/orders/api_cupom_pdf/{{ $json.data.order_id }}",
-        "options": {
-          "response": {
-            "response": {
-              "fullResponse": true
-            }
-          }
-        },
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-Internal-Key",
-              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
-            }
-          ]
-        }
+        "jsCode": "const items = $input.all();\nconst body = items[0].json.body;\nconst data = body.data;\n\n// Validacao do telefone\nconst telefone = (data.cliente_telefone_e164 || '').toString().trim();\nconst telefoneValido = /^55\\d{2}9\\d{8}$/.test(telefone);\n\nif (!telefoneValido) {\n  return [{ json: { telefone: '', mensagem: '', erro: 'Telefone invalido ou ausente: ' + (data.cliente_telefone || '(vazio)') + ' -> ' + telefone, enviar: false } }];\n}\n\nconst nome = data.cliente_nome || 'Cliente';\nconst order = data.order_number || '';\nconst cupomUrl = data.cupom_url || '';\nconst total = data.total ? 'R$ ' + Number(data.total).toFixed(2).replace('.', ',') : '';\n\nconst msg = '\\ud83e\\uddf3 *Cupom do Pedido #' + order + '*\\n'\n  + '\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\u2501\\n\\n'\n  + 'Ola, ' + nome + '!\\n\\n'\n  + 'Segue o cupom do seu pedido.\\n\\n'\n  + (total ? '\\ud83d\\udcb0 Total: *' + total + '*\\n\\n' : '')\n  + '\\ud83e\\uddc3 Ver cupom completo:\\n' + cupomUrl + '\\n\\n'\n  + 'Obrigado pela preferencia! \\ud83d\\ude4f';\n\nreturn [{ json: { telefone: telefone, mensagem: msg, enviar: true } }];"
       },
-      "name": "Buscar PDF",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
+      "name": "Montar Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [650, 200]
     },
     {
       "parameters": {
-        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
-        "recipientPhoneNumber": "={{ $node['Webhook Inventro'].json.data.cliente_telefone_e164 }}",
-        "operation": "sendTemplate",
-        "templateName": "={{ $node['Webhook Inventro'].json.whatsapp_template_name }}",
-        "language": "pt_BR",
-        "additionalFields": {
-          "headerType": "document",
-          "documentUrl": "={{ $json.headers.location || '' }}"
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.enviar }}",
+              "value2": true
+            }
+          ]
         }
       },
-      "name": "WhatsApp PDF",
-      "type": "n8n-nodes-base.whatsApp",
+      "name": "Telefone Valido?",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [850, 200],
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v22.0/985707381298189/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.telefone, type: 'text', text: { preview_url: true, body: $json.mensagem } }) }}",
+        "options": {}
+      },
+      "name": "WhatsApp Cupom",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 150],
       "credentials": {
         "whatsAppApi": {
-          "name": "WhatsApp Business"
+          "id": "hgzzTYvvhMIjAIbF",
+          "name": "WhatsApp account"
         }
       }
     }
@@ -85,13 +86,19 @@
     },
     "IF Cupom Fiscal": {
       "main": [
-        [{ "node": "Buscar PDF", "type": "main", "index": 0 }],
+        [{ "node": "Montar Mensagem", "type": "main", "index": 0 }],
         []
       ]
     },
-    "Buscar PDF": {
+    "Montar Mensagem": {
       "main": [
-        [{ "node": "WhatsApp PDF", "type": "main", "index": 0 }]
+        [{ "node": "Telefone Valido?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Telefone Valido?": {
+      "main": [
+        [{ "node": "WhatsApp Cupom", "type": "main", "index": 0 }],
+        []
       ]
     }
   },

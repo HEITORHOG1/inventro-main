@@ -141,18 +141,49 @@ class Webhook_notifier {
             return '';
         }
 
-        // Se já começa com 55 e tem 12-13 dígitos, está ok
+        // Se já começa com 55, remove para normalizar
         if (strlen($digits) >= 12 && substr($digits, 0, 2) === '55') {
-            return $digits;
+            $digits = substr($digits, 2);
         }
 
-        // Se tem 10-11 dígitos (DDD + número), adiciona 55
-        if (strlen($digits) >= 10 && strlen($digits) <= 11) {
-            return '55' . $digits;
+        // Agora temos DDD + número (10 ou 11 dígitos)
+        // Celular BR: DDD(2) + 9XXXXXXXX(9) = 11 dígitos
+        // Fixo BR:    DDD(2) + XXXXXXXX(8)  = 10 dígitos
+
+        // Se tem 10 dígitos e o 3o dígito NÃO é 9, é fixo — adiciona 9
+        // Ex: 2499219680 (10) -> 24 9 99219680 (11)
+        if (strlen($digits) === 10 && $digits[2] !== '9') {
+            $digits = substr($digits, 0, 2) . '9' . substr($digits, 2);
         }
 
-        // Retorna como está se não se encaixa
-        return $digits;
+        // Se tem 10 dígitos e o 3o dígito É 9, está faltando 1 dígito — inválido
+        if (strlen($digits) === 10 && $digits[2] === '9') {
+            log_message('error', "Webhook_notifier: Telefone inválido (10 dígitos com 9): {$phone}");
+            return '';
+        }
+
+        // Deve ter exatamente 11 dígitos (DDD + celular)
+        if (strlen($digits) !== 11) {
+            log_message('error', "Webhook_notifier: Telefone com formato inesperado ({$phone} -> {$digits}, " . strlen($digits) . " dígitos)");
+            return '';
+        }
+
+        return '55' . $digits;
+    }
+
+    /**
+     * Verifica se um telefone normalizado é válido para WhatsApp
+     * Deve ter 13 dígitos: 55 + DDD(2) + 9XXXXXXXX(9)
+     */
+    public function is_valid_whatsapp_phone($phone_e164)
+    {
+        if (empty($phone_e164)) {
+            return false;
+        }
+        // 13 dígitos, começa com 55, 3o dígito do número é 9 (celular)
+        return strlen($phone_e164) === 13
+            && substr($phone_e164, 0, 2) === '55'
+            && $phone_e164[4] === '9';
     }
 
     /**
@@ -177,15 +208,19 @@ class Webhook_notifier {
         // Injeta nome do template WhatsApp no payload
         $template_name = $this->get_template_name($event);
 
-        // Normaliza telefones no payload
-        if (isset($data['cliente_telefone'])) {
-            $data['cliente_telefone_e164'] = $this->normalize_phone($data['cliente_telefone']);
-        }
-        if (isset($data['motoboy_telefone'])) {
-            $data['motoboy_telefone_e164'] = $this->normalize_phone($data['motoboy_telefone']);
-        }
-        if (isset($data['admin_telefone'])) {
-            $data['admin_telefone_e164'] = $this->normalize_phone($data['admin_telefone']);
+        // Normaliza e valida telefones no payload
+        $phone_fields = array('cliente_telefone', 'motoboy_telefone', 'admin_telefone');
+        foreach ($phone_fields as $field) {
+            if (!empty($data[$field])) {
+                $normalized = $this->normalize_phone($data[$field]);
+
+                if ($this->is_valid_whatsapp_phone($normalized)) {
+                    $data[$field . '_e164'] = $normalized;
+                } else {
+                    $data[$field . '_e164'] = '';
+                    log_message('error', "Webhook_notifier: Telefone inválido para WhatsApp - campo '{$field}': '{$data[$field]}' (normalizado: '{$normalized}')");
+                }
+            }
         }
 
         // Monta payload

@@ -415,6 +415,15 @@ var base_url = <?php echo json_encode(base_url()); ?>;
 var csrf_name = <?php echo json_encode($this->security->get_csrf_token_name()); ?>;
 var csrf_hash = <?php echo json_encode($this->security->get_csrf_hash()); ?>;
 
+// Atualiza o token CSRF no hidden input do form e na variavel global
+function updateCsrf(newHash) {
+    if (newHash) {
+        csrf_hash = newHash;
+        var hiddenInput = document.querySelector('input[name="' + csrf_name + '"]');
+        if (hiddenInput) hiddenInput.value = newHash;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
 
     // Toggle n8n fields
@@ -457,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: data,
             dataType: 'json',
             success: function(response) {
-                if (response.csrf_token) csrf_hash = response.csrf_token;
+                updateCsrf(response.csrf_token);
                 if (response.success) {
                     result.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> ' + response.message + '</span>';
                 } else {
@@ -488,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: data,
             dataType: 'json',
             success: function(response) {
-                if (response.csrf_token) csrf_hash = response.csrf_token;
+                updateCsrf(response.csrf_token);
                 if (response.success) {
                     result.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> ' + response.message + '</span>';
                 } else {
@@ -519,7 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: data,
             dataType: 'json',
             success: function(response) {
-                if (response.csrf_token) csrf_hash = response.csrf_token;
+                updateCsrf(response.csrf_token);
                 if (response.success && response.templates) {
                     // Atualizar indicadores de status
                     for (var key in response.templates) {

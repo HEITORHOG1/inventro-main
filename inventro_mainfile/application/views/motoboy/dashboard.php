@@ -458,20 +458,14 @@
         $entrega_status = $entrega_ativa->entrega_info->status ?? 'aceito';
         ?>
         <?php if ($entrega_status === 'aceito'): ?>
-            <form method="POST" action="<?php echo base_url('motoboy/coletar/' . (int)$entrega_ativa->id); ?>" onsubmit="showLoading()">
-                <input type="hidden" name="csrf_test_name" value="<?php echo $this->security->get_csrf_hash(); ?>">
-                <button type="submit" class="btn-action btn-coletar">
-                    &#x1F4E6; PEGUEI A MERCADORIA
-                </button>
-            </form>
+            <button type="button" class="btn-action btn-coletar" onclick="ajaxAction('coletar', <?php echo (int)$entrega_ativa->id; ?>)">
+                &#x1F4E6; PEGUEI A MERCADORIA
+            </button>
         <?php endif; ?>
         <?php if ($entrega_status === 'aceito' || $entrega_status === 'coletado'): ?>
-            <form method="POST" action="<?php echo base_url('motoboy/entregar/' . (int)$entrega_ativa->id); ?>" onsubmit="return confirmarEntrega()">
-                <input type="hidden" name="csrf_test_name" value="<?php echo $this->security->get_csrf_hash(); ?>">
-                <button type="submit" class="btn-action btn-entregar">
-                    &#x2705; ENTREGUEI AO CLIENTE
-                </button>
-            </form>
+            <button type="button" class="btn-action btn-entregar" onclick="ajaxAction('entregar', <?php echo (int)$entrega_ativa->id; ?>, true)">
+                &#x2705; ENTREGUEI AO CLIENTE
+            </button>
         <?php endif; ?>
     </div>
 
@@ -507,12 +501,9 @@
                             <span>&#x23F0; Pronto <?php echo date('H:i', strtotime($order->hora_pronto_coleta)); ?></span>
                         <?php endif; ?>
                     </div>
-                    <form method="POST" action="<?php echo base_url('motoboy/aceitar/' . (int)$order->id); ?>" onsubmit="showLoading()">
-                        <input type="hidden" name="csrf_test_name" value="<?php echo $this->security->get_csrf_hash(); ?>">
-                        <button type="submit" class="btn-action btn-aceitar" style="margin-top:10px;">
-                            &#x1F680; ACEITAR ENTREGA
-                        </button>
-                    </form>
+                    <button type="button" class="btn-action btn-aceitar" style="margin-top:10px;" onclick="ajaxAction('aceitar', <?php echo (int)$order->id; ?>)">
+                        &#x1F680; ACEITAR ENTREGA
+                    </button>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
@@ -540,19 +531,65 @@
     var temAtiva = <?php echo $entrega_ativa ? 'true' : 'false'; ?>;
     var pollInterval = temAtiva ? 30000 : 15000; // 15s pool, 30s se tem ativa
     var pollTimer = null;
+    var csrfName = '<?php echo $this->security->get_csrf_token_name(); ?>';
+    var csrfHash = '<?php echo $this->security->get_csrf_hash(); ?>';
 
     // Loading overlay
     window.showLoading = function() {
         document.getElementById('loadingOverlay').classList.add('active');
     };
 
-    // Confirm delivery
-    window.confirmarEntrega = function() {
-        if (confirm('Confirma que a mercadoria foi entregue ao cliente?')) {
-            showLoading();
-            return true;
+    // Fetch fresh CSRF token then execute POST action
+    window.ajaxAction = function(action, orderId, needConfirm) {
+        if (needConfirm && !confirm('Confirma que a mercadoria foi entregue ao cliente?')) {
+            return;
         }
-        return false;
+
+        showLoading();
+
+        // Step 1: get fresh CSRF token via GET (won't be invalidated by other tabs)
+        var csrfXhr = new XMLHttpRequest();
+        csrfXhr.open('GET', baseUrl + 'motoboy/api_csrf', true);
+        csrfXhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        csrfXhr.onreadystatechange = function() {
+            if (csrfXhr.readyState !== 4) return;
+            if (csrfXhr.status === 200) {
+                try {
+                    var csrfData = JSON.parse(csrfXhr.responseText);
+                    if (csrfData.csrf_token) csrfHash = csrfData.csrf_token;
+                } catch(e) {}
+            }
+
+            // Step 2: execute the actual POST with fresh token
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', baseUrl + 'motoboy/' + action + '/' + orderId, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState !== 4) return;
+                document.getElementById('loadingOverlay').classList.remove('active');
+
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.csrf_token) csrfHash = data.csrf_token;
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            alert(data.message || 'Erro ao processar');
+                        }
+                    } catch(e) {
+                        alert('Erro de comunicacao');
+                    }
+                } else if (xhr.status === 403) {
+                    window.location.reload();
+                } else {
+                    alert('Erro de conexao (' + xhr.status + ')');
+                }
+            };
+            xhr.send(csrfName + '=' + encodeURIComponent(csrfHash));
+        };
+        csrfXhr.send();
     };
 
     // Timer da entrega ativa

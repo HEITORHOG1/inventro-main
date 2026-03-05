@@ -233,19 +233,26 @@ async function importWorkflows() {
 
     try {
       if (existingByName[name]) {
-        // Atualizar existente
+        // Atualizar existente — buscar versionId fresco (listagem pode estar stale)
         const existingWf = existingByName[name];
+        const detailRes = await request('GET', `/rest/workflows/${existingWf.id}`);
+        const detail = detailRes.body.data || detailRes.body;
+        const freshVersionId = detail.versionId || existingWf.versionId;
+
         const updatePayload = {
-          ...workflowData,
-          versionId: existingWf.versionId,
+          name: workflowData.name,
+          nodes: workflowData.nodes,
+          connections: workflowData.connections,
+          settings: workflowData.settings,
+          versionId: freshVersionId,
         };
         const res = await request('PATCH', `/rest/workflows/${existingWf.id}`, updatePayload);
         if (res.statusCode === 200) {
           const wf = res.body.data || res.body;
-          log(`  ✓ Atualizado: ${name} (id: ${wf.id})`);
+          log(`  ✓ Atualizado: ${name} (id: ${wf.id}, nodes: ${wf.nodes ? wf.nodes.length : '?'})`);
           imported.push({ name, id: wf.id, versionId: wf.versionId, action: 'updated' });
         } else {
-          logError(`  ✗ Falha ao atualizar ${name}: HTTP ${res.statusCode}`);
+          logError(`  ✗ Falha ao atualizar ${name}: HTTP ${res.statusCode} — ${JSON.stringify(res.body)}`);
         }
       } else {
         // Criar novo
@@ -266,48 +273,32 @@ async function importWorkflows() {
   return imported;
 }
 
-async function activateTestWorkflow(imported) {
-  // Encontra workflow 06 (teste) pelo nome
-  const testWf = imported.find(w => w.name && w.name.includes('Teste'));
+async function activateAllWorkflows(imported) {
+  const all = await listExistingWorkflows();
 
-  if (!testWf) {
-    // Busca na lista de workflows existentes
-    const all = await listExistingWorkflows();
-    const found = all.find(w => w.name && w.name.includes('Teste'));
-    if (!found) {
-      log('Workflow de teste nao encontrado — pulando ativacao');
-      return;
-    }
-    // Ja pode estar ativo
-    if (found.active) {
-      log(`Workflow de teste ja esta ativo (id: ${found.id})`);
-      return;
+  for (const wf of all) {
+    if (wf.active) {
+      log(`  Ja ativo: ${wf.name} (id: ${wf.id})`);
+      continue;
     }
 
     try {
-      // Precisa do versionId completo
-      const detailRes = await request('GET', `/rest/workflows/${found.id}`);
+      const detailRes = await request('GET', `/rest/workflows/${wf.id}`);
       const detail = detailRes.body.data || detailRes.body;
 
-      const res = await request('POST', `/rest/workflows/${found.id}/activate`, {
+      const res = await request('POST', `/rest/workflows/${wf.id}/activate`, {
         versionId: detail.versionId,
       });
-      const wf = res.body.data || res.body;
-      log(`Workflow de teste ativado: ${wf.active ? 'OK' : 'falhou'} (id: ${found.id})`);
-    } catch (err) {
-      logError(`Erro ao ativar workflow de teste: ${err.message}`);
-    }
-    return;
-  }
 
-  try {
-    const res = await request('POST', `/rest/workflows/${testWf.id}/activate`, {
-      versionId: testWf.versionId,
-    });
-    const wf = res.body.data || res.body;
-    log(`Workflow de teste ativado: ${wf.active ? 'OK' : 'falhou'} (id: ${testWf.id})`);
-  } catch (err) {
-    logError(`Erro ao ativar workflow de teste: ${err.message}`);
+      if (res.statusCode === 200) {
+        const activated = res.body.data || res.body;
+        log(`  Ativado: ${wf.name} (id: ${wf.id}) active=${activated.active}`);
+      } else {
+        logError(`  Falha ao ativar ${wf.name}: HTTP ${res.statusCode} — ${JSON.stringify(res.body).substring(0, 200)}`);
+      }
+    } catch (err) {
+      logError(`  Erro ao ativar ${wf.name}: ${err.message}`);
+    }
   }
 }
 
@@ -334,8 +325,8 @@ async function main() {
   const imported = await importWorkflows();
   log(`${imported.length} workflow(s) provisionado(s)`);
 
-  // 4. Ativar workflow de teste
-  await activateTestWorkflow(imported);
+  // 4. Ativar todos os workflows
+  await activateAllWorkflows(imported);
 
   log('Provisionamento concluido!');
 }

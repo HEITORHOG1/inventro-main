@@ -356,6 +356,7 @@ class Cardapio extends CI_Controller {
                 'forma_pagamento'   => $input['forma_pagamento'],
                 'tipo_entrega'      => $tipo_entrega,
                 'acompanhar_url'    => base_url('cardapio/acompanhar/' . $result['order_number']),
+                'cupom_url'         => base_url('cardapio/cupom/' . $result['order_number']),
             ));
             $this->webhook_notifier->send('pedido.criado.motoboy', array(
                 'order_id'          => $result['order_id'],

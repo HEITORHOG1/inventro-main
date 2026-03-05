@@ -19,9 +19,9 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{ $json.event }}",
+              "value1": "={{ $json.body.event }}",
               "operation": "startsWith",
-              "value2": "pedido.status."
+              "value2": "pedido."
             }
           ]
         }
@@ -33,33 +33,50 @@
     },
     {
       "parameters": {
-        "phoneNumberId": "={{ $env.WHATSAPP_PHONE_ID }}",
-        "recipientPhoneNumber": "={{ $json.data.cliente_telefone_e164 }}",
-        "operation": "sendTemplate",
-        "templateName": "={{ $json.whatsapp_template_name }}",
-        "language": "pt_BR",
-        "templateParameters": {
-          "parameters": [
+        "jsCode": "const items = $input.all();\nconst body = items[0].json.body;\nconst event = body.event;\nconst data = body.data;\n\n// Validação do telefone\nconst telefone = (data.cliente_telefone_e164 || '').toString().trim();\nconst telefoneValido = /^55\\d{2}9\\d{8}$/.test(telefone);\n\nif (!telefoneValido) {\n  return [{ json: { telefone: '', mensagem: '', erro: 'Telefone inválido ou ausente: ' + (data.cliente_telefone || '(vazio)') + ' -> ' + telefone, enviar: false } }];\n}\n\nconst nome = data.cliente_nome || 'Cliente';\nconst order = data.order_number || '';\nconst url = data.acompanhar_url || '';\nconst cupomUrl = data.cupom_url || url.replace('/acompanhar/', '/cupom/');\nconst avaliarUrl = data.avaliar_url || url.replace('/acompanhar/', '/avaliar/');\nconst total = data.total ? 'R$ ' + Number(data.total).toFixed(2).replace('.', ',') : '';\nconst pagamento = data.forma_pagamento || '';\nconst tipoEntrega = data.tipo_entrega || '';\n\nconst pagMap = { dinheiro: 'Dinheiro', cartao: 'Cartao', pix: 'PIX' };\nconst pagLabel = pagMap[pagamento] || pagamento;\n\nlet msg = '';\n\nif (event === 'pedido.criado') {\n  const tipo = tipoEntrega === 'retirada' ? 'Retirada no local' : 'Entrega';\n  msg = '\\ud83d\\uded2 *Pedido Recebido!*\\n\\n'\n    + 'Ola, ' + nome + '! Seu pedido *#' + order + '* foi recebido com sucesso!\\n\\n'\n    + (total ? '\\ud83d\\udcb0 Total: *' + total + '*\\n' : '')\n    + (pagLabel ? '\\ud83d\\udcb3 Pagamento: ' + pagLabel + '\\n' : '')\n    + (tipo ? '\\ud83d\\udce6 Tipo: ' + tipo + '\\n' : '')\n    + '\\nEm breve voce recebera a confirmacao do estabelecimento.\\n\\n'\n    + '\\ud83d\\udccd Acompanhe seu pedido:\\n' + url;\n\n} else if (event === 'pedido.status.confirmado') {\n  if (data.cupom_texto) {\n    msg = data.cupom_texto;\n    if (url) msg += '\\n\\n\\ud83d\\udccd Acompanhe seu pedido:\\n' + url;\n  } else {\n    msg = '\\u2705 *Pedido Confirmado!*\\n\\n'\n      + 'Ola, ' + nome + '! Seu pedido *#' + order + '* foi confirmado com sucesso!\\n\\n'\n      + (total ? '\\ud83d\\udcb0 Total: *' + total + '*\\n\\n' : '')\n      + '\\ud83d\\udccd Acompanhe seu pedido:\\n' + url;\n  }\n\n} else if (event === 'pedido.status.preparando') {\n  msg = '\\ud83d\\udc68\\u200d\\ud83c\\udf73 *Preparando seu Pedido!*\\n\\n'\n    + 'Ola, ' + nome + '! Seu pedido *#' + order + '* esta sendo preparado com carinho.\\n\\n'\n    + '\\ud83d\\udccd Acompanhe:\\n' + url;\n\n} else if (event === 'pedido.status.pronto') {\n  msg = '\\ud83d\\udce6 *Pedido Pronto!*\\n\\n'\n    + 'Ola, ' + nome + '! Seu pedido *#' + order + '* esta pronto! Aguardando entregador.\\n\\n'\n    + '\\ud83d\\udccd Acompanhe:\\n' + url;\n\n} else if (event === 'pedido.status.saiu_entrega') {\n  msg = '\\ud83d\\udef5 *Saiu para Entrega!*\\n\\n'\n    + 'Ola, ' + nome + '! Seu pedido *#' + order + '* saiu para entrega!\\n'\n    + 'Em breve chegara ate voce.\\n\\n'\n    + '\\ud83d\\udccd Acompanhe em tempo real:\\n' + url;\n\n} else if (event === 'pedido.status.entregue') {\n  msg = '\\u2705 *Pedido Entregue!*\\n\\n'\n    + 'Ola, ' + nome + '! Seu pedido *#' + order + '* foi entregue com sucesso!\\n\\n'\n    + 'Obrigado pela preferencia! \\ud83d\\ude4f\\n\\n'\n    + '\\u2b50 Avalie seu pedido:\\n' + avaliarUrl;\n\n} else if (event === 'pedido.status.cancelado') {\n  msg = '\\u274c *Pedido Cancelado*\\n\\n'\n    + 'Ola, ' + nome + '. Infelizmente seu pedido *#' + order + '* foi cancelado.\\n\\n'\n    + 'Se precisar de ajuda, entre em contato conosco.';\n\n} else {\n  msg = '\\ud83d\\udccb Atualizacao do pedido *#' + order + '*\\n\\n'\n    + '\\ud83d\\udccd Acompanhe:\\n' + url;\n}\n\nreturn [{ json: { telefone: telefone, mensagem: msg, enviar: true } }];"
+      },
+      "name": "Montar Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v22.0/985707381298189/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.telefone, type: 'text', text: { preview_url: true, body: $json.mensagem } }) }}",
+        "options": {}
+      },
+      "name": "WhatsApp Cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 150],
+      "credentials": {
+        "whatsAppApi": {
+          "id": "hgzzTYvvhMIjAIbF",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
             {
-              "type": "body",
-              "parameters": [
-                { "type": "text", "text": "={{ $json.data.cliente_nome }}" },
-                { "type": "text", "text": "={{ $json.data.order_number }}" },
-                { "type": "text", "text": "={{ $json.data.acompanhar_url }}" }
-              ]
+              "value1": "={{ $json.enviar }}",
+              "value2": true
             }
           ]
         }
       },
-      "name": "WhatsApp Cliente",
-      "type": "n8n-nodes-base.whatsApp",
+      "name": "Telefone Valido?",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [650, 200],
-      "credentials": {
-        "whatsAppApi": {
-          "name": "WhatsApp Business"
-        }
-      }
+      "position": [850, 200]
     }
   ],
   "connections": {
@@ -69,6 +86,17 @@
       ]
     },
     "IF Status Cliente": {
+      "main": [
+        [{ "node": "Montar Mensagem", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Montar Mensagem": {
+      "main": [
+        [{ "node": "Telefone Valido?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Telefone Valido?": {
       "main": [
         [{ "node": "WhatsApp Cliente", "type": "main", "index": 0 }],
         []
