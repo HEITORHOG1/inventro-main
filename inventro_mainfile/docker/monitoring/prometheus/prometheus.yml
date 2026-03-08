@@ -1,0 +1,47 @@
+# =============================================
+# Prometheus — Coleta de Métricas
+# =============================================
+# Coleta métricas do cAdvisor (containers) e do próprio Prometheus.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# ---- Regras de alerta ----
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+scrape_configs:
+  # ---- Métricas do próprio Prometheus ----
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ---- Métricas dos containers (cAdvisor) ----
+  - job_name: 'cadvisor'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metric_relabel_configs:
+      # Filtrar apenas containers do projeto inventro
+      - source_labels: [container_label_com_docker_compose_project]
+        regex: 'inventro_mainfile|inventro'
+        action: keep
+
+  # ---- Métricas do Loki ----
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+
+  # ---- Métricas do MySQL ----
+  - job_name: 'mysql'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['mysql-exporter:9104']
+
+  # ---- Métricas do Apache ----
+  - job_name: 'apache'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['apache-exporter:9117']

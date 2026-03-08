@@ -13,7 +13,7 @@
 #   make db       — Abrir shell no MySQL
 #   make status   — Ver status dos containers
 
-.PHONY: dev dev-n8n prod prod-n8n down reset logs shell db status build n8n-up n8n-down n8n-logs
+.PHONY: dev dev-n8n prod prod-n8n down reset logs shell db status build n8n-up n8n-down n8n-logs monitor monitor-down monitor-logs
 
 # ---- Desenvolvimento (padrão) ----
 # Carrega docker-compose.yml + docker-compose.override.yml automaticamente
@@ -107,6 +107,40 @@ db:
 # ---- Status dos containers ----
 status:
 	docker compose ps
+
+# ---- Monitoramento: subir Grafana + Loki + Prometheus ----
+# Uso: make monitor (dev) ou COMPOSE_ENV=prod make monitor
+MONITORING_COMPOSE = -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.monitoring.yml
+
+monitor:
+	@echo "📊 Subindo stack de monitoramento..."
+	docker compose $(MONITORING_COMPOSE) up -d grafana loki promtail prometheus cadvisor mysql-exporter apache-exporter
+	@echo ""
+	@echo "✅ Monitoramento pronto!"
+	@echo "   Grafana:    http://localhost:$${GRAFANA_PORT:-3000}"
+	@echo "   Prometheus: http://localhost:$${PROMETHEUS_PORT:-9090}"
+	@echo "   Login:      admin / inventro2026"
+
+# ---- Monitoramento: parar ----
+monitor-down:
+	@echo "⏹️  Parando stack de monitoramento..."
+	docker compose $(MONITORING_COMPOSE) stop grafana loki promtail prometheus cadvisor mysql-exporter apache-exporter
+
+# ---- Monitoramento: logs ----
+monitor-logs:
+	docker compose $(MONITORING_COMPOSE) logs -f grafana loki promtail prometheus cadvisor mysql-exporter apache-exporter
+
+# ---- Dev + Monitoramento (tudo junto) ----
+dev-monitor:
+	@echo "🚀 Subindo DEV + Monitoramento..."
+	docker compose $(MONITORING_COMPOSE) up -d --build
+	@echo ""
+	@echo "✅ Dev + Monitoramento pronto!"
+	@echo "   App:        http://localhost:$${APP_PORT:-8080}"
+	@echo "   phpMyAdmin: http://localhost:$${PMA_PORT:-8081}"
+	@echo "   Grafana:    http://localhost:$${GRAFANA_PORT:-3000}"
+	@echo "   Prometheus: http://localhost:$${PROMETHEUS_PORT:-9090}"
+	@echo "   Login Grafana: admin / inventro2026"
 
 # ---- Build sem subir ----
 build:

@@ -1,0 +1,255 @@
+{
+  "annotations": { "list": [] },
+  "description": "Metricas detalhadas do MySQL - Queries, Conexoes, InnoDB, Slow Queries",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Status Geral do MySQL",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0 }
+            ]
+          },
+          "mappings": [
+            { "options": { "1": { "text": "ONLINE", "color": "green" }, "0": { "text": "OFFLINE", "color": "red" } }, "type": "value" }
+          ]
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "textMode": "auto" },
+      "title": "MySQL Status",
+      "type": "stat",
+      "targets": [{ "expr": "mysql_up", "legendFormat": "Status" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 100 }, { "color": "red", "value": 140 }] } } },
+      "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+      "id": 2,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "title": "Conexoes Ativas",
+      "type": "stat",
+      "targets": [{ "expr": "mysql_global_status_threads_connected", "legendFormat": "Conexoes" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 50 }, { "color": "red", "value": 100 }] } } },
+      "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+      "id": 3,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "title": "Threads Rodando",
+      "type": "stat",
+      "targets": [{ "expr": "mysql_global_status_threads_running", "legendFormat": "Threads" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } } },
+      "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
+      "id": 4,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none" },
+      "title": "Uptime",
+      "type": "stat",
+      "targets": [{ "expr": "mysql_global_status_uptime", "legendFormat": "Uptime" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 5 }, { "color": "red", "value": 20 }] } } },
+      "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+      "id": 5,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "title": "Slow Queries (total)",
+      "type": "stat",
+      "targets": [{ "expr": "mysql_global_status_slow_queries", "legendFormat": "Slow Queries" }]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Queries por Segundo",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "gradientMode": "scheme", "showPoints": "never" },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 10,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Queries por Segundo (por tipo)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(mysql_global_status_commands_total{command=~\"select|insert|update|delete\"}[5m])", "legendFormat": "{{command}}" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "gradientMode": "scheme", "showPoints": "never" },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 11,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Total de Queries por Segundo",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(mysql_global_status_queries[5m])", "legendFormat": "QPS" },
+        { "expr": "rate(mysql_global_status_slow_queries[5m])", "legendFormat": "Slow QPS" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 102,
+      "title": "Conexoes e Threads",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "showPoints": "never" }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 20,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Conexoes ao longo do tempo",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "mysql_global_status_threads_connected", "legendFormat": "Conectadas" },
+        { "expr": "mysql_global_status_threads_running", "legendFormat": "Rodando" },
+        { "expr": "mysql_global_variables_max_connections", "legendFormat": "Max (limite)" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "showPoints": "never" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 21,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Erros de Conexao",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(mysql_global_status_connection_errors_total[5m])", "legendFormat": "{{error}}" },
+        { "expr": "rate(mysql_global_status_aborted_connects[5m])", "legendFormat": "Abortadas" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 103,
+      "title": "InnoDB - Performance do Storage Engine",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "showPoints": "never" },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 30,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "InnoDB Buffer Pool",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "mysql_global_status_innodb_buffer_pool_bytes_data", "legendFormat": "Dados" },
+        { "expr": "mysql_global_variables_innodb_buffer_pool_size", "legendFormat": "Tamanho Total" },
+        { "expr": "mysql_global_status_innodb_buffer_pool_bytes_dirty", "legendFormat": "Dirty Pages" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "showPoints": "never" },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 31,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "InnoDB Row Operations/s",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(mysql_global_status_innodb_row_ops_total[5m])", "legendFormat": "{{operation}}" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "showPoints": "never" },
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "id": 32,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "InnoDB I/O (Leitura/Escrita)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(mysql_global_status_innodb_data_reads[5m])", "legendFormat": "Leituras" },
+        { "expr": "rate(mysql_global_status_innodb_data_writes[5m])", "legendFormat": "Escritas" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "showPoints": "never" },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "id": 33,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "InnoDB Buffer Pool Hit Rate",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "1 - (rate(mysql_global_status_innodb_buffer_pool_reads[5m]) / (rate(mysql_global_status_innodb_buffer_pool_read_requests[5m]) > 0))", "legendFormat": "Hit Rate" }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["inventro", "mysql", "database"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "America/Sao_Paulo",
+  "title": "Inventro - MySQL Performance",
+  "uid": "inventro-mysql",
+  "version": 1
+}

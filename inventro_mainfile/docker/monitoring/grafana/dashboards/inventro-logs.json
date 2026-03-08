@@ -1,0 +1,276 @@
+{
+  "annotations": { "list": [] },
+  "description": "Logs centralizados do Inventro - Apache, PHP, MySQL, CodeIgniter",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Contadores de Log",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 50 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "title": "Erros PHP (ultima hora)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"PHP (Fatal|Error|Warning)\" [$__range])",
+          "legendFormat": "Erros PHP"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "title": "Erros CI (ERROR) (ultima hora)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"ERROR\\s+-\\s+\" [$__range])",
+          "legendFormat": "CI Errors"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "title": "HTTP 5xx (ultima hora)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"\\\" 5\\d{2} \" [$__range])",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "id": 4,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "title": "Total Requisicoes (ultima hora)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"\\\"(GET|POST|PUT|DELETE)\" [$__range])",
+          "legendFormat": "Requests"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Volume de Logs",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 50,
+            "stacking": { "mode": "normal" }
+          },
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 6 },
+      "id": 5,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "title": "Volume de Logs por Servico",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (service) (count_over_time({project=~\".*inventro.*\"} [1m]))",
+          "legendFormat": "{{service}}"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 },
+      "id": 102,
+      "title": "Logs do Apache (App)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 13 },
+      "id": 10,
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "title": "Logs da Aplicacao (Apache + PHP + CI)",
+      "type": "logs",
+      "targets": [
+        {
+          "expr": "{service=\"app\"}",
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 103,
+      "title": "Logs do MySQL",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "id": 11,
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "title": "Logs do MySQL",
+      "type": "logs",
+      "targets": [
+        {
+          "expr": "{service=\"db\"}",
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "id": 104,
+      "title": "Somente Erros",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 33 },
+      "id": 12,
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "title": "Somente ERROS (PHP + CI + MySQL)",
+      "type": "logs",
+      "targets": [
+        {
+          "expr": "{service=~\"app|db\"} |~ \"(ERROR|Fatal|Warning|\\\" 5\\d{2} )\"",
+          "legendFormat": ""
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["inventro", "logs", "loki"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "America/Sao_Paulo",
+  "title": "Inventro - Logs Centralizados",
+  "uid": "inventro-logs",
+  "version": 1
+}

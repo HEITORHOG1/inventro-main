@@ -245,7 +245,9 @@ $config['allow_get_array'] = TRUE;
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 0;
+// Log threshold baseado no ambiente:
+// 0 = Desabilitado | 1 = Error | 2 = Debug | 3 = Info | 4 = All
+$config['log_threshold'] = (ENVIRONMENT === 'development') ? 2 : 1;
 
 /*
 |--------------------------------------------------------------------------

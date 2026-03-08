@@ -1,0 +1,164 @@
+# =============================================
+# Regras de Alerta do Inventro
+# =============================================
+# Alertas monitorados pelo Prometheus e exibidos no Grafana.
+
+groups:
+  # =========================================
+  # Alertas de Infraestrutura (Containers)
+  # =========================================
+  - name: inventro_infra
+    interval: 30s
+    rules:
+      - alert: ContainerDown
+        expr: up{job=~"cadvisor|mysql|apache"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.job }} esta OFFLINE"
+          description: "O exporter {{ $labels.job }} nao responde ha mais de 1 minuto."
+
+      - alert: HighCPU_App
+        expr: rate(container_cpu_usage_seconds_total{name="inventro_app"}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU da App acima de 80%"
+          description: "Container inventro_app usando {{ $value | printf \"%.1f\" }}% de CPU nos ultimos 5 minutos."
+
+      - alert: HighCPU_DB
+        expr: rate(container_cpu_usage_seconds_total{name="inventro_db"}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU do MySQL acima de 80%"
+          description: "Container inventro_db usando {{ $value | printf \"%.1f\" }}% de CPU nos ultimos 5 minutos."
+
+      - alert: HighMemory_App
+        expr: container_memory_usage_bytes{name="inventro_app"} / container_spec_memory_limit_bytes{name="inventro_app"} > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memoria da App acima de 85%"
+          description: "Container inventro_app usando {{ $value | humanizePercentage }} da memoria disponivel."
+
+      - alert: HighMemory_DB
+        expr: container_memory_usage_bytes{name="inventro_db"} / container_spec_memory_limit_bytes{name="inventro_db"} > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memoria do MySQL acima de 85%"
+          description: "Container inventro_db usando {{ $value | humanizePercentage }} da memoria disponivel."
+
+      - alert: ContainerRestarting
+        expr: increase(container_restart_count{name=~"inventro_.*"}[15m]) > 2
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.name }} reiniciando repetidamente"
+          description: "{{ $labels.name }} reiniciou {{ $value }} vezes nos ultimos 15 minutos."
+
+  # =========================================
+  # Alertas do MySQL
+  # =========================================
+  - name: inventro_mysql
+    interval: 30s
+    rules:
+      - alert: MySQLDown
+        expr: mysql_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MySQL esta OFFLINE"
+          description: "O MySQL nao responde ha mais de 1 minuto."
+
+      - alert: MySQLSlowQueries
+        expr: rate(mysql_global_status_slow_queries[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MySQL com queries lentas"
+          description: "{{ $value | printf \"%.2f\" }} slow queries/seg nos ultimos 5 minutos."
+
+      - alert: MySQLHighConnections
+        expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MySQL com muitas conexoes (>80% do limite)"
+          description: "{{ $value | humanizePercentage }} das conexoes disponiveis estao em uso."
+
+      - alert: MySQLConnectionErrors
+        expr: rate(mysql_global_status_aborted_connects[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MySQL com erros de conexao"
+          description: "{{ $value | printf \"%.1f\" }} conexoes abortadas/seg."
+
+      - alert: MySQLInnoDBBufferPoolLow
+        expr: 1 - (rate(mysql_global_status_innodb_buffer_pool_reads[5m]) / (rate(mysql_global_status_innodb_buffer_pool_read_requests[5m]) > 0)) < 0.95
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "InnoDB Buffer Pool hit rate abaixo de 95%"
+          description: "Hit rate atual: {{ $value | humanizePercentage }}. Considere aumentar innodb_buffer_pool_size."
+
+  # =========================================
+  # Alertas do Apache
+  # =========================================
+  - name: inventro_apache
+    interval: 30s
+    rules:
+      - alert: ApacheDown
+        expr: apache_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Apache esta OFFLINE"
+          description: "O servidor web nao responde ha mais de 1 minuto."
+
+      - alert: ApacheHighWorkerUsage
+        expr: apache_workers{state="busy"} / (apache_workers{state="busy"} + apache_workers{state="idle"}) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Apache com mais de 85% dos workers ocupados"
+          description: "{{ $value | humanizePercentage }} dos workers estao ocupados. Pode causar lentidao."
+
+      - alert: ApacheNoIdleWorkers
+        expr: apache_workers{state="idle"} < 3
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Apache quase sem workers livres"
+          description: "Apenas {{ $value }} workers livres. Novas requisicoes podem ser rejeitadas."
+
+  # =========================================
+  # Alertas de Logs (baseado em Loki via recording rules no Prometheus)
+  # =========================================
+  - name: inventro_health
+    interval: 60s
+    rules:
+      - alert: HealthCheckFailing
+        expr: up{job="cadvisor"} == 1 and (container_last_seen{name="inventro_app"} > 0 and absent(container_tasks_state{name="inventro_app", state="running"}))
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "App container pode estar em estado instavel"
+          description: "O container da aplicacao pode nao estar respondendo corretamente."

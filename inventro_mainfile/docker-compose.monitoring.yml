@@ -1,0 +1,239 @@
+# =============================================
+# Inventro — Docker Compose Monitoring Stack
+# =============================================
+# Grafana + Loki + Promtail + Prometheus + cAdvisor + MySQL Exporter + Apache Exporter
+#
+# Uso:
+#   Dev:  docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.monitoring.yml up -d
+#   Prod: docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.monitoring.yml up -d
+#
+# Acessos:
+#   Grafana:    http://localhost:3000 (admin/inventro2026)
+#   Prometheus: http://localhost:9090
+
+services:
+  # =========================================
+  # Override do App: adicionar Apache server-status
+  # =========================================
+  app:
+    volumes:
+      - ./docker/monitoring/apache-status.conf:/etc/apache2/conf-enabled/server-status.conf:ro
+
+  # =========================================
+  # MySQL Exporter — Métricas do MySQL
+  # =========================================
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.15.1
+    container_name: inventro_mysql_exporter
+    restart: unless-stopped
+    command:
+      - '--config.my-cnf=/etc/mysql-exporter/.my.cnf'
+      - '--collect.info_schema.innodb_metrics'
+      - '--collect.info_schema.processlist'
+      - '--collect.info_schema.tables'
+      - '--collect.info_schema.query_response_time'
+      - '--collect.perf_schema.tableiowaits'
+      - '--collect.perf_schema.tablelocks'
+      - '--collect.engine_innodb_status'
+      - '--collect.global_status'
+      - '--collect.global_variables'
+      - '--collect.slave_status'
+    volumes:
+      - ./docker/monitoring/mysql-exporter.cnf:/etc/mysql-exporter/.my.cnf:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 64M
+
+  # =========================================
+  # Apache Exporter — Métricas do Apache
+  # =========================================
+  apache-exporter:
+    image: lusotycoon/apache-exporter:v1.0.8
+    container_name: inventro_apache_exporter
+    restart: unless-stopped
+    command:
+      - '--scrape_uri=http://app:80/server-status?auto'
+    depends_on:
+      - app
+    networks:
+      - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 32M
+
+  # =========================================
+  # Grafana — Dashboards e Alertas
+  # =========================================
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: inventro_grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-inventro2026}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: "http://localhost:${GRAFANA_PORT:-3000}"
+      GF_INSTALL_PLUGINS: ""
+      GF_LOG_LEVEL: warn
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/inventro-overview.json
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - loki
+      - prometheus
+    networks:
+      - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # =========================================
+  # Loki — Agregador de Logs
+  # =========================================
+  loki:
+    image: grafana/loki:3.3.2
+    container_name: inventro_loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./docker/monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    networks:
+      - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # =========================================
+  # Promtail — Coletor de Logs
+  # =========================================
+  promtail:
+    image: grafana/promtail:3.3.2
+    container_name: inventro_promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./docker/monitoring/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - loki
+    networks:
+      - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+  # =========================================
+  # Prometheus — Coleta de Métricas
+  # =========================================
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: inventro_prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=1GB'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./docker/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - cadvisor
+    networks:
+      - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  # =========================================
+  # cAdvisor — Métricas dos Containers
+  # =========================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: inventro_cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+volumes:
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
+  prometheus_data:
+    driver: local
