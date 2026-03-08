@@ -61,9 +61,10 @@ class Auth extends MX_Controller {
 
 				$row = $user->row();
 				$password_valid = false;
+				$has_bcrypt = $this->auth_model->has_bcrypt_column();
 
 				// 1) Try bcrypt first (already migrated users)
-				if (!empty($row->password_bcrypt)) {
+				if ($has_bcrypt && !empty($row->password_bcrypt)) {
 					$password_valid = password_verify($plain_password, $row->password_bcrypt);
 				}
 
@@ -71,9 +72,11 @@ class Auth extends MX_Controller {
 				if (!$password_valid && !empty($row->password)) {
 					if (md5($plain_password) === $row->password) {
 						$password_valid = true;
-						// Migrate to bcrypt on the fly
-						$bcrypt_hash = password_hash($plain_password, PASSWORD_BCRYPT, ['cost' => 12]);
-						$this->auth_model->update_password_bcrypt($row->id, $bcrypt_hash);
+						// Migrate to bcrypt on the fly (if column exists)
+						if ($has_bcrypt) {
+							$bcrypt_hash = password_hash($plain_password, PASSWORD_BCRYPT, ['cost' => 12]);
+							$this->auth_model->update_password_bcrypt($row->id, $bcrypt_hash);
+						}
 					}
 				}
 
@@ -180,8 +183,16 @@ class Auth extends MX_Controller {
 	 */
 	private function _get_plano_negocio()
 	{
-		$setting = $this->db->select('plano_negocio')->from('setting')->get()->row();
-		return !empty($setting->plano_negocio) ? $setting->plano_negocio : 'mercado_completo';
+		try {
+			if (!$this->db->field_exists('plano_negocio', 'setting')) {
+				return 'mercado_completo';
+			}
+			$setting = $this->db->select('plano_negocio')->from('setting')->get()->row();
+			return !empty($setting->plano_negocio) ? $setting->plano_negocio : 'mercado_completo';
+		} catch (Exception $e) {
+			log_message('error', '_get_plano_negocio failed: ' . $e->getMessage());
+			return 'mercado_completo';
+		}
 	}
 
 }

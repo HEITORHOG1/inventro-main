@@ -7,7 +7,7 @@
 	    var save_method = 'save_department';
 	    $("#dip").attr("action", baseurl+"hrm/salary/save_salary");
 	    $('#salary_form').modal('show'); 
-	    $('.modal-title').text('Add new salary'); 
+	    $('.modal-title').text('Novo salário');
 	}
 
 	function editSalary(salary_id)
@@ -31,15 +31,15 @@
 
 				    $("#dip").attr("action", baseurl+"hrm/salary/update_salary");
 				    $('#salary_form').modal('show'); 
-				    $('.modal-title').text('Edit Salary'); 
-				    $('.dbtn').text('Update Salary'); 
+				    $('.modal-title').text('Editar Salário');
+				    $('.dbtn').text('Atualizar Salário');
 
 
 				},error: function() {
 
 					Toast.fire({
 				        type: 'error',
-				        title: 'Wops! Thre have some problems please try again'
+				        title: 'Erro! Ocorreu um problema, tente novamente'
 				    });
 					
 				}
@@ -52,7 +52,7 @@
 	function deleteSalary(salary_id)
 	{
 
-		if(confirm('Do you want to delete')===false){
+		if(confirm('Deseja excluir este registro?')===false){
 			return false;
 		}
 
@@ -72,13 +72,13 @@
 					if(res){
 						Toast.fire({
 					        type: 'success',
-					        title: 'Delete Successfull'
+					        title: 'Excluído com sucesso'
 					    });
 
 					}else{
 						Toast.fire({
 					        type: 'error',
-					        title: 'Wops! Thre have some problems please try again'
+					        title: 'Erro! Ocorreu um problema, tente novamente'
 					    });
 					}
 				   
@@ -97,7 +97,7 @@
 	function salaryGenerate()
 	{
 
-		if(confirm('Do you want to payment salary')===false){
+		if(confirm('Deseja gerar o pagamento do salário?')===false){
 			return false;
 		}
 
@@ -167,8 +167,8 @@
 
 					    $("#dip").attr("action", baseurl+"hrm/salary/save_paid_salary");
 					    $('#salary_payment').modal('show'); 
-					    $('.modal-title').text('Payment Salary'); 
-					    $('.dbtn').text('Payment'); 
+					    $('.modal-title').text('Pagamento de Salário');
+					    $('.dbtn').text('Pagar');
 						
 
 					}else{
@@ -185,7 +185,7 @@
 
 					Toast.fire({
 				        type: 'error',
-				        title: 'Wops! Thre have some problems please try again'
+				        title: 'Erro! Ocorreu um problema, tente novamente'
 				    });
 					
 				}

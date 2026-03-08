@@ -36,7 +36,7 @@
         <div class="form-group row">
             <label for="amount" class="col-sm-3 control-label"><?php echo makeString(['amount']); ?></label>
             <div class="col-sm-6">
-                <input type="text" name="amount" class="form-control" value="" id="amount" placeholder="Amount" min="1" required>
+                <input type="text" name="amount" class="form-control" value="" id="amount" placeholder="Valor" min="1" required>
             </div>
         </div>
         <div class="form-group row">

@@ -63,7 +63,7 @@
                             </div>
                             <label for="description" class="col-sm-2 col-form-label"><?php echo makeString(['description']); ?> <i class="text-danger"> * </i></label>
                             <div class="col-sm-4">
-                                <textarea name="description" id="description" class="form-control" placeholder="Please Enter some description"><?php echo html_escape($transaction_edit->description); ?></textarea>
+                                <textarea name="description" id="description" class="form-control" placeholder="Digite uma descrição"><?php echo html_escape($transaction_edit->description); ?></textarea>
                             </div>
                         </div>
                     </div>
@@ -87,18 +87,18 @@
                             </div>
                             <label for="payment_type" class="col-sm-2 col-form-label"><?php echo makeString(['transaction_mode']); ?> <span class="text-danger"> * </span></label>
                             <div class="col-sm-4">
-                                <select name="payment_type" id="payment_type" class="form-control select2" data-placeholder="-- select one --">
+                                <select name="payment_type" id="payment_type" class="form-control select2" data-placeholder="-- selecione --">
                                     <option value=""></option>
                                     <option value="1" <?php
                                     if ($transaction_edit->payment_type == 1) {
                                         echo 'selected';
                                     }
-                                    ?>>Cash <?php echo makeString(['cash']); ?> </option>
+                                    ?>> <?php echo makeString(['cash']); ?> </option>
                                     <option value="2" <?php
                                     if ($transaction_edit->payment_type == 2) {
                                         echo 'selected';
                                     }
-                                    ?>> Online<?php echo makeString(['online']); ?>  </option>
+                                    ?>> <?php echo makeString(['online']); ?> </option>
                                 </select>
                             </div>
                         </div>
@@ -108,7 +108,7 @@
                             <label for="select_name" class="col-sm-2"><?php echo makeString(['select_name']); ?> </label>
                             <div class="col-sm-4">
                                 <div class="loaded">
-                                    <select class="form-control select2" id="select_name" name="relation_id" data-placeholder="-- select one --">
+                                    <select class="form-control select2" id="select_name" name="relation_id" data-placeholder="-- selecione --">
                                         <option value=""></option>
                                         <?php
                                         if ($transaction_edit->transaction_category == 1) {
@@ -148,7 +148,7 @@
                                 <div class="form-group row">
                                     <label for="cheque_bank_name" class="col-sm-2 col-form-label bank_name_lbl"><?php echo makeString(['bank_name']); ?></label>
                                     <div class="col-sm-4 bank_name_input">
-                                        <select name="cheque_bank_name" id="cheque_bank_name"  class="form-control select2" data-placeholder="-- select one --">
+                                        <select name="cheque_bank_name" id="cheque_bank_name"  class="form-control select2" data-placeholder="-- selecione --">
                                             <option value=""></option>
                                             <?php
                                             if ($get_bank) {

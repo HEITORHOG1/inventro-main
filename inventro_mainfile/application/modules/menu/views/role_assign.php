@@ -43,11 +43,11 @@
             <div class="card-body">
 
                 <div class="form-group row">
-                    <label for="parent_menu" class="col-sm-2 col-form-label text-right"><?php echo html_escape('User Name');?> <i class="text-danger"> * </i></label>
+                    <label for="parent_menu" class="col-sm-2 col-form-label text-right"><?php echo makeString(['user_name']);?> <i class="text-danger"> * </i></label>
                     <div class="col-sm-6">
 
                         <select name="user_id" class="form-control select2" onchange="userRole(this.value)" id="user_id" required>
-                            <option value=""><?php echo html_escape('Select Role')?></option>
+                            <option value=""><?php echo makeString(['select_role'])?></option>
                             <?php
                             foreach ($user_list as $value) {
                                 $fullname = $value->firstname . ' ' . $value->lastname;
@@ -72,7 +72,7 @@
                 <div class="form-group row">
                     <label for="parent_menu" class="col-sm-2 col-form-label text-right"><?php echo makeString(['role_name']); ?> <i class="text-danger"> * </i></label>
                     <div class="col-sm-6">
-                        <select name="role_id[]" class="select2 select22_role" multiple="multiple" data-placeholder="Select a State" data-dropdown-css-class="select2-purple"  required>
+                        <select name="role_id[]" class="select2 select22_role" multiple="multiple" data-placeholder="Selecione" data-dropdown-css-class="select2-purple"  required>
                             <?php foreach (@$role_list as $value) { ?>  
                                 <option value="<?php echo $value->role_id; ?>"><?php echo html_escape($value->role_name); ?></option>
                             <?php } ?>

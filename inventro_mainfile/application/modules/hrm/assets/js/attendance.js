@@ -6,14 +6,14 @@ var CSRF_TOKEN = $('#csrf_token').val();
 	{
 	    $("#dip").attr("action", baseurl+"hrm/attendance/save_attendance");
 	    $('#attendance_form').modal('show'); 
-	    $('.modal-title').text('Add new attendance'); 
+	    $('.modal-title').text('Nova presença');
 	}
 
 
     "use strict";
 	function deleteAttendance(attendance_id){
 
-		if(confirm('Do you want to delete')===false){
+		if(confirm('Deseja excluir este registro?')===false){
 			return false;
 		}
 
@@ -30,13 +30,13 @@ var CSRF_TOKEN = $('#csrf_token').val();
 					if(res==='1'){
 						Toast.fire({
 					        type: 'success',
-					        title: 'Delete Successfull'
+					        title: 'Excluído com sucesso'
 					    });
 
 					}else{
 						Toast.fire({
 					        type: 'error',
-					        title: 'Wops! Thre have some problems please try again'
+					        title: 'Erro! Ocorreu um problema, tente novamente'
 					    });
 					}
 
@@ -54,7 +54,7 @@ var CSRF_TOKEN = $('#csrf_token').val();
 	function addOutTime(attendance_id)
 	{
 
-		if(confirm('Do you want to live')===false){
+		if(confirm('Deseja registrar a saída?')===false){
 			return false;
 		}
 
@@ -72,13 +72,13 @@ var CSRF_TOKEN = $('#csrf_token').val();
 						
 						Toast.fire({
 					        type: 'success',
-					        title: 'Out Time Successfull Saved'
+					        title: 'Horário de saída registrado'
 					    })
 
 					}else{
 						Toast.fire({
 					        type: 'error',
-					        title: 'Wops! Thre have some problems please try again'
+					        title: 'Erro! Ocorreu um problema, tente novamente'
 					    })
 					}
 
@@ -95,7 +95,7 @@ var CSRF_TOKEN = $('#csrf_token').val();
 	function editAttendance(attendance_id)
 	{
 
-		if(confirm('Do you want to update this')===false){
+		if(confirm('Deseja atualizar este registro?')===false){
 			return false;
 		}
 
@@ -118,15 +118,15 @@ var CSRF_TOKEN = $('#csrf_token').val();
 
 				    $("#edit_at").attr("action", baseurl+"hrm/attendance/update_attendance");
 				    $('#attendance_edit').modal('show'); 
-				    $('.modal-title').text('Update Attendance'); 
-				    $('.dbtn').text('Update Attendance'); 
+				    $('.modal-title').text('Editar Presença');
+				    $('.dbtn').text('Atualizar Presença');
 
 
 				},error: function() {
 
 					Toast.fire({
 				        type: 'error',
-				        title: 'Wops! Thre have some problems please try again'
+				        title: 'Erro! Ocorreu um problema, tente novamente'
 				    })
 				}
 			});

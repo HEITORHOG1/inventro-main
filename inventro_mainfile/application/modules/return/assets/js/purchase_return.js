@@ -34,7 +34,7 @@
 
 
        if (parseInt(item_ctn_qty) > parseInt(purchase_qty)) {
-        var message = "You can not return More than " + purchase_qty + " Quantities";
+        var message = "Não é possível devolver mais que " + purchase_qty + " unidades";
         alert(message);
         $("#uqty" + sl).val('');
            calculate_store(sl);
@@ -51,7 +51,7 @@
     "use strict";
      function deleteRow(e) {
         var t = $("#purchaseTable > tbody > tr").length;
-        if (1 == t) alert("There only one row you can't delete.");
+        if (1 == t) alert("Só há uma linha, não é possível excluir.");
         else {
             var a = e.parentNode.parentNode;
             a.parentNode.removeChild(a)

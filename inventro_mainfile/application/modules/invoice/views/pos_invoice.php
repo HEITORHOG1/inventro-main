@@ -45,11 +45,11 @@
                                     <div class="row w-104">
                                         <div class="col-md-4">
                                             <div class="form-group"><input type="text" class="form-control"
-                                                    placeholder="Item, Model, Item Code" id="searchitem"></div>
+                                                    placeholder="Item, Modelo, Código" id="searchitem"></div>
                                         </div>
                                         <div class="col-md-8 p-0">
                                             <div class="filter-category"><a onclick="CategorySearch('all')"
-                                                    class="btn btn-outline-warning rounded-0 mt-1 mb-1">All</a>
+                                                    class="btn btn-outline-warning rounded-0 mt-1 mb-1">Todos</a>
                                                 <?php foreach($category_list as $categories){?>
                                                 <a onclick="CategorySearch(<?php echo $categories->category_id;?>)"
                                                     class="btn btn-outline-warning rounded-0 mr-1 mt-1 mb-1"><?php echo html_escape($categories->name);?></a>
@@ -99,12 +99,12 @@
                                     <div class="row text-right">
                                         <div class="col-4 pl-0 mml-5">
                                             <div class="form-group"><input type="text" class="form-control"
-                                                    placeholder="Barcode/Qr Code" id="barcode" /></div>
+                                                    placeholder="Código de Barras / QR Code" id="barcode" /></div>
                                         </div>
                                         <div class="col-8 pr-0 select-customer">
                                             <div dir="auto" class="v-select vs--single vs--searchable"><select
                                                     class="form-control select2" name="customer_id" id="customer_id"
-                                                    data-placeholder="<?php echo 'Select Customer'; ?>">
+                                                    data-placeholder="<?php echo 'Selecione o Cliente'; ?>">
                                                     <option value=""></option>
                                                     <?php foreach ($get_customer as $customer) { ?>
                                                     <option value="<?php echo $customer->customerid; ?>">

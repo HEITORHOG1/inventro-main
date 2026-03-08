@@ -3,9 +3,37 @@
 class Auth_model extends CI_Model {
 
 
+	/**
+	 * Check if password_bcrypt column exists (cached per request).
+	 */
+	private $_has_bcrypt_column = null;
+
+	public function has_bcrypt_column()
+	{
+		if ($this->_has_bcrypt_column === null) {
+			$this->_has_bcrypt_column = $this->db->field_exists('password_bcrypt', 'user');
+		}
+		return $this->_has_bcrypt_column;
+	}
+
 	public function checkUser($data = array())
 	{
-		return $this->db->select("
+		$select = "
+				user.id,
+				CONCAT_WS(' ', user.firstname, user.lastname) AS fullname,
+				user.email,
+				user.password,
+				user.image,
+				user.last_login,
+				user.last_logout,
+				user.ip_address,
+				user.status,
+				user.is_admin,
+				IF (user.is_admin=1, 'Admin', 'User') as user_level
+			";
+
+		if ($this->has_bcrypt_column()) {
+			$select = "
 				user.id,
 				CONCAT_WS(' ', user.firstname, user.lastname) AS fullname,
 				user.email,
@@ -18,7 +46,10 @@ class Auth_model extends CI_Model {
 				user.status,
 				user.is_admin,
 				IF (user.is_admin=1, 'Admin', 'User') as user_level
-			")
+			";
+		}
+
+		return $this->db->select($select)
 			->from('user')
 			->where('email', $data['email'])
 			->get();
@@ -161,49 +192,92 @@ class Auth_model extends CI_Model {
 	}
 
 	/**
+	 * Check if the login_attempts table exists (cached per request).
+	 */
+	private $_rate_limit_available = null;
+
+	private function _rate_limit_table_exists()
+	{
+		if ($this->_rate_limit_available === null) {
+			$this->_rate_limit_available = $this->db->table_exists('login_attempts');
+		}
+		return $this->_rate_limit_available;
+	}
+
+	/**
 	 * Count failed login attempts for email/IP within the lockout window.
+	 * Returns 0 if rate limiting is unavailable (table missing).
 	 */
 	public function count_login_attempts($email, $ip, $window_minutes = 15)
 	{
-		$cutoff = date('Y-m-d H:i:s', strtotime("-{$window_minutes} minutes"));
-		return $this->db->from('login_attempts')
-			->group_start()
-				->where('email', $email)
-				->or_where('ip_address', $ip)
-			->group_end()
-			->where('attempted_at >=', $cutoff)
-			->count_all_results();
+		if (!$this->_rate_limit_table_exists()) {
+			return 0;
+		}
+		try {
+			$cutoff = date('Y-m-d H:i:s', strtotime("-{$window_minutes} minutes"));
+			return $this->db->from('login_attempts')
+				->group_start()
+					->where('email', $email)
+					->or_where('ip_address', $ip)
+				->group_end()
+				->where('attempted_at >=', $cutoff)
+				->count_all_results();
+		} catch (Exception $e) {
+			log_message('error', 'Rate limiting query failed: ' . $e->getMessage());
+			return 0;
+		}
 	}
 
 	/**
-	 * Record a failed login attempt.
+	 * Record a failed login attempt. Fails silently if table is missing.
 	 */
 	public function record_login_attempt($email, $ip)
 	{
-		$this->db->insert('login_attempts', [
-			'email'        => $email,
-			'ip_address'   => $ip,
-			'attempted_at' => date('Y-m-d H:i:s'),
-		]);
+		if (!$this->_rate_limit_table_exists()) {
+			return;
+		}
+		try {
+			$this->db->insert('login_attempts', [
+				'email'        => $email,
+				'ip_address'   => $ip,
+				'attempted_at' => date('Y-m-d H:i:s'),
+			]);
+		} catch (Exception $e) {
+			log_message('error', 'Record login attempt failed: ' . $e->getMessage());
+		}
 	}
 
 	/**
-	 * Clear login attempts after successful login.
+	 * Clear login attempts after successful login. Fails silently if table is missing.
 	 */
 	public function clear_login_attempts($email, $ip)
 	{
-		$this->db->where('email', $email)
-			->or_where('ip_address', $ip)
-			->delete('login_attempts');
+		if (!$this->_rate_limit_table_exists()) {
+			return;
+		}
+		try {
+			$this->db->where('email', $email)
+				->or_where('ip_address', $ip)
+				->delete('login_attempts');
+		} catch (Exception $e) {
+			log_message('error', 'Clear login attempts failed: ' . $e->getMessage());
+		}
 	}
 
 	/**
-	 * Purge old login attempts (older than 24h).
+	 * Purge old login attempts (older than 24h). Fails silently if table is missing.
 	 */
 	public function purge_old_attempts()
 	{
-		$cutoff = date('Y-m-d H:i:s', strtotime('-24 hours'));
-		$this->db->where('attempted_at <', $cutoff)->delete('login_attempts');
+		if (!$this->_rate_limit_table_exists()) {
+			return;
+		}
+		try {
+			$cutoff = date('Y-m-d H:i:s', strtotime('-24 hours'));
+			$this->db->where('attempted_at <', $cutoff)->delete('login_attempts');
+		} catch (Exception $e) {
+			log_message('error', 'Purge old attempts failed: ' . $e->getMessage());
+		}
 	}
 
 }

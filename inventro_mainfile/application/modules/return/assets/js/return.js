@@ -5,9 +5,9 @@ function returnBank_paymet(val) {
     var base_url = $("#base_url").val();
     if (val == 2) {
         $(".bank_area").html("<div class='form-group row'>\n\
-        <label for='bank' class='col-sm-4 col-form-label'>Bank Name <i class='text-danger'>*</i></label>\n\
-        <select class='form-control select2 col-sm-8' name='bank_id' id='bank_id' data-placeholder='-- select one --'>\n\
-        <option value=''>-- select one --</option>\n\
+        <label for='bank' class='col-sm-4 col-form-label'>Nome do Banco <i class='text-danger'>*</i></label>\n\
+        <select class='form-control select2 col-sm-8' name='bank_id' id='bank_id' data-placeholder='-- selecione --'>\n\
+        <option value=''>-- selecione --</option>\n\
         </select>\n\
         </div>");
         $.ajax({
@@ -17,7 +17,7 @@ function returnBank_paymet(val) {
             data: {bank_id: val,'csrf_test_name': CSRF_TOKEN},
             success: function (data) {
                 var $select = $("#bank_id").empty();
-                $select.append($('<option>').val('').text('-- select one --'));
+                $select.append($('<option>').val('').text('-- selecione --'));
                 $.each(data, function(i, item) {
                     $select.append($('<option>').val(item.bank_id).text(item.bank_name));
                 });
@@ -34,7 +34,7 @@ function returnBank_paymet(val) {
 function deleteItem(t) {
     var a = $("#returntable > tbody > tr").length;
     if (1 == a) {
-        alert("There only one row you can't delete it.");
+        alert("Só há uma linha, não é possível excluir.");
     } else {
         var e = t.parentNode.parentNode;
         e.parentNode.removeChild(e);
@@ -54,7 +54,7 @@ function Return_calculate(item) {
     $("#box_quantity_" + item).val(cartoon.toFixed(2));
 
     if (parseInt(qnty) > parseInt(soldqty)) {
-        var message = "You can not return more than sold QTy ";
+        var message = "Não é possível devolver mais que a quantidade vendida";
         alert(message);
         $("#quantity_" + item).val('');
         $("#total_price_" + item).val('');

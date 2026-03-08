@@ -42,7 +42,7 @@
             <div class="card-body">
 
                 <div class="form-group row">
-                    <label for="parent_menu" class="col-sm-2 col-form-label text-right"><?php echo html_escape('User Name')?> <i class="text-danger"> * </i></label>
+                    <label for="parent_menu" class="col-sm-2 col-form-label text-right"><?php echo makeString(['user_name'])?> <i class="text-danger"> * </i></label>
                     <div class="col-sm-6">
                         <select name="user_id" class="form-control" onchange="userRole(this.value)" id="user_id" required>
                             <?php
@@ -74,9 +74,9 @@
                 }
                 ?>
                 <div class="form-group row">
-                    <label for="parent_menu" class="col-sm-2 col-form-label text-right"><?php echo html_escape('Role Name');?> <i class="text-danger"> * </i></label>
+                    <label for="parent_menu" class="col-sm-2 col-form-label text-right"><?php echo makeString(['role_name']);?> <i class="text-danger"> * </i></label>
                     <div class="col-sm-6">
-                        <select name="role_id[]" class="select2 select22_role" multiple="multiple" data-placeholder="Select One" data-dropdown-css-class="select2-purple" >
+                        <select name="role_id[]" class="select2 select22_role" multiple="multiple" data-placeholder="Selecione" data-dropdown-css-class="select2-purple" >
                             <?php foreach ($role_list as $val) { ?>
                                 <option value="<?php echo $val->role_id ?>" <?php
                                 if (in_array($val->role_id, $role_id)) {
@@ -95,7 +95,7 @@
                 <div class="col-sm-offset-1 col-sm-2"></div>
                 <div class="col-sm-4">
 
-                    <button type="submit" class="btn btn-primary edit_user_access_role_btn"><?php echo html_escape('Submit');?></button>
+                    <button type="submit" class="btn btn-primary edit_user_access_role_btn"><?php echo makeString(['submit']);?></button>
 
                 </div>
             </div>

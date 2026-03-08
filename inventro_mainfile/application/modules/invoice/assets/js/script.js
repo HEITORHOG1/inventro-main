@@ -5,9 +5,9 @@ function bank_paymet(val) {
     var base_url = $("#base_url").val();
     if (val == 2) {
         $(".bank_area").html("<div class='form-group row'>\n\
-        <label for='bank' class='col-sm-4 col-form-label'>Bank Name <i class='text-danger'>*</i></label>\n\
-        <select class='form-control select2 col-sm-8' name='bank_id' id='bank_id' data-placeholder='-- select one --'>\n\
-        <option value=''>-- select one --</option>\n\
+        <label for='bank' class='col-sm-4 col-form-label'>Nome do Banco <i class='text-danger'>*</i></label>\n\
+        <select class='form-control select2 col-sm-8' name='bank_id' id='bank_id' data-placeholder='-- selecione --'>\n\
+        <option value=''>-- selecione --</option>\n\
         </select>\n\
         </div>");
         $.ajax({
@@ -17,7 +17,7 @@ function bank_paymet(val) {
             data: {bank_id: val,'csrf_test_name': CSRF_TOKEN},
             success: function (data) {
                 var $select = $("#bank_id").empty();
-                $select.append($('<option>').val('').text('-- select one --'));
+                $select.append($('<option>').val('').text('-- selecione --'));
                 $.each(data, function(i, item) {
                     $select.append($('<option>').val(item.bank_id).text(item.bank_name));
                 });
@@ -52,7 +52,7 @@ function addInputField(t) {
     var limits = 500;
     get_allproducts(count);
     if (count == limits) {
-        alert("You have reached the limit of adding" + count + "inputs");
+        alert("Você atingiu o limite de " + count + " itens");
     } else {
         var a = "product_id_" + count, e = document.createElement("tr");
         e.innerHTML = "<td>\n\
@@ -76,7 +76,7 @@ function addInputField(t) {
 function deleteRow(t) {
     var a = $("#normalinvoice > tbody > tr").length;
     if (1 == a) {
-        alert("There only one row you can't delete it.");
+        alert("Só há uma linha, não é possível excluir.");
     } else {
         var e = t.parentNode.parentNode;
         e.parentNode.removeChild(e);
@@ -143,7 +143,7 @@ function quantity_calculate(item) {
     $("#box_quantity_" + item).val(cartoon.toFixed(2));
 
     if (parseInt(qnty) > parseInt(available_qnt)) {
-        var message = "You can purchase maximum " + available_qnt + " Items";
+        var message = "Quantidade máxima disponível: " + available_qnt + " unidades";
         alert(message);
         $("#quantity_" + item).val('');
         $("#total_price_" + item).val('');
@@ -235,7 +235,7 @@ function CategorySearch(id) {
             $(".all-products").html(data);
         },
         error: function() {
-            alert('Request Failed, Please check your code and try again!');
+            alert('Falha na requisição. Verifique e tente novamente.');
         }
     });
 }
@@ -257,7 +257,7 @@ $('body').on('keyup', '#searchitem', function() {
             $(".all-products").html(data);
         },
         error: function() {
-            alert('Request Failed, Please check your code and try again!');
+            alert('Falha na requisição. Verifique e tente novamente.');
         }
     });
 });
@@ -285,7 +285,7 @@ function onselectimage(id) {
     var base_url = $("#base_url").val();
     var add_qty = parseInt(qty) + 1;
     var thead =
-        '<tr><th class="cth">Item</th><th class="cth">QTY</th><th class="cth">Price</th><th class="cth">Dis</th><th class="cth">Total</th></tr>';
+        '<tr><th class="cth">Item</th><th class="cth">Qtd</th><th class="cth">Preço</th><th class="cth">Desc</th><th class="cth">Total</th></tr>';
     var tn = $("#addinvoice > thead > tr").length;
     if (tn < 1) {
         $('#addinvoice thead').append(thead);
@@ -305,7 +305,7 @@ function onselectimage(id) {
             },
             success: function(data) {
                 if (data == false) {
-                    alert('This Product Not Found !');
+                    alert('Produto não encontrado!');
 
                 } else {
                     $("#hidden_tr").css("display", "none");
@@ -315,7 +315,7 @@ function onselectimage(id) {
                 }
             },
             error: function() {
-                alert('Request Failed, Please check your code and try again!');
+                alert('Falha na requisição. Verifique e tente novamente.');
             }
         });
     }
@@ -333,7 +333,7 @@ function QtyCal(item) {
     var invoice_discount = $("#invoice_discount").val();
     var total_discount = $("#total_discount_" + item).val();
     if (parseInt(qnty) > parseInt(available_qnt)) {
-        var message = "Item is out of stock please another";
+        var message = "Produto sem estoque disponível";
         alert(message);
         $("#quantity_" + item).val('');
         $("#total_price_" + item).val('');
@@ -386,7 +386,7 @@ function PaidAmount() {
 
 function deleteRow(e) {
     var t = $("#addinvoice > tbody > tr").length;
-    if (1 == t) alert("There only one row you can't delete.");
+    if (1 == t) alert("Só há uma linha, não é possível excluir.");
     else {
         var a = e.parentNode.parentNode;
         a.parentNode.removeChild(a);
@@ -417,7 +417,7 @@ function BarcodeProcess() {
         var qty = $("#quantity_" + product_id).val();
         var add_qty = parseInt(qty) + 1;
         var thead =
-            '<tr><th class="cth">Item</th><th class="cth">QTY</th><th class="cth">Price</th><th class="cth">Dis</th><th class="cth">Total</th></tr>';
+            '<tr><th class="cth">Item</th><th class="cth">Qtd</th><th class="cth">Preço</th><th class="cth">Desc</th><th class="cth">Total</th></tr>';
         var tn = $("#addinvoice > thead > tr").length;
         if (tn < 1) {
             $('#addinvoice thead').append(thead);
@@ -438,7 +438,7 @@ function BarcodeProcess() {
                 },
                 success: function(data) {
                     if (data == false) {
-                        alert('This Product Not Found !');
+                        alert('Produto não encontrado!');
 
                     } else {
                         $("#hidden_tr").css("display", "none");
@@ -448,12 +448,12 @@ function BarcodeProcess() {
                     }
                 },
                 error: function() {
-                    alert('Request Failed, Please check your code and try again!');
+                    alert('Falha na requisição. Verifique e tente novamente.');
                 }
             });
         }
     } else {
-        alert('barcode is invalid: ' + barcodeString);
+        alert('Código de barras inválido: ' + barcodeString);
     }
 
     barcodeString = ''; // reset
@@ -477,7 +477,7 @@ $("#paymentform").submit(function() {
 
         },
         error: function() {
-            alert('Request Failed, Please check your code and try again!');
+            alert('Falha na requisição. Verifique e tente novamente.');
         }
     });
 });
@@ -486,12 +486,12 @@ function Savepayment() {
     var payenttype = $("#paytype").val();
     var bankid = $("#bank").val();
     if (payenttype == '') {
-        alert("Please select Payment Type!!");
+        alert("Selecione o tipo de pagamento!");
         return false;
     }
     if (payenttype == 2) {
         if (bankid == '') {
-            alert("Please select Bank!!");
+            alert("Selecione o banco!");
             return false;
         }
 

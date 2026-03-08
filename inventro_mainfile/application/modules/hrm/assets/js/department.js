@@ -8,11 +8,11 @@ var CSRF_TOKEN = $('#csrf_token').val();
 	    var save_method = 'save_department';
 	    
 	    $("#dip").attr("action", baseurl+"hrm/department/save_department");
-	    $('.modal-title').text('Add Department'); 
+	    $('.modal-title').text('Novo Departamento'); 
 	    $('#department_form').modal('show'); 
 	    $("#department").val('');
 	    $("#description").val('');
-	    $('.modal-title').text('Add Department');  
+	    $('.modal-title').text('Novo Departamento');  
 	}
     "use strict";
 	function editDepartment(department_id)
@@ -38,8 +38,8 @@ var CSRF_TOKEN = $('#csrf_token').val();
 
 				    $("#dip").attr("action", baseurl+"hrm/department/update_department");
 				    $('#department_form').modal('show'); 
-				    $('.modal-title').text('Edit Department'); 
-				    $('.dbtn').text('Update Department'); 
+				    $('.modal-title').text('Editar Departamento');
+				    $('.dbtn').text('Atualizar Departamento');
 
 
 				},error: function() {
@@ -54,7 +54,7 @@ var CSRF_TOKEN = $('#csrf_token').val();
 	function deleteDepartment(department_id)
 	{
 
-		if(confirm('Do you want to delete')===false){
+		if(confirm('Deseja excluir este registro?')===false){
 			return false;
 		}
 

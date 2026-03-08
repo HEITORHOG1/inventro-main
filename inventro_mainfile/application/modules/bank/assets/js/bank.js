@@ -30,7 +30,7 @@ $(function() {
             },
             error: function(xhr)
             {
-                alert('failed!');
+                alert('Falha ao salvar!');
             }
         });
     });
@@ -67,7 +67,7 @@ $(function() {
             },
             error: function(xhr)
             {
-                alert('failed!');
+                alert('Falha ao salvar!');
             }
         });
     });
@@ -79,7 +79,7 @@ $(function() {
 "use strict";
 function deletebank(id){
  
-    if(confirm('Do you want to delete')===false){
+    if(confirm('Deseja excluir este registro?')===false){
       return false;
     } 
  
@@ -98,13 +98,13 @@ function deletebank(id){
           if(res){
             Toast.fire({
                   type: 'success',
-                  title: 'Delete Successfull'
+                  title: 'Excluído com sucesso'
               });
               window.location.reload();
           }else{
             Toast.fire({
                   type: 'error',
-                  title: 'Wops! Thre have some problems please try again'
+                  title: 'Erro! Ocorreu um problema, tente novamente'
               });
           }
            
@@ -140,24 +140,24 @@ function deletebank(id){
                            }, className: "btn-sm prints"
             }
             , {
-                extend: "csv", title: "Bank Ledger",exportOptions: {
+                extend: "csv", title: "Extrato Bancário",exportOptions: {
                        columns: [ 0, 1, 2, 3, 4,5,6] //Your Colume value those you want print
                            }, className: "btn-sm prints"
             }
             , {
                 extend: "excel",exportOptions: {
                        columns: [ 0, 1, 2, 3, 4,5,6] //Your Colume value those you want print
-                           }, title: "Bank Ledger", className: "btn-sm prints"
+                           }, title: "Extrato Bancário", className: "btn-sm prints"
             }
             , {
                 extend: "pdf",exportOptions: {
                        columns: [ 0, 1, 2, 3, 4,5,6] //Your Colume value those you want print
-                           }, title: " Bank Ledger", className: "btn-sm prints"
+                           }, title: " Extrato Bancário", className: "btn-sm prints"
             }
             , {
                 extend: "print",exportOptions: {
                        columns: [ 0, 1, 2, 3, 4,5,6] //Your Colume value those you want print
-                           },title: "<center>Bank Ledger</center>", className: "btn-sm prints"
+                           },title: "<center>Extrato Bancário</center>", className: "btn-sm prints"
             },{
                 extend:"colvis"
             }

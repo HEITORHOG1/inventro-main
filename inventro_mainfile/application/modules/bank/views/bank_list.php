@@ -25,7 +25,7 @@
                                         <label for="bank_name" class="col-sm-3 control-label"><?php echo makeString(['bank_name']) ?></label>
 
                                         <div class="col-sm-9">
-                                            <input type="text" name="bank_name" class="form-control" value="<?php echo html_escape((!empty($banks->bank_name) ? $banks->bank_name : '')) ?>" id="" placeholder="Bank Name">
+                                            <input type="text" name="bank_name" class="form-control" value="<?php echo html_escape((!empty($banks->bank_name) ? $banks->bank_name : '')) ?>" id="" placeholder="Nome do Banco">
                                             <input type="hidden" name="bank_id">
                                         </div>
                                     </div>
@@ -33,7 +33,7 @@
                                         <label for="account_no" class="col-sm-3 control-label"><?php echo makeString(['account_no']) ?></label>
 
                                         <div class="col-sm-9">
-                                            <input type="text" name="account_no" class="form-control" value="<?php echo html_escape((!empty($banks->account_no) ? $banks->account_no : '')) ?>" id="" placeholder="Account No">
+                                            <input type="text" name="account_no" class="form-control" value="<?php echo html_escape((!empty($banks->account_no) ? $banks->account_no : '')) ?>" id="" placeholder="Nº da Conta">
                                         </div>
                                     </div>
 
@@ -41,7 +41,7 @@
                                         <label for="branch_name" class="col-sm-3 control-label"><?php echo makeString(['branch_name']) ?></label>
 
                                         <div class="col-sm-9">
-                                            <input type="text" name="branch_name" class="form-control" value="<?php echo html_escape((!empty($banks->branch_name) ? $banks->branch_name : '')) ?>" id="" placeholder="Branch Name">
+                                            <input type="text" name="branch_name" class="form-control" value="<?php echo html_escape((!empty($banks->branch_name) ? $banks->branch_name : '')) ?>" id="" placeholder="Nome da Agência">
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -82,7 +82,7 @@
                             <th><?php echo makeString(['bank_name']); ?></th>
                             <th><?php echo makeString(['account_no']); ?></th>
                             <th><?php echo makeString(['branch_name']); ?></th>
-                            <th><?php echo html_escape('Action');?></th>
+                            <th><?php echo makeString(['action']);?></th>
                         </tr>
                     </thead>
                     <tbody>

@@ -6,7 +6,7 @@ var CSRF_TOKEN = $('#csrf_token').val();
 	{
 	    $("#dip").attr("action", baseurl+"hrm/designation/save_designation");
 	    $('#designation_form').modal('show'); 
-	    $('.modal-title').text('Add new designation'); 
+	    $('.modal-title').text('Novo cargo');
 	}
     "use strict";
 	function editDesignation(designation_id)
@@ -31,8 +31,8 @@ var CSRF_TOKEN = $('#csrf_token').val();
 
 				    $("#dip").attr("action", baseurl+"hrm/designation/update_designation");
 				    $('#designation_form').modal('show'); 
-				    $('.modal-title').text('Edit Designation'); 
-				    $('.dbtn').text('Update Designation'); 
+				    $('.modal-title').text('Editar Cargo');
+				    $('.dbtn').text('Atualizar Cargo');
 
 
 				},error: function() {
@@ -46,7 +46,7 @@ var CSRF_TOKEN = $('#csrf_token').val();
 	function deleteDesignation(designation_id)
 	{
 
-		if(confirm('Do you want to delete')===false){
+		if(confirm('Deseja excluir este registro?')===false){
 			return false;
 		}
 

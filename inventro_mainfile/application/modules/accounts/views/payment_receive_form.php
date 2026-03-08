@@ -56,7 +56,7 @@
                             </div>
                             <label for="description" class="col-sm-2 col-form-label"><?php echo makeString(['description']); ?> <i class="text-danger"> * </i></label>
                             <div class="col-sm-4">
-                                <textarea name="description" id="description" class="form-control" placeholder="Please Enter some description"></textarea>
+                                <textarea name="description" id="description" class="form-control" placeholder="Digite uma descrição"></textarea>
                             </div>
                         </div>
                     </div>
@@ -72,7 +72,7 @@
                             </div>
                             <label for="payment_type" class="col-sm-2 col-form-label"><?php echo makeString(['transaction_mode']); ?> <span class="text-danger"> * </span></label>
                             <div class="col-sm-4">
-                                <select name="payment_type" id="payment_type" class="form-control select2" data-placeholder="-- select one --">
+                                <select name="payment_type" id="payment_type" class="form-control select2" data-placeholder="-- selecione --">
                                     <option value=""></option>
                                     <option value="1"> <?php echo makeString(['cash_payment']); ?> </option>
                                     <option value="2"> <?php echo makeString(['bank_payment']); ?>  </option>
