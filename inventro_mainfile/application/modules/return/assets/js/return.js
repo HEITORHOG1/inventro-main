@@ -16,11 +16,11 @@ function returnBank_paymet(val) {
             dataType: "json",
             data: {bank_id: val,'csrf_test_name': CSRF_TOKEN},
             success: function (data) {
-                var opts = "<option value=''>-- select one --</option>";
+                var $select = $("#bank_id").empty();
+                $select.append($('<option>').val('').text('-- select one --'));
                 $.each(data, function(i, item) {
-                    opts += "<option value='" + $('<span>').text(item.bank_id).html() + "'>" + $('<span>').text(item.bank_name).html() + "</option>";
+                    $select.append($('<option>').val(item.bank_id).text(item.bank_name));
                 });
-                $("#bank_id").html(opts);
             }
         });
     } else {

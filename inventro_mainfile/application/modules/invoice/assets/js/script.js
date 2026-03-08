@@ -16,11 +16,11 @@ function bank_paymet(val) {
             dataType: "json",
             data: {bank_id: val,'csrf_test_name': CSRF_TOKEN},
             success: function (data) {
-                var opts = "<option value=''>-- select one --</option>";
+                var $select = $("#bank_id").empty();
+                $select.append($('<option>').val('').text('-- select one --'));
                 $.each(data, function(i, item) {
-                    opts += "<option value='" + $('<span>').text(item.bank_id).html() + "'>" + $('<span>').text(item.bank_name).html() + "</option>";
+                    $select.append($('<option>').val(item.bank_id).text(item.bank_name));
                 });
-                $("#bank_id").html(opts);
             }
         });
     } else {
@@ -37,11 +37,11 @@ function get_allproducts(count) {
         dataType: "json",
         data: {'csrf_test_name': CSRF_TOKEN},
         success: function (data) {
-            var opts = "<option value=''>-- selecione --</option>";
+            var $select = $("#product_id_" + count).empty();
+            $select.append($('<option>').val('').text('-- selecione --'));
             $.each(data, function(i, item) {
-                opts += "<option value='" + $('<span>').text(item.product_id).html() + "'>" + $('<span>').text(item.name).html() + "</option>";
+                $select.append($('<option>').val(item.product_id).text(item.name));
             });
-            $("#product_id_" + count).html(opts);
         }
     });
 }
@@ -220,7 +220,7 @@ function service_cals(item) {
 
 function CategorySearch(id) {
     var base_url = $("#base_url").val();
-    var category = id;
+    var category = parseInt(id) || 0;
     var searchurl = base_url + 'invoice/invoice/getsearchitem';
     $.ajax({
         type: "post",
@@ -230,12 +230,9 @@ function CategorySearch(id) {
             category_id: category,
             'csrf_test_name': CSRF_TOKEN
         },
+        // Note: server-side view (getproductlist.php) uses html_escape() on all outputs
         success: function(data) {
-            if (data == '420') {
-                $(".all-products").html(data);
-            } else {
-                $(".all-products").html(data);
-            }
+            $(".all-products").html(data);
         },
         error: function() {
             alert('Request Failed, Please check your code and try again!');
@@ -255,12 +252,9 @@ $('body').on('keyup', '#searchitem', function() {
             item: items,
             'csrf_test_name': CSRF_TOKEN
         },
+        // Note: server-side view (getproductlist.php) uses html_escape() on all outputs
         success: function(data) {
-            if (data == '420') {
-                $(".all-products").html(data);
-            } else {
-                $(".all-products").html(data);
-            }
+            $(".all-products").html(data);
         },
         error: function() {
             alert('Request Failed, Please check your code and try again!');

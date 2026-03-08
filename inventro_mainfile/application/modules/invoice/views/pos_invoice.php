@@ -80,7 +80,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="price"> <?php
-                                        echo (($position == 0) ? "$currency $products->price" : "$products->price $currency");
+                                        echo html_escape(($position == 0) ? "$currency $products->price" : "$products->price $currency");
                                         ?></div>
                                             </div>
                                         </div>
@@ -257,8 +257,8 @@
                                                     id="bank">
                                                     <option value="">Select Bank</option>
                                                     <?php foreach($bank_list as $bank){?>
-                                                    <option value="<?php echo $bank->bank_id;?>">
-                                                        <?php echo $bank->bank_name;?></option>
+                                                    <option value="<?php echo html_escape($bank->bank_id);?>">
+                                                        <?php echo html_escape($bank->bank_name);?></option>
                                                     <?php }?>
                                                 </select>
 

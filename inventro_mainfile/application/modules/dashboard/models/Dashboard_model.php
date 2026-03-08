@@ -7,9 +7,9 @@ class Dashboard_model extends CI_Model {
 
         $result = $this->db->query("
                             SELECT sum(total_amount) as total_sale FROM `invoice_tbl`
-                            WHERE MONTH(date)  = $month
-                                AND YEAR(date) = YEAR(CURRENT_TIMESTAMP);
-                            ");
+                            WHERE MONTH(date) = ?
+                                AND YEAR(date) = YEAR(CURRENT_TIMESTAMP)
+                            ", array((int)$month));
 
         return $result->row();
     }
@@ -17,9 +17,9 @@ public function yearly_purchase_report($month=null){
 
         $result = $this->db->query("
                             SELECT sum(grand_total_amount) as total_purchase FROM `product_purchase`
-                            WHERE MONTH(purchase_date)  = $month
-                                AND YEAR(purchase_date) = YEAR(CURRENT_TIMESTAMP);
-                            ");
+                            WHERE MONTH(purchase_date) = ?
+                                AND YEAR(purchase_date) = YEAR(CURRENT_TIMESTAMP)
+                            ", array((int)$month));
 
         return $result->row();
     }

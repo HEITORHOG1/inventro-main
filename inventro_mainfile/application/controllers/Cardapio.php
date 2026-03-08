@@ -81,10 +81,10 @@ class Cardapio extends CI_Controller {
         $this->db->where('status', 1);
 
         if (!empty($cpf)) {
-            // Buscar por CPF (limpar formatação) — query segura via bind
+            // Buscar por CPF (limpar formatação) — apenas dígitos permitidos
             $cpf_limpo = preg_replace('/[^0-9]/', '', $cpf);
             if (strlen($cpf_limpo) >= 11) {
-                $this->db->where("REPLACE(REPLACE(cpf, '.', ''), '-', '') = ?", [$cpf_limpo]);
+                $this->db->where("REPLACE(REPLACE(cpf, '.', ''), '-', '') =", $cpf_limpo);
             } else {
                 echo json_encode(['found' => false]);
                 return;
@@ -96,12 +96,10 @@ class Cardapio extends CI_Controller {
                 echo json_encode(['found' => false]);
                 return;
             }
-            // SEGURO: $telefone_limpo contem apenas digitos (ctype_digit + preg_replace)
-            // e escape_like_str() escapa caracteres especiais do LIKE.
-            // FALSE no where() e necessario para o REPLACE() customizado.
+            // SEGURO: $telefone_limpo contém apenas dígitos (ctype_digit + preg_replace)
             $escaped_tel = $this->db->escape_like_str($telefone_limpo);
             $this->db->where(
-                "REPLACE(REPLACE(REPLACE(REPLACE(mobile, '(', ''), ')', ''), ' ', ''), '-', '') LIKE '%{$escaped_tel}%'",
+                "REPLACE(REPLACE(REPLACE(REPLACE(mobile, '(', ''), ')', ''), ' ', ''), '-', '') LIKE '%" . $escaped_tel . "%'",
                 null, false
             );
         }

@@ -78,17 +78,22 @@ class User_model extends CI_Model {
 
 
 
-    public function total_count($search=null,$searchQuery=null){
+    public function total_count($search=null,$searchValue=null){
 
-        
+
 			$this->db->select("
-				user.*, 
+				user.*,
 				CONCAT_WS(' ', firstname, lastname) AS fullname
 			");
 			$this->db->from('user');
-			
-			if($searchQuery != '')
-            	$this->db->where($searchQuery);
+
+			if($searchValue != '') {
+				$this->db->group_start();
+				$this->db->like('user.firstname', $searchValue);
+				$this->db->or_like('user.email', $searchValue);
+				$this->db->or_like('user.lastname', $searchValue);
+				$this->db->group_end();
+			}
         	$totalRecords = $this->db->get()->num_rows();
 
         	return $totalRecords;
@@ -112,33 +117,35 @@ class User_model extends CI_Model {
         $columnSortOrder = $postData['order'][0]['dir']; // asc or desc
         $searchValue = $postData['search']['value']; // Search value
 
-        ## Search 
-        $searchQuery = "";
-        if($searchValue != ''){
-           $searchQuery = " (user.firstname like '%".$searchValue."%' 
-            or user.email like '%".$searchValue."%'
-            or user.lastname like '%".$searchValue."%'
-        ) ";
+        // Whitelist column names to prevent SQL injection via order
+        $allowed_columns = array('id', 'checkAll', 'image', 'fullname', 'email', 'last_login', 'last_logout', 'ip_address', 'active_status', 'action');
+        if (!in_array($columnName, $allowed_columns)) {
+            $columnName = 'id';
         }
+        $columnSortOrder = ($columnSortOrder === 'asc') ? 'asc' : 'desc';
 
         ## Total number of records without filtering
-        $totalRecords = $this->total_count($search,$searchQuery);
+        $totalRecords = $this->total_count($search, $searchValue);
 
         ## Total number of record with filtering
-        $totalRecordwithFilter = $this->total_count($search,$searchQuery);
-        
+        $totalRecordwithFilter = $this->total_count($search, $searchValue);
+
         ## Fetch records
 
-        
+
 			$this->db->select("
-				user.*, 
+				user.*,
 				CONCAT_WS(' ', firstname, lastname) AS fullname
 			");
 			$this->db->from('user');
-			
-		if($searchQuery != '')
-            $this->db->where($searchQuery);
 
+		if($searchValue != '') {
+			$this->db->group_start();
+			$this->db->like('user.firstname', $searchValue);
+			$this->db->or_like('user.email', $searchValue);
+			$this->db->or_like('user.lastname', $searchValue);
+			$this->db->group_end();
+		}
 
         $this->db->order_by($columnName, $columnSortOrder);
         $this->db->limit($rowperpage, $start);

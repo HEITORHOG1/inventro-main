@@ -43,11 +43,12 @@
                             <?php $sl = 1; ?>
                             <?php
                             foreach ($sec_user_access_tbl as $key => $value) {
-                            
-                            $sql = "SELECT a.fk_role_id, a.fk_user_id, b.role_name FROM sec_user_access_tbl a
-                            JOIN sec_role_tbl b ON b.role_id = a.fk_role_id
-                            WHERE a.fk_user_id = '$value->fk_user_id'";
-                            $query = $this->db->query($sql)->result();
+
+                            $query = $this->db->select('a.fk_role_id, a.fk_user_id, b.role_name')
+                                ->from('sec_user_access_tbl a')
+                                ->join('sec_role_tbl b', 'b.role_id = a.fk_role_id')
+                                ->where('a.fk_user_id', $value->fk_user_id)
+                                ->get()->result();
                             
                             ?>
                             <tr class="<?php echo ($sl & 1)?"odd gradeX":"even gradeC" ?>">

@@ -20,7 +20,7 @@
                                     <select class="form-control select2" name="customer_id" id="customer_id" data-placeholder="<?php echo makeString(['select_one']); ?>">
                                         <option value=""></option>
                                         <?php foreach ($get_customer as $customer) { ?>
-                                            <option value="<?php echo $customer->customerid; ?>" <?php
+                                            <option value="<?php echo html_escape($customer->customerid); ?>" <?php
                                             if ($edit_invoice->customer_id == $customer->customerid) {
                                                 echo 'selected';
                                             }
@@ -125,7 +125,7 @@
                                                 <select class="form-control product_id select2 common_product" id="product_id_<?php echo $sl; ?>" onchange="service_cals('<?php echo $sl; ?>')" name="product_id[]" data-placeholder="<?php echo makeString(['select_one']); ?>">
                                                     <option value=""></option>
                                                     <?php foreach ($get_products as $products) { ?>
-                                                        <option value="<?php echo $products->product_id; ?>" <?php
+                                                        <option value="<?php echo html_escape($products->product_id); ?>" <?php
                                                         if ($single->product_id == $products->product_id) {
                                                             echo 'selected';
                                                         }
@@ -196,19 +196,19 @@
                                     <td class="text-right" colspan="5"><b><?php echo makeString(['paid_amount']); ?>  :</b></td>
                                     <td class="text-right">
                                         <input type="text" id="paidAmount" 
-                                               onkeyup="invoice_paidamount();" class="form-control text-right" name="paid_amount" placeholder="0.00" value="<?php echo $edit_invoice->paid_amount; ?>" tabindex="13"/>
+                                               onkeyup="invoice_paidamount();" class="form-control text-right" name="paid_amount" placeholder="0.00" value="<?php echo html_escape($edit_invoice->paid_amount); ?>" tabindex="13"/>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td align="center">
-                                        <input type="hidden" name="invoice_id" value="<?php echo $edit_invoice->invoice_id; ?>">
+                                        <input type="hidden" name="invoice_id" value="<?php echo html_escape($edit_invoice->invoice_id); ?>">
                                     
                                         <input type="submit" id="add_invoice" class="btn btn-success" name="add-invoice" value="Update" tabindex="15"/>
                                     </td>
 
                                     <td class="text-right" colspan="5"><b><?php echo makeString(['due']); ?> :</b></td>
                                     <td class="text-right">
-                                        <input type="text" id="dueAmmount" class="form-control text-right" name="due_amount" value="<?php echo $edit_invoice->due_amount; ?>" readonly="readonly"/>
+                                        <input type="text" id="dueAmmount" class="form-control text-right" name="due_amount" value="<?php echo html_escape($edit_invoice->due_amount); ?>" readonly="readonly"/>
                                     </td>
                                 </tr>
                                 </tfoot>

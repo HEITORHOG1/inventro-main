@@ -36,14 +36,10 @@ class Bank_model extends CI_Model {
 
 		public function getbankledger($postData=null){
          $response = array();
-         $fromdate = $this->input->post('fromdate');
-         $todate   = $this->input->post('todate');
-         $bank_id = $this->input->post('bank_id');
-         if(!empty($fromdate)){
-            $datbetween = "(a.ledger_id='$bank_id'  AND a.date BETWEEN '$fromdate' AND '$todate')";
-         }else{
-            $datbetween = "";
-         }
+         $fromdate = $this->input->post('fromdate', TRUE);
+         $todate   = $this->input->post('todate', TRUE);
+         $bank_id = $this->input->post('bank_id', TRUE);
+
          ## Read value
          $draw = $postData['draw'];
          $start = $postData['start'];
@@ -53,23 +49,30 @@ class Bank_model extends CI_Model {
          $columnSortOrder = $postData['order'][0]['dir']; // asc or desc
          $searchValue = $postData['search']['value']; // Search value
 
-         ## Search 
-         $searchQuery = "";
-         if($searchValue != ''){
-            $searchQuery = " (b.bank_name like '%".$searchValue."%' or a.date like '%".$searchValue."%')";
+         // Whitelist column names to prevent SQL injection via order
+         $allowed_columns = array('sl', 'bank_name', 'description', 'date', 'debit', 'credit', 'balance');
+         if (!in_array($columnName, $allowed_columns)) {
+             $columnName = 'date';
          }
+         $columnSortOrder = ($columnSortOrder === 'asc') ? 'asc' : 'desc';
 
          ## Total number of records without filtering
         $this->db->select('count(*) as allcount');
         $this->db->from('ledger_tbl a');
         $this->db->join('bank_tbl b', 'a.ledger_id = b.bank_id');
           if(!empty($fromdate) && !empty($todate)){
-             $this->db->where($datbetween);
+             $this->db->where('a.ledger_id', $bank_id);
+             $this->db->where('a.date >=', $fromdate);
+             $this->db->where('a.date <=', $todate);
          }
-          if($searchValue != '')
-          $this->db->where($searchQuery);
+         if($searchValue != '') {
+            $this->db->group_start();
+            $this->db->like('b.bank_name', $searchValue);
+            $this->db->or_like('a.date', $searchValue);
+            $this->db->group_end();
+         }
           $records = $this->db->get()->result();
-       
+
          $totalRecords = $records[0]->allcount;
 
          ## Total number of record with filtering
@@ -77,13 +80,19 @@ class Bank_model extends CI_Model {
         $this->db->from('ledger_tbl a');
         $this->db->join('bank_tbl b', 'a.ledger_id = b.bank_id');
          if(!empty($fromdate) && !empty($todate)){
-             $this->db->where($datbetween);
+             $this->db->where('a.ledger_id', $bank_id);
+             $this->db->where('a.date >=', $fromdate);
+             $this->db->where('a.date <=', $todate);
          }
-         if($searchValue != '')
-           $this->db->where($searchQuery);
-        
+         if($searchValue != '') {
+            $this->db->group_start();
+            $this->db->like('b.bank_name', $searchValue);
+            $this->db->or_like('a.date', $searchValue);
+            $this->db->group_end();
+         }
+
           $records = $this->db->get()->result();
-       
+
          $totalRecordwithFilter = $records[0]->allcount;
 
          ## Fetch records
@@ -91,10 +100,16 @@ class Bank_model extends CI_Model {
         $this->db->from('ledger_tbl a');
         $this->db->join('bank_tbl b', 'a.ledger_id = b.bank_id');
           if(!empty($fromdate) && !empty($todate)){
-             $this->db->where($datbetween);
+             $this->db->where('a.ledger_id', $bank_id);
+             $this->db->where('a.date >=', $fromdate);
+             $this->db->where('a.date <=', $todate);
          }
-         if($searchValue != '')
-         $this->db->where($searchQuery);
+         if($searchValue != '') {
+            $this->db->group_start();
+            $this->db->like('b.bank_name', $searchValue);
+            $this->db->or_like('a.date', $searchValue);
+            $this->db->group_end();
+         }
          $this->db->order_by($columnName, $columnSortOrder);
          $this->db->limit($rowperpage, $start);
          $records = $this->db->get()->result();

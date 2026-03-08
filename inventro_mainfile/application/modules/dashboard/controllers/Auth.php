@@ -35,6 +35,25 @@ class Auth extends MX_Controller {
 		
 		if ( $this->form_validation->run())
 		{
+			$email = $this->input->post('email', TRUE);
+			$ip = $this->input->ip_address();
+
+			// Rate limiting: block after 5 failed attempts within 15 minutes
+			$max_attempts = 5;
+			$lockout_minutes = 15;
+			$attempts = $this->auth_model->count_login_attempts($email, $ip, $lockout_minutes);
+
+			if ($attempts >= $max_attempts) {
+				$this->session->set_flashdata('exception', makeString(['too_many_login_attempts']) ?: 'Muitas tentativas de login. Aguarde 15 minutos.');
+				redirect('login');
+				return;
+			}
+
+			// Purge old attempts occasionally (1 in 10 chance)
+			if (mt_rand(1, 10) === 1) {
+				$this->auth_model->purge_old_attempts();
+			}
+
 			$plain_password = $this->input->post('password', TRUE);
 			$user = $this->auth_model->checkUser($userData);
 
@@ -59,6 +78,7 @@ class Auth extends MX_Controller {
 				}
 
 				if (!$password_valid) {
+					$this->auth_model->record_login_attempt($email, $ip);
 					$this->session->set_flashdata('exception', makeString(['incorrect_email_or_password']));
 					redirect('login');
 					return;
@@ -119,18 +139,21 @@ class Auth extends MX_Controller {
 						);
 
 
-						//store date to session 
+						//store date to session
 						$this->session->set_userdata($sData);
 						//update database status
 						$this->auth_model->last_login();
+						// Clear failed login attempts on success
+						$this->auth_model->clear_login_attempts($email, $ip);
 						//welcome message
 						$this->session->set_flashdata('message', makeString(['welcome_back']).' '.$user->row()->fullname);
 						redirect('dashboard/dashboard_dis');
 
 			} else {
+				$this->auth_model->record_login_attempt($email, $ip);
 				$this->session->set_flashdata('exception', makeString(['incorrect_email_or_password']));
 				redirect('login');
-			} 
+			}
 
 			
 

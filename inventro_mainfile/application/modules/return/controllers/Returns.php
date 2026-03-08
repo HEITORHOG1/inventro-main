@@ -31,7 +31,6 @@ public function customer_return(){
   public function supplier_return(){
         $this->permission->method('return', 'read')->redirect();
          $purchase_id = $this->input->post('purchase_id',TRUE);
-        //  dd( $purchase_id);
          $data['title']         = makeString(['purchase_edit']);
          if($purchase_id){
          $purchase_detail = $this->Return_model->retrieve_purchase_editdata($purchase_id);

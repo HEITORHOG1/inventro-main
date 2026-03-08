@@ -18,11 +18,11 @@
                     dataType: "json",
                     data: {'csrf_test_name': CSRF_TOKEN},
                     success: function (data) {
-                        var opts = "<option value=''>-- select one --</option>";
+                        var $select = $("#cheque_bank_name").empty();
+                        $select.append($('<option>').val('').text('-- select one --'));
                         $.each(data, function(i, item) {
-                            opts += "<option value='" + $('<span>').text(item.bank_id).html() + "'>" + $('<span>').text(item.bank_name).html() + "</option>";
+                            $select.append($('<option>').val(item.bank_id).text(item.bank_name));
                         });
-                        $("#cheque_bank_name").html(opts);
                     }
                 });
             }
@@ -86,11 +86,11 @@ function get_allcustomer() {
         dataType: "json",
         data: {'csrf_test_name': CSRF_TOKEN},
         success: function (data) {
-            var opts = "<option value=''>-- select one --</option>";
+            var $select = $(".customers").empty();
+            $select.append($('<option>').val('').text('-- select one --'));
             $.each(data, function(i, item) {
-                opts += "<option value='" + $('<span>').text(item.customerid).html() + "'>" + $('<span>').text(item.name).html() + "</option>";
+                $select.append($('<option>').val(item.customerid).text(item.name));
             });
-            $(".customers").html(opts);
         }
     });
 }
@@ -104,11 +104,11 @@ function get_allsuppliers() {
         dataType: "json",
         data: {'csrf_test_name': CSRF_TOKEN},
         success: function (data) {
-            var opts = "<option value=''>-- select one --</option>";
+            var $select = $(".suppliers").empty();
+            $select.append($('<option>').val('').text('-- select one --'));
             $.each(data, function(i, item) {
-                opts += "<option value='" + $('<span>').text(item.supplier_id).html() + "'>" + $('<span>').text(item.name).html() + "</option>";
+                $select.append($('<option>').val(item.supplier_id).text(item.name));
             });
-            $(".suppliers").html(opts);
         }
     });
 }

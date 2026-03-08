@@ -49,7 +49,7 @@
                                     <td><?php echo $sl; ?></td>
                                     <td>
                                         <a href="<?php echo base_url('invoice/invoice/single_invoice/' . $sale->invoice_id); ?>">
-                                            <?php echo $sale->invoice_id; ?>
+                                            <?php echo html_escape($sale->invoice_id); ?>
                                         </a>
                                     </td>
                                     <td>
@@ -58,11 +58,11 @@
                                     </td>
                                     <td class="text-center">
                                         <?php
-                                        echo (($position == 0) ? "$currency $sale->paid_amount" : "$sale->paid_amount $currency");
+                                        echo html_escape(($position == 0) ? "$currency $sale->paid_amount" : "$sale->paid_amount $currency");
                                         ?>
                                     </td>
                                     <td class="text-center">
-                                        <?php echo (($position == 0) ? "$currency $sale->total_amount" : "$sale->total_amount $currency"); ?>
+                                        <?php echo html_escape(($position == 0) ? "$currency $sale->total_amount" : "$sale->total_amount $currency"); ?>
                                     </td>
 
                                     <td class="text-center">

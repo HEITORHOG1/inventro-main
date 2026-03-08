@@ -160,5 +160,50 @@ class Auth_model extends CI_Model {
 			->update('user');
 	}
 
+	/**
+	 * Count failed login attempts for email/IP within the lockout window.
+	 */
+	public function count_login_attempts($email, $ip, $window_minutes = 15)
+	{
+		$cutoff = date('Y-m-d H:i:s', strtotime("-{$window_minutes} minutes"));
+		return $this->db->from('login_attempts')
+			->group_start()
+				->where('email', $email)
+				->or_where('ip_address', $ip)
+			->group_end()
+			->where('attempted_at >=', $cutoff)
+			->count_all_results();
+	}
+
+	/**
+	 * Record a failed login attempt.
+	 */
+	public function record_login_attempt($email, $ip)
+	{
+		$this->db->insert('login_attempts', [
+			'email'        => $email,
+			'ip_address'   => $ip,
+			'attempted_at' => date('Y-m-d H:i:s'),
+		]);
+	}
+
+	/**
+	 * Clear login attempts after successful login.
+	 */
+	public function clear_login_attempts($email, $ip)
+	{
+		$this->db->where('email', $email)
+			->or_where('ip_address', $ip)
+			->delete('login_attempts');
+	}
+
+	/**
+	 * Purge old login attempts (older than 24h).
+	 */
+	public function purge_old_attempts()
+	{
+		$cutoff = date('Y-m-d H:i:s', strtotime('-24 hours'));
+		$this->db->where('attempted_at <', $cutoff)->delete('login_attempts');
+	}
+
 }
- 

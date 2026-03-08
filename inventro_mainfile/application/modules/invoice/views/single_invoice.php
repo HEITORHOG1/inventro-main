@@ -62,11 +62,11 @@ $position = $get_appsetting->position;
                                     </td>
                                     <td><?php echo html_escape($single->quantity); ?></td>
                                     <td><?php
-                                        echo (($position == 0) ? "$currency $single->price" : "$single->price $currency");
+                                        echo html_escape(($position == 0) ? "$currency $single->price" : "$single->price $currency");
                                         ?></td>
                                     <td><?php
                                         $totalPrice = $single->quantity * $single->price;
-                                        echo (($position == 0) ? "$currency $totalPrice" : "$totalPrice $currency");
+                                        echo html_escape(($position == 0) ? "$currency $totalPrice" : "$totalPrice $currency");
                                         ?></td>
                                 </tr>
                             <?php } ?>
@@ -84,11 +84,11 @@ $position = $get_appsetting->position;
                     <div class="col-sm-4">
                         <ul class="list-unstyled text-left">
                             <li>
-                                <strong><?php echo makeString(['total_amount']); ?>:</strong> <?php echo (($position == 0) ? "$currency $get_invoice_info->total_amount" : "$get_invoice_info->total_amount $currency"); ?> </li>
+                                <strong><?php echo makeString(['total_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $get_invoice_info->total_amount" : "$get_invoice_info->total_amount $currency"); ?> </li>
                             <li>
-                                <strong><?php echo makeString(['paid_amount']); ?>:</strong> <?php echo (($position == 0) ? "$currency $get_invoice_info->paid_amount" : "$get_invoice_info->paid_amount $currency"); ?> </li>
+                                <strong><?php echo makeString(['paid_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $get_invoice_info->paid_amount" : "$get_invoice_info->paid_amount $currency"); ?> </li>
                             <li>
-                                <strong><?php echo makeString(['due_amount']); ?>:</strong> <?php echo (($position == 0) ? "$currency $get_invoice_info->due_amount" : "$get_invoice_info->due_amount $currency"); ?> </li>
+                                <strong><?php echo makeString(['due_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $get_invoice_info->due_amount" : "$get_invoice_info->due_amount $currency"); ?> </li>
 
                         </ul>
                     </div>
