@@ -29,7 +29,7 @@ inventro_mainfile/application/logs/*.log
 # =============================================
 # Cache e arquivos temporários
 # =============================================
-inventro_mainfile/application/cache/temp/
+inventro_mainfile/application/cache/
 *.tmp
 *.swp
 *.swo
@@ -83,3 +83,15 @@ inventro_mainfile/*.sql
 *.zip
 *.tar.gz
 *.rar
+
+# =============================================
+# Uploaded images (user content, não versionar)
+# =============================================
+inventro_mainfile/application/modules/*/assets/images/
+!inventro_mainfile/application/modules/*/assets/images/.gitkeep
+
+# =============================================
+# Arquivo nul (Windows artifact)
+# =============================================
+nul
+inventro_mainfile/nul
