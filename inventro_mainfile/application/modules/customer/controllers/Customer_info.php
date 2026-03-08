@@ -237,7 +237,7 @@ class Customer_info extends MX_Controller {
         $list = $this->customer_model->get_cusledger();
         
         $data = array();
-        $no = $_POST['start'];
+        $no = (int) $this->input->post('start', TRUE);
         foreach ($list as $rowdata) {
             $no++;
             $row = array();
@@ -264,10 +264,11 @@ class Customer_info extends MX_Controller {
             $data[] = $row;
         }
         $output = array(
-            "draw" => $_POST['draw'],
+            "draw" => intval($this->input->post('draw', TRUE)),
             "recordsTotal" => $this->customer_model->count_allcusledger(),
             "recordsFiltered" => $this->customer_model->count_filtercusledger(),
             "data" => $data,
+            "csrf_token" => $this->security->get_csrf_hash(),
         );
         echo json_encode($output);
     }

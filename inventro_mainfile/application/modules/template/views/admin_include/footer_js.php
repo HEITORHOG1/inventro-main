@@ -1,4 +1,32 @@
 
+<!-- Global CSRF token handler for all AJAX requests -->
+<script>
+(function($) {
+    // Automatically add CSRF token to every AJAX POST request
+    $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+        if (options.type && options.type.toUpperCase() === 'POST') {
+            var token = $('#csrf_token').val();
+            if (token) {
+                if (typeof options.data === 'string') {
+                    options.data += '&csrf_test_name=' + encodeURIComponent(token);
+                } else if (options.data instanceof FormData) {
+                    options.data.set('csrf_test_name', token);
+                }
+            }
+        }
+    });
+    // Update CSRF token from any JSON response that includes it
+    $(document).ajaxComplete(function(event, jqXHR) {
+        try {
+            var json = JSON.parse(jqXHR.responseText);
+            if (json && json.csrf_token) {
+                $('#csrf_token').val(json.csrf_token);
+                $('input[name="csrf_test_name"]').val(json.csrf_token);
+            }
+        } catch(e) {}
+    });
+})(jQuery);
+</script>
 <!-- jQuery UI 1.11.4 -->
 <script src="<?php echo base_url('admin_assets') ?>/plugins/jquery-ui/jquery-ui.min.js"></script>
 <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->

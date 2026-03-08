@@ -45,29 +45,24 @@ class Invoice_model extends CI_Model {
 
     //    ======= item list for pos =============
     public function products_list() {
-       $this->db->select('a.*,b.category_id,c.picture');
+        $this->db->select('a.*, c.picture');
         $this->db->from('product_tbl a');
-        $this->db->join('category_tbl b','b.category_id = a.category_id','left');
-        $this->db->join('picture_tbl c','c.from_id = a.product_id','left');
-        $this->db->order_by('a.name','asc');
-        $query = $this->db->get();
-        $itemlist=$query->result();
-        return $itemlist;
+        $this->db->join('picture_tbl c', 'c.from_id = a.product_id', 'left');
+        $this->db->order_by('a.name', 'asc');
+        return $this->db->get()->result();
     }
-// ================== pos product search ==============
- public function searchprod($cid = null)
-    { 
-        $this->db->select('a.*,b.category_id,c.picture');
+
+    // ================== pos product search ==============
+    public function searchprod($cid = null)
+    {
+        $this->db->select('a.*, c.picture');
         $this->db->from('product_tbl a');
-        $this->db->join('category_tbl b','b.category_id = a.category_id','left');
-        $this->db->join('picture_tbl c','c.from_id = a.product_id','left');
-        if($cid != 'all'){
-        $this->db->where('a.category_id',$cid);
-    }
-        $this->db->order_by('a.name','asc');
-        $query = $this->db->get();
-        $itemlist=$query->result();
-        return $itemlist;
+        $this->db->join('picture_tbl c', 'c.from_id = a.product_id', 'left');
+        if ($cid != 'all') {
+            $this->db->where('a.category_id', (int) $cid);
+        }
+        $this->db->order_by('a.name', 'asc');
+        return $this->db->get()->result();
     }
 
      // ================  Item Search By Name =============

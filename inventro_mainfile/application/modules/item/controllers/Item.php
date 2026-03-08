@@ -27,6 +27,7 @@ public function item_list(){
     public function CheckProductList(){
         $postData = $this->input->post();
         $data = $this->item_model->getProductList($postData);
+        $data['csrf_token'] = $this->security->get_csrf_hash();
         echo json_encode($data);
     } 
   
@@ -41,19 +42,19 @@ public function item_form($id = null){
   
   $product_id = (!empty($this->input->post('product_id'))?$this->input->post('product_id'):$this->generator(8));
   $image = $this->fileupload->do_upload(
-      './application/modules/item/assets/images/', 
+      './application/modules/item/assets/images/',
         'picture'
     );
     // if image is uploaded then resize the image
     if ($image !== false && $image != null) {
       $this->fileupload->do_resize(
-        $image, 
+        $image,
         115,
         115
       );
     }
-    //if image is not uploaded
-    if ($image === false) {
+    // Only show error if user actually selected a file but upload failed
+    if ($image === false && !empty($_FILES['picture']['name'])) {
       $this->session->set_flashdata('exception', makeString(['invalid_image']));
     }     
   
@@ -100,12 +101,16 @@ if(empty($image)){
 }else{
  $img=$image;
 }
+  // Normalizar path da imagem (remover ./ do início se houver)
+  if (!empty($img) && strpos($img, './') === 0) {
+      $img = substr($img, 2);
+  }
   $imgdata['imgdata']  = (Object) $imgData = [
    'from_id'        => $product_id,
-   'picture'        =>$img,
+   'picture'        => $img,
+   'picture_type'   => 'product',
    'created_by'     => $this->session->userdata('id'),
    'status'         => 1,
-
   ];
 
 
@@ -125,15 +130,20 @@ if(empty($image)){
     redirect("item/Item/item_form"); 
 
    } else {
-    if ($this->item_model->update($postData)) { 
-         $this->db->where('from_id', $imgData["from_id"])
-      ->update("picture_tbl", $imgData);
+    if ($this->item_model->update($postData)) {
+         // Verificar se já existe registro na picture_tbl
+         $pic_exists = $this->db->where('from_id', $imgData["from_id"])->get('picture_tbl')->row();
+         if ($pic_exists) {
+             $this->db->where('from_id', $imgData["from_id"])->update("picture_tbl", $imgData);
+         } else {
+             $this->db->insert('picture_tbl', $imgData);
+         }
      $this->session->set_flashdata('message', makeString(['update_successfully']));
      redirect('item/Item/item_list');
     } else {
      $this->session->set_flashdata('exception',  makeString(['please_try_again']));
     }
-    redirect("item/item/item_form/".$id);  
+    redirect("item/item/item_form/".$id);
    }
 
   } else { 

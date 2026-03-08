@@ -1,3 +1,4 @@
+<?php header('Content-Type: application/javascript; charset=UTF-8'); ?>
 "use strict";
 $(function (){
               var month=$("#month").val();

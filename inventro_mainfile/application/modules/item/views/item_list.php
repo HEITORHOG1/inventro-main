@@ -49,4 +49,4 @@
         </div>
     </div>
 </div>
-<script src="<?php echo base_url() ?>application/modules/item/assets/js/item.js.php" type="text/javascript"></script>     
+<script src="<?php echo base_url() ?>application/modules/item/assets/js/item.js" type="text/javascript"></script>     

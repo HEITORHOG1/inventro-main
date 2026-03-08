@@ -60,7 +60,7 @@ class V1_cardapio extends Api_controller {
                 'category_id'   => (int) $p->category_id,
                 'category_name' => $p->category_name ?? 'Outros',
                 'unit_name'     => $p->unit_name,
-                'picture'       => $p->picture ? base_url('admin_assets/img/product/' . $p->picture) : null
+                'picture'       => $p->picture ? base_url($this->_product_image_url($p->picture)) : null
             ];
         }
 
@@ -628,6 +628,20 @@ class V1_cardapio extends Api_controller {
     // =========================================
     // Método privado
     // =========================================
+
+    /**
+     * Converte o DB picture path to a public URL via Img controller.
+     * DB stores: ./application/modules/item/assets/images/2026-03-08/file.jpg
+     * Returns:   img/product/2026-03-08/file.jpg
+     */
+    private function _product_image_url($picture) {
+        // Extract date/filename from the stored path
+        if (preg_match('#(\d{4}-\d{2}-\d{2})/([^/]+)$#', $picture, $m)) {
+            return 'img/product/' . $m[1] . '/' . $m[2];
+        }
+        // Fallback: just strip prefix and serve via ltrim
+        return ltrim($picture, './');
+    }
 
     /**
      * Verifica se a loja está aberta (horário + dia + pausa)

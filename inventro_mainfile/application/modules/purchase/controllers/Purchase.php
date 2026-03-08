@@ -24,8 +24,9 @@ public function purchase_list(){
         // GET data
         $postData = $this->input->post();
         $data = $this->Purchase_model->getPurchaseList($postData);
+        $data['csrf_token'] = $this->security->get_csrf_hash();
         echo json_encode($data);
-    } 
+    }
 
 public function create_purchase($id = null){ 
   $data['title'] = makeString(['add_purchase']);
@@ -51,25 +52,25 @@ public function create_purchase($id = null){
         );
 
    $supplier_ledger = array(
-            'transaction_id '     => $purchase_id,
+            'transaction_id'      => $purchase_id,
             'transaction_category'=> 'Purchase',
             'ledger_id'           => $this->input->post('supplier_id',TRUE),
             'receipt_no'          => $this->input->post('chalan_no',TRUE),
             'amount'              => $this->input->post('grand_total_price',TRUE),
             'date'                => $this->input->post('purchase_date',TRUE),
-            'description '        => $this->input->post('purchase_details',TRUE),
+            'description'         => $this->input->post('purchase_details',TRUE),
             'status'              => 1,
             'created_by'          =>  $this->session->userdata('id'),
             'd_c'                 =>  'c',
         );
    $supplier_debit = array(
-            'transaction_id '     => $purchase_id,
+            'transaction_id'      => $purchase_id,
             'transaction_category'=> 'Purchase',
             'ledger_id'           => $this->input->post('supplier_id',TRUE),
             'receipt_no'          => $this->input->post('chalan_no',TRUE),
             'amount'              => $this->input->post('grand_total_price',TRUE),
             'date'                => $this->input->post('purchase_date',TRUE),
-            'description '        => $this->input->post('purchase_details',TRUE),
+            'description'         => $this->input->post('purchase_details',TRUE),
             'status'              => 1,
             'created_by'          =>  $this->session->userdata('id'),
             'd_c'                 =>  'd',
@@ -77,26 +78,26 @@ public function create_purchase($id = null){
 
 
    $cashinhand = array(
-            'transaction_id '     => $purchase_id,
+            'transaction_id'      => $purchase_id,
             'transaction_category'=> 'Purchase',
             'ledger_id'           => 1,
             'receipt_no'          => $this->input->post('chalan_no',TRUE),
             'amount'              => $this->input->post('grand_total_price',TRUE),
             'date'                => $this->input->post('purchase_date',TRUE),
-            'description '        => $this->input->post('purchase_details',TRUE),
+            'description'         => $this->input->post('purchase_details',TRUE),
             'status'              => 1,
             'created_by'          =>  $this->session->userdata('id'),
             'd_c'                 =>  'c',
         );
 
     $bank_ledger = array(
-            'transaction_id '     => $purchase_id,
+            'transaction_id'      => $purchase_id,
             'transaction_category'=> 'Purchase',
             'ledger_id'           => $this->input->post('bank_id',TRUE),
             'receipt_no'          => $this->input->post('chalan_no',TRUE),
             'amount'              => $this->input->post('grand_total_price',TRUE),
             'date'                => $this->input->post('purchase_date',TRUE),
-            'description '        => $this->input->post('purchase_details',TRUE),
+            'description'         => $this->input->post('purchase_details',TRUE),
             'status'              => 1,
             'created_by'          =>  $this->session->userdata('id'),
             'd_c'                 =>  'c',
@@ -219,25 +220,25 @@ public function create_purchase($id = null){
         );
 
    $supplier_ledger = array(
-            'transaction_id '     => $purchase_id,
+            'transaction_id'      => $purchase_id,
             'transaction_category'=> 'Purchase',
             'ledger_id'           => $this->input->post('supplier_id',TRUE),
             'receipt_no'          => $this->input->post('chalan_no',TRUE),
             'amount'              => $this->input->post('grand_total_price',TRUE),
             'date'                => $this->input->post('purchase_date',TRUE),
-            'description '        => $this->input->post('purchase_details',TRUE),
+            'description'         => $this->input->post('purchase_details',TRUE),
             'status'              => 1,
             'created_by'          =>  $this->session->userdata('id'),
             'd_c'                 =>  'c',
         );
    $supplier_debit = array(
-            'transaction_id '     => $purchase_id,
+            'transaction_id'      => $purchase_id,
             'transaction_category'=> 'Purchase',
             'ledger_id'           => $this->input->post('supplier_id',TRUE),
             'receipt_no'          => $this->input->post('chalan_no',TRUE),
             'amount'              => $this->input->post('grand_total_price',TRUE),
             'date'                => $this->input->post('purchase_date',TRUE),
-            'description '        => $this->input->post('purchase_details',TRUE),
+            'description'         => $this->input->post('purchase_details',TRUE),
             'status'              => 1,
             'created_by'          =>  $this->session->userdata('id'),
             'd_c'                 =>  'd',
@@ -245,26 +246,26 @@ public function create_purchase($id = null){
 
 
    $cashinhand = array(
-            'transaction_id '     => $purchase_id,
+            'transaction_id'      => $purchase_id,
             'transaction_category'=> 'Purchase',
             'ledger_id'           => 1,
             'receipt_no'          => $this->input->post('chalan_no',TRUE),
             'amount'              => $this->input->post('grand_total_price',TRUE),
             'date'                => $this->input->post('purchase_date',TRUE),
-            'description '        => $this->input->post('purchase_details',TRUE),
+            'description'         => $this->input->post('purchase_details',TRUE),
             'status'              => 1,
             'created_by'          =>  $this->session->userdata('id'),
             'd_c'                 =>  'c',
         );
 
     $bank_ledger = array(
-            'transaction_id '     => $purchase_id,
+            'transaction_id'      => $purchase_id,
             'transaction_category'=> 'Purchase',
             'ledger_id'           => $this->input->post('bank_id',TRUE),
             'receipt_no'          => $this->input->post('chalan_no',TRUE),
             'amount'              => $this->input->post('grand_total_price',TRUE),
             'date'                => $this->input->post('purchase_date',TRUE),
-            'description '        => $this->input->post('purchase_details',TRUE),
+            'description'         => $this->input->post('purchase_details',TRUE),
             'status'              => 1,
             'created_by'          =>  $this->session->userdata('id'),
             'd_c'                 =>  'c',

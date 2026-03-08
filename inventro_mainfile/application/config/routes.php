@@ -53,6 +53,10 @@ $route['default_controller'] = 'dashboard/auth';
 $route['login']  = "dashboard/auth/index";
 $route['logout'] = "dashboard/auth/logout";
 
+// Rota pública - Imagens de produtos (servidas via controller por segurança)
+$route['img/product/default'] = 'img/product_default';
+$route['img/product/(:any)/(:any)'] = 'img/product/$1/$2';
+
 // Rotas públicas - Cardápio Digital (sem login)
 $route['cardapio'] = 'cardapio/index';
 $route['cardapio/buscar'] = 'cardapio/buscar';

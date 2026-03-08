@@ -4,19 +4,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Return_model extends CI_Model {
  
     public function customer_return($invoice)
-	{
-		return $this->db->select('*')	
-			->from('product_purchase')
-			->order_by('bank_name', 'asc')
-			->get()
-			->result();
-	}
-
-     public function supplier_return()
     {
-        return $this->db->select('*')   
+        return $this->db->select('*')
             ->from('product_purchase')
-            ->order_by('bank_name', 'asc')
+            ->order_by('purchase_date', 'desc')
+            ->get()
+            ->result();
+    }
+
+    public function supplier_return()
+    {
+        return $this->db->select('*')
+            ->from('product_purchase')
+            ->order_by('purchase_date', 'desc')
             ->get()
             ->result();
     }
@@ -138,12 +138,11 @@ return $this->db->insert('product_purchase',$data);
 	} 
 
     public function findById($id = null)
-    { 
+    {
         return $this->db->select("*")->from("product_purchase")
-            ->where('id',$id) 
+            ->where('purchase_id', $id)
             ->get()
             ->row();
-
     } 
 
 

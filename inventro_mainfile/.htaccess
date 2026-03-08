@@ -67,7 +67,14 @@ RewriteRule ^(.*)$ index.php?/$1 [L]
     </IfModule>
 </FilesMatch>
 
-# ---- Bloquear acesso à pasta application ----
+# ---- Permitir assets estáticos dos módulos (JS, CSS, imagens, fonts) ----
+# Nota: .js.php são arquivos PHP que geram JavaScript dinâmico (padrão legado)
+<IfModule mod_rewrite.c>
+    RewriteRule ^application/modules/.+/assets/js/.+\.js\.php$ - [L]
+    RewriteRule ^application/modules/.+/assets/.+\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|map)$ - [L]
+</IfModule>
+
+# ---- Bloquear acesso a pastas sensíveis (tudo que não é asset estático) ----
 <IfModule mod_rewrite.c>
     RewriteRule ^(application|system|docker|vendor) - [F,L]
 </IfModule>

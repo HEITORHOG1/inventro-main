@@ -23,7 +23,7 @@ $( function() {
 				 "ajax":{
 					url :base_url+'supplier/Supplierlist/ledgertotal',
 					type: "post",
-                    data: {'csrf_test_name': CSRF_TOKEN},
+                    data: function(d) { d.csrf_test_name = $('#csrf_token').val(); },
 				  },
 	    "footerCallback": function ( row, data, start, end, display ) {
             var api = this.api(), data;

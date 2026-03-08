@@ -34,6 +34,7 @@ class Report extends MX_Controller
     {
         $postData = $this->input->post();
         $data = $this->report_model->getPurchaseList($postData);
+        $data['csrf_token'] = $this->security->get_csrf_hash();
         echo json_encode($data);
     }
 
@@ -53,6 +54,7 @@ class Report extends MX_Controller
     {
         $postData = $this->input->post();
         $data = $this->report_model->getSalesList($postData);
+        $data['csrf_token'] = $this->security->get_csrf_hash();
         echo json_encode($data);
     }
 
@@ -75,6 +77,7 @@ class Report extends MX_Controller
 
         $postData = $this->input->post();
         $data = $this->report_model->getCashBookReports($postData);
+        $data['csrf_token'] = $this->security->get_csrf_hash();
         echo json_encode($data);
     }
 
@@ -83,6 +86,7 @@ class Report extends MX_Controller
     {
         $postData = $this->input->post();
         $data = $this->report_model->getBankBookreport($postData);
+        $data['csrf_token'] = $this->security->get_csrf_hash();
         echo json_encode($data);
     }
 

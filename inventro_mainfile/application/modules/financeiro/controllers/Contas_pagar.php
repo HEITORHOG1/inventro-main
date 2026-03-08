@@ -42,6 +42,7 @@ class Contas_pagar extends MX_Controller {
     public function get_lista() {
         $postData = $this->input->post();
         $data = $this->Contas_pagar_model->get_lista_datatable($postData);
+        $data['csrf_token'] = $this->security->get_csrf_hash();
         echo json_encode($data);
     }
 

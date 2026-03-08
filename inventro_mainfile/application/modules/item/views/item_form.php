@@ -89,10 +89,16 @@
                         <input type="hidden" name="old_picture" value="<?php echo (!empty($item->picture) ? html_escape($item->picture) : ''); ?>">
                     </div>
 
-                    <?php if (!empty($item->picture)) { ?>
+                    <?php if (!empty($item->picture)) {
+                        // Converter path do banco para URL via controller de imagem
+                        $img_src = $item->picture;
+                        if (preg_match('#(\d{4}-\d{2}-\d{2})/([^/]+)$#', $item->picture, $_m)) {
+                            $img_src = 'img/product/' . $_m[1] . '/' . $_m[2];
+                        }
+                    ?>
                         <label for="faviconPreview" class="col-sm-2 col-form-label"></label>
                         <div class="col-sm-4">
-                            <img src="<?php echo base_url() . $item->picture; ?>" alt="<?php echo makeString(['picture']); ?>" class="img-thumbnail" />
+                            <img src="<?php echo base_url() . $img_src; ?>" alt="<?php echo makeString(['picture']); ?>" class="img-thumbnail" />
                         </div>
 
                     <?php } ?> 

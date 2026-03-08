@@ -167,7 +167,7 @@ function deletebank(id){
             'ajax': {
                   'url':base_url+'bank/bank/search_bankledger',
                  "data": function ( data) {
-                  data.csrf_test_name = CSRF_TOKEN; // Include CSRF token in request dat
+                  data.csrf_test_name = $('#csrf_token').val(); // Include fresh CSRF token
                   data.fromdate = $('#from_date').val();
                   data.todate = $('#to_date').val();
                   data.bank_id = $('#bank_id').val();

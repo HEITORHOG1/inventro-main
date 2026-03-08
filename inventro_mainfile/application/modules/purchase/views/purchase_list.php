@@ -80,5 +80,5 @@
 
     </div>
 </div>
-<script src="<?php echo base_url() ?>application/modules/purchase/assets/js/purchase.js.php" type="text/javascript">
+<script src="<?php echo base_url() ?>application/modules/purchase/assets/js/purchase.js" type="text/javascript">
 </script>

@@ -67,5 +67,5 @@
 
     </div>
 </div>
-<script src="<?php echo base_url() ?>application/modules/report/assets/js/bank_book.js.php" type="text/javascript"></script>
+<script src="<?php echo base_url() ?>application/modules/report/assets/js/bank_book.js" type="text/javascript"></script>
 

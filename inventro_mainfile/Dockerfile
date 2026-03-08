@@ -63,12 +63,15 @@ RUN chown -R www-data:www-data /var/www/html \
 RUN mkdir -p /var/www/html/application/cache \
     && mkdir -p /var/www/html/application/logs \
     && mkdir -p /var/www/html/admin_assets/uploads \
+    && mkdir -p /var/www/html/application/modules/item/assets/images \
     && chown -R www-data:www-data /var/www/html/application/cache \
     && chown -R www-data:www-data /var/www/html/application/logs \
     && chown -R www-data:www-data /var/www/html/admin_assets/uploads \
+    && chown -R www-data:www-data /var/www/html/application/modules/item/assets/images \
     && chmod -R 775 /var/www/html/application/cache \
     && chmod -R 775 /var/www/html/application/logs \
-    && chmod -R 775 /var/www/html/admin_assets/uploads
+    && chmod -R 775 /var/www/html/admin_assets/uploads \
+    && chmod -R 775 /var/www/html/application/modules/item/assets/images
 
 # ---- Remover arquivos perigosos em produção ----
 RUN rm -f /var/www/html/test.php 2>/dev/null; \

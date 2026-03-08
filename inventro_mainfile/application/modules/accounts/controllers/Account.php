@@ -73,7 +73,7 @@ class Account extends MX_Controller {
         if ($transection_type == 1) {
             $ledger_data_debit = array(
                 'transaction_id' => $transaction_id,
-                'transaction_type ' => $transection_type,
+                'transaction_type' => $transection_type,
                 'transaction_category' => $transaction_category,
                 'ledger_id' => $relation_id,
                 'source_bank' => $cheque_bank_name,
@@ -93,7 +93,7 @@ class Account extends MX_Controller {
             if ($payment_type == 1) {
                 $bank_ledger_credit = array(
                     'transaction_id' => $transaction_id,
-                    'transaction_type ' => $transection_type,
+                    'transaction_type' => $transection_type,
                     'transaction_category' => $transaction_category,
                     'ledger_id' => 1,
                     'source_bank' => $relation_id,
@@ -114,7 +114,7 @@ class Account extends MX_Controller {
             if ($payment_type == 2) {
                 $bank_ledger_credit = array(
                     'transaction_id' => $transaction_id,
-                    'transaction_type ' => $transection_type,
+                    'transaction_type' => $transection_type,
                     'transaction_category' => $transaction_category,
                     'ledger_id' => $cheque_bank_name,
                     'source_bank' => $relation_id,
@@ -137,7 +137,7 @@ class Account extends MX_Controller {
         if ($transection_type == 2) {
             $ledger_data_credit = array(
                 'transaction_id' => $transaction_id,
-                'transaction_type ' => $transection_type,
+                'transaction_type' => $transection_type,
                 'transaction_category' => $transaction_category,
                 'ledger_id' => $relation_id,
                 'cheque_bank_name' => $cheque_bank_name,
@@ -158,7 +158,7 @@ class Account extends MX_Controller {
             if ($payment_type == 1) {
                 $bank_ledger_debit = array(
                     'transaction_id' => $transaction_id,
-                    'transaction_type ' => $transection_type,
+                    'transaction_type' => $transection_type,
                     'transaction_category' => $transaction_category,
                     'ledger_id' => 1,
                     'source_bank' => $relation_id,
@@ -178,7 +178,7 @@ class Account extends MX_Controller {
             if ($payment_type == 2) {
                 $bank_ledger_debit = array(
                     'transaction_id' => $transaction_id,
-                    'transaction_type ' => $transection_type,
+                    'transaction_type' => $transection_type,
                     'transaction_category' => $transaction_category,
                     'ledger_id' => $cheque_bank_name,
                     'cheque_bank_name' => $cheque_bank_name,
@@ -253,6 +253,12 @@ class Account extends MX_Controller {
 
         $cheque_bank_name = $this->input->post('cheque_bank_name',TRUE);
 
+        if ($relation_id == 'capitalbalance') {
+            $is_capital = 1;
+        } else {
+            $is_capital = NULL;
+        }
+
         $this->db->where('transaction_id', $trans_id)->delete('ledger_tbl');
 
 
@@ -260,7 +266,7 @@ class Account extends MX_Controller {
         if ($transection_type == 1) {
             $ledger_data_debit = array(
                 'transaction_id' => $transaction_id,
-                'transaction_type ' => $transection_type,
+                'transaction_type' => $transection_type,
                 'transaction_category' => $transaction_category,
                 'ledger_id' => $relation_id,
                 'source_bank' => $cheque_bank_name,
@@ -281,7 +287,7 @@ class Account extends MX_Controller {
             if ($payment_type == 1) {
                 $bank_ledger_credit = array(
                     'transaction_id' => $transaction_id,
-                    'transaction_type ' => $transection_type,
+                    'transaction_type' => $transection_type,
                     'transaction_category' => $transaction_category,
                     'ledger_id' => 1,
                     'source_bank' => $relation_id,
@@ -302,7 +308,7 @@ class Account extends MX_Controller {
             if ($payment_type == 2) {
                 $bank_ledger_credit = array(
                     'transaction_id' => $transaction_id,
-                    'transaction_type ' => $transection_type,
+                    'transaction_type' => $transection_type,
                     'transaction_category' => $transaction_category,
                     'ledger_id' => $cheque_bank_name,
                     'source_bank' => $relation_id,
@@ -325,7 +331,7 @@ class Account extends MX_Controller {
         if ($transection_type == 2) {
             $ledger_data_credit = array(
                 'transaction_id' => $transaction_id,
-                'transaction_type ' => $transection_type,
+                'transaction_type' => $transection_type,
                 'transaction_category' => $transaction_category,
                 'ledger_id' => $relation_id,
                 'cheque_bank_name' => $cheque_bank_name,
@@ -346,7 +352,7 @@ class Account extends MX_Controller {
             if ($payment_type == 1) {
                 $bank_ledger_debit = array(
                     'transaction_id' => $transaction_id,
-                    'transaction_type ' => $transection_type,
+                    'transaction_type' => $transection_type,
                     'transaction_category' => $transaction_category,
                     'ledger_id' => 1,
                     'source_bank' => $relation_id,
@@ -366,7 +372,7 @@ class Account extends MX_Controller {
             if ($payment_type == 2) {
                 $bank_ledger_debit = array(
                     'transaction_id' => $transaction_id,
-                    'transaction_type ' => $transection_type,
+                    'transaction_type' => $transection_type,
                     'transaction_category' => $transaction_category,
                     'ledger_id' => $cheque_bank_name,
                     'cheque_bank_name' => $cheque_bank_name,

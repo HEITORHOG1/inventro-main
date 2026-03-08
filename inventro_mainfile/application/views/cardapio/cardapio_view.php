@@ -93,8 +93,8 @@
         /* Product Card */
         .product-card { background: rgba(22, 33, 62, 0.8); border-radius: var(--border-radius); overflow: hidden; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.05); }
         .product-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: rgba(37, 211, 102, 0.3); }
-        .product-image { width: 100%; height: 180px; background: linear-gradient(135deg, var(--bg-light), var(--bg-card)); display: flex; align-items: center; justify-content: center; }
-        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-image { width: 100%; height: 180px; background: linear-gradient(135deg, var(--bg-light), var(--bg-card)); display: flex; align-items: center; justify-content: center; padding: 12px; }
+        .product-image img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
         .product-image .no-image { font-size: 4rem; color: rgba(255,255,255,0.2); }
         .product-info { padding: 20px; }
         .product-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 5px; }
@@ -353,7 +353,14 @@
                                  data-unit="<?php echo html_escape($produto->unit_name ?? 'un'); ?>">
                                 <div class="product-image">
                                     <?php if (!empty($produto->picture)): ?>
-                                        <img src="<?php echo base_url('application/modules/item/assets/images/' . html_escape($produto->picture)); ?>" alt="<?php echo html_escape($produto->name); ?>">
+                                        <?php
+                                            // Convert DB path to Img controller URL
+                                            $img_url = $produto->picture;
+                                            if (preg_match('#(\d{4}-\d{2}-\d{2})/([^/]+)$#', $produto->picture, $_m)) {
+                                                $img_url = 'img/product/' . $_m[1] . '/' . $_m[2];
+                                            }
+                                        ?>
+                                        <img src="<?php echo base_url(html_escape($img_url)); ?>" alt="<?php echo html_escape($produto->name); ?>">
                                     <?php else: ?>
                                         <i class="fas fa-box no-image"></i>
                                     <?php endif; ?>

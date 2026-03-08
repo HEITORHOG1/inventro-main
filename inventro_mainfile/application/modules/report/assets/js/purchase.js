@@ -8,13 +8,13 @@ $( function() {
 
              "aaSorting": [[4, "desc" ]],
              "columnDefs": [
-                { "bSortable": false, "aTargets": [0,1,2,3,5,6] },
+                { "bSortable": false, "aTargets": [0,1,2,3,5] },
 
             ],
            'processing': true,
            'serverSide': true,
            
-           'lengthMenu':[[10, 25, 50,100,250,500, totalpurchase], [10, 25, 50,100,250,500, "All"]],
+           'lengthMenu':[[10, 25, 50,100,250,500,1000], [10, 25, 50,100,250,500, 1000]],
 
              dom:"'<'col-sm-4'l><'col-sm-4 float-right'><'col-sm-4'>Bfrtip", buttons:[ {
                 extend: "copy",exportOptions: {
@@ -22,24 +22,24 @@ $( function() {
                            }, className: "btn-sm prints"
             }
             , {
-                extend: "csv", title: "Purchase LIst",exportOptions: {
+                extend: "csv", title: "Purchase Report",exportOptions: {
                        columns: [ 0, 1, 2, 3, 4,5] //Your Colume value those you want print
                            }, className: "btn-sm prints"
             }
             , {
                 extend: "excel",exportOptions: {
                        columns: [ 0, 1, 2, 3, 4,5 ] //Your Colume value those you want print
-                           }, title: "Purchase LIst", className: "btn-sm prints"
+                           }, title: "Purchase Report", className: "btn-sm prints"
             }
             , {
                 extend: "pdf",exportOptions: {
                        columns: [ 0, 1, 2, 3, 4,5 ] //Your Colume value those you want print
-                           }, title: " Purchase LIst", className: "btn-sm prints"
+                           }, title: " Purchase Report", className: "btn-sm prints"
             }
             , {
                 extend: "print",exportOptions: {
                        columns: [ 0, 1, 2, 3, 4,5 ] //Your Colume value those you want print
-                           },title: "<center>Purchase LIst</center>", className: "btn-sm prints"
+                           },title: "<center>Purchase Report</center>", className: "btn-sm prints"
             },{
                 extend:"colvis"
             }
@@ -47,11 +47,13 @@ $( function() {
             
             'serverMethod': 'post',
             'ajax': {
-               'url':base_url+'purchase/purchase/CheckPurchaseList',
+               'url':base_url+'report/report/CheckPurchasereport',
                  "data": function ( data) {
-                  data.csrf_test_name = $('#csrf_token').val(); // Include fresh CSRF token
+
+        data.csrf_test_name = $('#csrf_token').val(); // Include fresh CSRF token
          data.fromdate = $('#from_date').val();
          data.todate = $('#to_date').val();
+         data.supplier_id = $('#supplier_id').val();
 
 
 }
@@ -63,7 +65,7 @@ $( function() {
              { data: 'supplier_name'},
              { data: 'purchase_date' },
              { data: 'total_amount',class:"totalpurchase"},
-             { data: 'button'},
+             
           ],
 
   "footerCallback": function(row, data, start, end, display) {
@@ -92,21 +94,5 @@ mytable.ajax.reload();
 });
 
 });
-$( function() {
-"use strict";
-    $( ".datepicker" ).datepicker({ dateFormat: 'yy-mm-dd' });
 
-    $("#filterid").on('click', function(){
-   var x = document.getElementById("filterdiv");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-  }
-});
-
-
-
- 
-  } );
  

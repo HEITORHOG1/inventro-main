@@ -3,108 +3,99 @@
 class Report_model extends CI_Model
 {
 
-
     public function getPurchaseList($postData = null)
     {
-        $response = array();
-        $fromdate = $this->input->post('fromdate',TRUE);
-        $todate = $this->input->post('todate',TRUE);
-        $supplier_id = $this->input->post('supplier_id',TRUE);
-        if (!empty($fromdate)) {
-            $datbetween = "(a.supplier_id='$supplier_id'  AND a.purchase_date BETWEEN '$fromdate' AND '$todate')";
-        } else {
-            $datbetween = "";
-        }
-        ## Read value
+        $fromdate = $this->input->post('fromdate', TRUE);
+        $todate = $this->input->post('todate', TRUE);
+        $supplier_id = $this->input->post('supplier_id', TRUE);
+
         $draw = $postData['draw'];
         $start = $postData['start'];
-        $rowperpage = $postData['length']; // Rows display per page
-        $columnIndex = $postData['order'][0]['column']; // Column index
-        $columnName = $postData['columns'][$columnIndex]['data']; // Column name
-        $columnSortOrder = $postData['order'][0]['dir']; // asc or desc
-        $searchValue = $postData['search']['value']; // Search value
+        $rowperpage = $postData['length'];
+        $columnIndex = $postData['order'][0]['column'];
+        $columnName = $postData['columns'][$columnIndex]['data'];
+        $columnSortOrder = ($postData['order'][0]['dir'] === 'desc') ? 'desc' : 'asc';
+        $searchValue = $postData['search']['value'];
 
-        ## Search
-        $searchQuery = "";
+        $sortMap = [
+            'sl' => 'a.purchase_id', 'chalan_no' => 'a.chalan_no', 'purchase_id' => 'a.purchase_id',
+            'supplier_name' => 'b.name', 'purchase_date' => 'a.purchase_date', 'total_amount' => 'a.grand_total_amount',
+        ];
+        $orderColumn = isset($sortMap[$columnName]) ? $sortMap[$columnName] : 'a.purchase_date';
+
+        // Total without filtering
+        $this->db->select('count(*) as allcount')->from('product_purchase a');
+        if (!empty($fromdate) && !empty($todate)) {
+            $this->db->where('a.supplier_id', $supplier_id);
+            $this->db->where('a.purchase_date >=', $fromdate);
+            $this->db->where('a.purchase_date <=', $todate);
+        }
+        $totalRecords = $this->db->get()->row()->allcount;
+
+        // Total with filtering
+        $this->db->select('count(*) as allcount')->from('product_purchase a');
+        $this->db->join('supplier_tbl b', 'b.supplier_id = a.supplier_id', 'left');
+        if (!empty($fromdate) && !empty($todate)) {
+            $this->db->where('a.supplier_id', $supplier_id);
+            $this->db->where('a.purchase_date >=', $fromdate);
+            $this->db->where('a.purchase_date <=', $todate);
+        }
         if ($searchValue != '') {
-            $searchQuery = " (b.name like '%" . $searchValue . "%' or a.chalan_no like '%" . $searchValue . "%' or a.purchase_date like'%" . $searchValue . "%')";
+            $this->db->group_start();
+            $this->db->like('b.name', $searchValue);
+            $this->db->or_like('a.chalan_no', $searchValue);
+            $this->db->or_like('a.purchase_date', $searchValue);
+            $this->db->group_end();
         }
+        $totalRecordwithFilter = $this->db->get()->row()->allcount;
 
-        ## Total number of records without filtering
-        $this->db->select('count(*) as allcount');
+        // Fetch records
+        $this->db->select('a.*, b.name as supplier_name');
         $this->db->from('product_purchase a');
         $this->db->join('supplier_tbl b', 'b.supplier_id = a.supplier_id', 'left');
         if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
+            $this->db->where('a.supplier_id', $supplier_id);
+            $this->db->where('a.purchase_date >=', $fromdate);
+            $this->db->where('a.purchase_date <=', $todate);
         }
-        if ($searchValue != '')
-            $this->db->where($searchQuery);
-
-        $records = $this->db->get()->result();
-        $totalRecords = $records[0]->allcount;
-
-        ## Total number of record with filtering
-        $this->db->select('count(*) as allcount');
-        $this->db->from('product_purchase a');
-        $this->db->join('supplier_tbl b', 'b.supplier_id = a.supplier_id', 'left');
-        if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
+        if ($searchValue != '') {
+            $this->db->group_start();
+            $this->db->like('b.name', $searchValue);
+            $this->db->or_like('a.chalan_no', $searchValue);
+            $this->db->or_like('a.purchase_date', $searchValue);
+            $this->db->group_end();
         }
-        if ($searchValue != '')
-            $this->db->where($searchQuery);
-
-        $records = $this->db->get()->result();
-        $totalRecordwithFilter = $records[0]->allcount;
-
-        ## Fetch records
-        $this->db->select('a.*,b.name as supplier_name');
-        $this->db->from('product_purchase a');
-        $this->db->join('supplier_tbl b', 'b.supplier_id = a.supplier_id', 'left');
-        if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
-        }
-        if ($searchValue != '')
-            $this->db->where($searchQuery);
-        $this->db->order_by($columnName, $columnSortOrder);
+        $this->db->order_by($orderColumn, $columnSortOrder);
         $this->db->limit($rowperpage, $start);
         $records = $this->db->get()->result();
+
         $data = array();
-        $sl = 1;
+        $sl = $start + 1;
+        $base_url = base_url();
         foreach ($records as $record) {
-            $base_url = base_url();
-            $purchasedetails1 = '<a href="' . $base_url . 'purchase/purchase/purchase_details/' . $record->purchase_id . '">' . $record->chalan_no . '</a>';
-            $purchasedetails2 = '<a href="' . $base_url . 'purchase/purchase/purchase_details/' . $record->purchase_id . '">' . $record->purchase_id . '</a>';
-
+            $pid = htmlspecialchars($record->purchase_id, ENT_QUOTES, 'UTF-8');
             $data[] = array(
-                'sl' => $sl,
-                'chalan_no' => $purchasedetails1,
-                'purchase_id' => $purchasedetails2,
-                'supplier_name' => $record->supplier_name,
+                'sl'            => $sl,
+                'chalan_no'     => '<a href="' . $base_url . 'purchase/purchase/purchase_details/' . $pid . '">' . htmlspecialchars($record->chalan_no, ENT_QUOTES, 'UTF-8') . '</a>',
+                'purchase_id'   => '<a href="' . $base_url . 'purchase/purchase/purchase_details/' . $pid . '">' . $pid . '</a>',
+                'supplier_name' => htmlspecialchars($record->supplier_name ?? '', ENT_QUOTES, 'UTF-8'),
                 'purchase_date' => $record->purchase_date,
-                'total_amount' => $record->grand_total_amount,
-
+                'total_amount'  => $record->grand_total_amount,
             );
             $sl++;
         }
 
-        ## Response
-        $response = array(
-            "draw" => intval($draw),
-            "iTotalRecords" => $totalRecordwithFilter,
-            "iTotalDisplayRecords" => $totalRecords,
-            "aaData" => $data
+        return array(
+            "draw"                 => intval($draw),
+            "iTotalRecords"        => $totalRecords,
+            "iTotalDisplayRecords" => $totalRecordwithFilter,
+            "aaData"               => $data
         );
-
-        return $response;
     }
 
     public function supplier_list()
     {
-        $this->db->select('*');
-        $this->db->from('supplier_tbl');
-        $query = $this->db->get();
-        $data = $query->result();
-
+        $data = $this->db->get('supplier_tbl')->result();
         $list[''] = 'Select Supplier';
         if (!empty($data)) {
             foreach ($data as $value) {
@@ -116,107 +107,96 @@ class Report_model extends CI_Model
 
     public function getSalesList($postData = null)
     {
-        $response = array();
-        $fromdate = $this->input->post('fromdate',TRUE);
-     
-        $todate = $this->input->post('todate',TRUE);
+        $fromdate = $this->input->post('fromdate', TRUE);
+        $todate = $this->input->post('todate', TRUE);
+        $customer_id = $this->input->post('customer_id', TRUE);
 
-        $customer_id = $this->input->post('customer_id',TRUE);
-         
-        if (!empty($fromdate)) {
-            $datbetween = "(a.customer_id='$customer_id'  AND a.date BETWEEN '$fromdate' AND '$todate')";
-        } else {
-            $datbetween = "";
-        }
-        ## Read value
         $draw = $postData['draw'];
         $start = $postData['start'];
-        $rowperpage = $postData['length']; // Rows display per page
-        $columnIndex = $postData['order'][0]['column']; // Column index
-        $columnName = $postData['columns'][$columnIndex]['data']; // Column name
-        $columnSortOrder = $postData['order'][0]['dir']; // asc or desc
-        $searchValue = $postData['search']['value']; // Search value
+        $rowperpage = $postData['length'];
+        $columnIndex = $postData['order'][0]['column'];
+        $columnName = $postData['columns'][$columnIndex]['data'];
+        $columnSortOrder = ($postData['order'][0]['dir'] === 'desc') ? 'desc' : 'asc';
+        $searchValue = $postData['search']['value'];
 
-        ## Search
-        $searchQuery = "";
+        $sortMap = [
+            'sl' => 'a.id', 'invoice_id' => 'a.invoice_id', 'customer_name' => 'b.name',
+            'date' => 'a.date', 'total_amount' => 'a.total_amount',
+        ];
+        $orderColumn = isset($sortMap[$columnName]) ? $sortMap[$columnName] : 'a.date';
+
+        // Total without filtering
+        $this->db->select('count(*) as allcount')->from('invoice_tbl a');
+        $this->db->join('customer_tbl b', 'b.customerid = a.customer_id', 'left');
+        if (!empty($fromdate) && !empty($todate)) {
+            $this->db->where('a.customer_id', $customer_id);
+            $this->db->where('a.date >=', $fromdate);
+            $this->db->where('a.date <=', $todate);
+        }
+        $totalRecords = $this->db->get()->row()->allcount;
+
+        // Total with filtering
+        $this->db->select('count(*) as allcount')->from('invoice_tbl a');
+        $this->db->join('customer_tbl b', 'b.customerid = a.customer_id', 'left');
+        if (!empty($fromdate) && !empty($todate)) {
+            $this->db->where('a.customer_id', $customer_id);
+            $this->db->where('a.date >=', $fromdate);
+            $this->db->where('a.date <=', $todate);
+        }
         if ($searchValue != '') {
-            $searchQuery = " (b.name like '%" . $searchValue . "%' or a.invoice_id like '%" . $searchValue . "%' or a.date like'%" . $searchValue . "%')";
+            $this->db->group_start();
+            $this->db->like('b.name', $searchValue);
+            $this->db->or_like('a.invoice_id', $searchValue);
+            $this->db->or_like('a.date', $searchValue);
+            $this->db->group_end();
         }
+        $totalRecordwithFilter = $this->db->get()->row()->allcount;
 
-        ## Total number of records without filtering
-        $this->db->select('count(*) as allcount');
+        // Fetch records
+        $this->db->select('a.*, b.name as customer_name');
         $this->db->from('invoice_tbl a');
-        $this->db->join('customer_tbl b', 'b.customerid = a.customer_id');
+        $this->db->join('customer_tbl b', 'b.customerid = a.customer_id', 'left');
         if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
+            $this->db->where('a.customer_id', $customer_id);
+            $this->db->where('a.date >=', $fromdate);
+            $this->db->where('a.date <=', $todate);
         }
-        if ($searchValue != '')
-            $this->db->where($searchQuery);
-
-        $records = $this->db->get()->result();
-        $totalRecords = $records[0]->allcount;
-
-        ## Total number of record with filtering
-        $this->db->select('count(*) as allcount');
-        $this->db->from('invoice_tbl a');
-        $this->db->join('customer_tbl b', 'b.customerid = a.customer_id');
-        if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
+        if ($searchValue != '') {
+            $this->db->group_start();
+            $this->db->like('b.name', $searchValue);
+            $this->db->or_like('a.invoice_id', $searchValue);
+            $this->db->or_like('a.date', $searchValue);
+            $this->db->group_end();
         }
-        if ($searchValue != '')
-            $this->db->where($searchQuery);
-
-        $records = $this->db->get()->result();
-        $totalRecordwithFilter = $records[0]->allcount;
-
-        ## Fetch records
-        $this->db->select('a.*,b.name as customer_name');
-        $this->db->from('invoice_tbl a');
-        $this->db->join('customer_tbl b', 'b.customerid = a.customer_id');
-        if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
-        }
-        if ($searchValue != '')
-            $this->db->where($searchQuery);
-        $this->db->order_by($columnName, $columnSortOrder);
+        $this->db->order_by($orderColumn, $columnSortOrder);
         $this->db->limit($rowperpage, $start);
         $records = $this->db->get()->result();
 
         $data = array();
-        $sl = 1;
+        $sl = $start + 1;
+        $base_url = base_url();
         foreach ($records as $record) {
-            $base_url = base_url();
-            $customer = '<a href="' . $base_url . 'customer/customer_info/singleledgerbycustomer/' . $record->customer_id . '">' . $record->customer_name . '</a>';
-
             $data[] = array(
-                'sl' => $sl,
-                'invoice_id' =>  $record->invoice_id,
-                'customer_name' => $customer,
+                'sl'            => $sl,
+                'invoice_id'    => htmlspecialchars($record->invoice_id, ENT_QUOTES, 'UTF-8'),
+                'customer_name' => '<a href="' . $base_url . 'customer/customer_info/singleledgerbycustomer/' . htmlspecialchars($record->customer_id, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($record->customer_name ?? '', ENT_QUOTES, 'UTF-8') . '</a>',
                 'date'          => $record->date,
-                'total_amount' => $record->total_amount,
-
+                'total_amount'  => $record->total_amount,
             );
             $sl++;
         }
 
-        ## Response
-        $response = array(
-            "draw" => intval($draw),
-            "iTotalRecords" => $totalRecordwithFilter,
-            "iTotalDisplayRecords" => $totalRecords,
-            "aaData" => $data
+        return array(
+            "draw"                 => intval($draw),
+            "iTotalRecords"        => $totalRecords,
+            "iTotalDisplayRecords" => $totalRecordwithFilter,
+            "aaData"               => $data
         );
-
-        return $response;
     }
 
     public function customer_list()
     {
-        $this->db->select('*');
-        $this->db->from('customer_tbl');
-        $query = $this->db->get();
-        $data = $query->result();
-
+        $data = $this->db->get('customer_tbl')->result();
         $list[''] = 'Select Customer';
         if (!empty($data)) {
             foreach ($data as $value) {
@@ -228,215 +208,163 @@ class Report_model extends CI_Model
 
     public function cash_book_list()
     {
-        $this->db->select('a.*,b.name');
+        $this->db->select('a.*');
         $this->db->from('ledger_tbl a');
-        $this->db->join('customer_tbl b','a.ledger_id=b.id');
-        $this->db->where('a.ledger_id',1);
-        $query = $this->db->get();
-        $data = $query->result();
-        return $data;
+        $this->db->where('a.ledger_id', 1);
+        return $this->db->get()->result();
     }
 
     public function getCashBookReports($postData = null)
     {
-        $response = array();
-        $fromdate = $this->input->post('fromdate',TRUE);
-        $todate = $this->input->post('todate',TRUE);
-        if (!empty($fromdate)) {
-            $datbetween = "(ledger_id= 1  AND date BETWEEN '$fromdate' AND '$todate')";
-        } else {
-            $datbetween = "";
-        }
-        ## Read value
+        $fromdate = $this->input->post('fromdate', TRUE);
+        $todate = $this->input->post('todate', TRUE);
+
         $draw = $postData['draw'];
         $start = $postData['start'];
-        $rowperpage = $postData['length']; // Rows display per page
-        $columnIndex = $postData['order'][0]['column']; // Column index
-        $columnName = $postData['columns'][$columnIndex]['data']; // Column name
-        $columnSortOrder = $postData['order'][0]['dir']; // asc or desc
-        $searchValue = $postData['search']['value']; // Search value
+        $rowperpage = $postData['length'];
+        $columnIndex = $postData['order'][0]['column'];
+        $columnName = $postData['columns'][$columnIndex]['data'];
+        $columnSortOrder = ($postData['order'][0]['dir'] === 'desc') ? 'desc' : 'asc';
+        $searchValue = $postData['search']['value'];
 
+        $sortMap = ['sl' => 'id', 'date' => 'date', 'description' => 'description'];
+        $orderColumn = isset($sortMap[$columnName]) ? $sortMap[$columnName] : 'date';
 
-        ## Total number of records without filtering
-        $this->db->select('count(*) as allcount');
-        $this->db->from('ledger_tbl');
-        $this->db->where('ledger_id',1);
+        // Total without filtering
+        $this->db->select('count(*) as allcount')->from('ledger_tbl')->where('ledger_id', 1);
         if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
+            $this->db->where('date >=', $fromdate);
+            $this->db->where('date <=', $todate);
         }
+        $totalRecords = $this->db->get()->row()->allcount;
 
-        $records = $this->db->get()->result();
-        $totalRecords = $records[0]->allcount;
-
-        ## Total number of record with filtering
-        $this->db->select('count(*) as allcount');
-        $this->db->from('ledger_tbl');
-        $this->db->where('ledger_id',1);
+        // Total with filtering
+        $this->db->select('count(*) as allcount')->from('ledger_tbl')->where('ledger_id', 1);
         if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
+            $this->db->where('date >=', $fromdate);
+            $this->db->where('date <=', $todate);
         }
+        $totalRecordwithFilter = $this->db->get()->row()->allcount;
 
-        $records = $this->db->get()->result();
-        $totalRecordwithFilter = $records[0]->allcount;
-
-        ## Fetch records
-        $this->db->select('*');
-        $this->db->from('ledger_tbl');
-        $this->db->where('ledger_id',1);
+        // Fetch records
+        $this->db->select('*')->from('ledger_tbl')->where('ledger_id', 1);
         if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
+            $this->db->where('date >=', $fromdate);
+            $this->db->where('date <=', $todate);
         }
-        $this->db->order_by($columnName, $columnSortOrder);
+        $this->db->order_by($orderColumn, $columnSortOrder);
         $this->db->limit($rowperpage, $start);
         $records = $this->db->get()->result();
+
         $data = array();
-        $sl = 1;
+        $sl = $start + 1;
         foreach ($records as $record) {
-            $base_url = base_url();
-
-            $payment = $this->db->select('amount as payment')->from('ledger_tbl')->where('id',$record->id)->where('d_c','c')->get()->row();
-            $receive = $this->db->select('amount as receive')->from('ledger_tbl')->where('id',$record->id)->where('d_c','d')->get()->row();
+            $payment = $this->db->select('amount as payment')->from('ledger_tbl')->where('id', $record->id)->where('d_c', 'c')->get()->row();
+            $receive = $this->db->select('amount as receive')->from('ledger_tbl')->where('id', $record->id)->where('d_c', 'd')->get()->row();
             $data[] = array(
-                'sl' => $sl,
-                'date' => $record->date,
-                'description' => $record->description,
-                'payment' => (!empty($payment->payment)?$payment->payment:0),
-                'receive' =>  (!empty($receive->receive)?$receive->receive:0),
-
+                'sl'          => $sl,
+                'date'        => $record->date,
+                'description' => htmlspecialchars($record->description ?? '', ENT_QUOTES, 'UTF-8'),
+                'payment'     => (!empty($payment->payment) ? $payment->payment : 0),
+                'receive'     => (!empty($receive->receive) ? $receive->receive : 0),
             );
             $sl++;
         }
 
-        ## Response
-        $response = array(
-            "draw" => intval($draw),
-            "iTotalRecords" => $totalRecordwithFilter,
-            "iTotalDisplayRecords" => $totalRecords,
-            "aaData" => $data
+        return array(
+            "draw"                 => intval($draw),
+            "iTotalRecords"        => $totalRecords,
+            "iTotalDisplayRecords" => $totalRecordwithFilter,
+            "aaData"               => $data
         );
-
-        return $response;
     }
 
- public function getBankBookreport($postData = null)
+    public function getBankBookreport($postData = null)
     {
-        $response = array();
-        $fromdate = $this->input->post('fromdate',TRUE);
-        $todate = $this->input->post('todate',TRUE);
-        $bank_id = $this->input->post('bank_id',TRUE);
-        
+        $fromdate = $this->input->post('fromdate', TRUE);
+        $todate = $this->input->post('todate', TRUE);
+        $bank_id = $this->input->post('bank_id', TRUE);
 
-        if (!empty($fromdate)) {
-            $datbetween = "(a.date BETWEEN '$fromdate' AND '$todate' )";
-        } else {
-            $datbetween = "";
-        }
-
-
-     
-        ## Read value
         $draw = $postData['draw'];
         $start = $postData['start'];
-    
-        $rowperpage = $postData['length']; // Rows display per page
-        $columnIndex = $postData['order'][0]['column']; // Column index
-        $columnName = $postData['columns'][$columnIndex]['data']; // Column name
-        $columnSortOrder = $postData['order'][0]['dir']; // asc or desc
-        $searchValue = $postData['search']['value']; // Search value
+        $rowperpage = $postData['length'];
+        $columnIndex = $postData['order'][0]['column'];
+        $columnName = $postData['columns'][$columnIndex]['data'];
+        $columnSortOrder = ($postData['order'][0]['dir'] === 'desc') ? 'desc' : 'asc';
+        $searchValue = $postData['search']['value'];
 
- ## Search
-        $searchQuery = "";
+        $sortMap = ['sl' => 'a.id', 'bank_name' => 'b.bank_name', 'date' => 'a.date'];
+        $orderColumn = isset($sortMap[$columnName]) ? $sortMap[$columnName] : 'a.date';
+
+        // Total without filtering
+        $this->db->select('count(*) as allcount')->from('ledger_tbl a');
+        $this->db->join('bank_tbl b', 'a.ledger_id = b.bank_id');
+        if (!empty($fromdate) && !empty($todate)) {
+            $this->db->where('a.date >=', $fromdate);
+            $this->db->where('a.date <=', $todate);
+        }
+        $totalRecords = $this->db->get()->row()->allcount;
+
+        // Total with filtering
+        $this->db->select('count(*) as allcount')->from('ledger_tbl a');
+        $this->db->join('bank_tbl b', 'a.ledger_id = b.bank_id');
+        if (!empty($fromdate) && !empty($todate)) {
+            $this->db->where('a.date >=', $fromdate);
+            $this->db->where('a.date <=', $todate);
+        }
         if ($searchValue != '') {
-            $searchQuery = " (b.bank_name like '%" . $searchValue . "%' or a.date like '%" . $searchValue . "%')";
+            $this->db->group_start();
+            $this->db->like('b.bank_name', $searchValue);
+            $this->db->or_like('a.date', $searchValue);
+            $this->db->group_end();
         }
+        $totalRecordwithFilter = $this->db->get()->row()->allcount;
 
-
-        ## Total number of records without filtering
-        $this->db->select('count(*) as allcount');
-        $this->db->from('ledger_tbl a');
-        $this->db->join('bank_tbl b','a.ledger_id=b.bank_id');
+        // Fetch records
+        $this->db->select('a.*, b.bank_name')->from('ledger_tbl a');
+        $this->db->join('bank_tbl b', 'a.ledger_id = b.bank_id');
         if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
+            $this->db->where('a.date >=', $fromdate);
+            $this->db->where('a.date <=', $todate);
         }
-
-    
-
-        $records = $this->db->get()->result();
-        $totalRecords = $records[0]->allcount;
-
-        ## Total number of record with filtering
-        $this->db->select('count(*) as allcount');
-        $this->db->from('ledger_tbl a');
-        $this->db->join('bank_tbl b','a.ledger_id=b.bank_id');
-        if (!empty($fromdate) && !empty($todate)) { 
-            $this->db->where($datbetween);
+        if ($searchValue != '') {
+            $this->db->group_start();
+            $this->db->like('b.bank_name', $searchValue);
+            $this->db->or_like('a.date', $searchValue);
+            $this->db->group_end();
         }
-
-      
-
-        $records = $this->db->get()->result();
-        $totalRecordwithFilter = $records[0]->allcount;
-
-        ## Fetch records
-        $this->db->select('a.*,b.bank_name');
-        $this->db->from('ledger_tbl a');
-        $this->db->join('bank_tbl b','a.ledger_id=b.bank_id');
-        
-        if (!empty($fromdate) && !empty($todate)) {
-            $this->db->where($datbetween);
-        }
-
-
-        $this->db->order_by($columnName, $columnSortOrder);
+        $this->db->order_by($orderColumn, $columnSortOrder);
         $this->db->limit($rowperpage, $start);
         $records = $this->db->get()->result();
-        
+
         $data = array();
-        $sl = 1;
-
-          $balance = 0;
+        $sl = $start + 1;
+        $balance = 0;
         foreach ($records as $record) {
-            $base_url = base_url();
-
-            $deposit = $this->db->select('amount as deposit')->from('ledger_tbl')->where('id',$record->id)->where('d_c','d')->get()->row();
-            $witdraw = $this->db->select('amount as witdraw')->from('ledger_tbl')->where('id',$record->id)->where('d_c','c')->get()->row();
-            $balance += (!empty($deposit)?$deposit->deposit:0) - (!empty($witdraw)?$witdraw->witdraw:0);
+            $deposit = $this->db->select('amount as deposit')->from('ledger_tbl')->where('id', $record->id)->where('d_c', 'd')->get()->row();
+            $withdraw = $this->db->select('amount as withdraw')->from('ledger_tbl')->where('id', $record->id)->where('d_c', 'c')->get()->row();
+            $balance += (!empty($deposit) ? $deposit->deposit : 0) - (!empty($withdraw) ? $withdraw->withdraw : 0);
             $data[] = array(
-                'sl' => $sl,
-                'bank_name' => $record->bank_name,
-                'date' => $record->date,
-                'deposit' => (!empty($deposit)?$deposit->deposit:0),
-                'witdraw' =>  (!empty($witdraw)?$witdraw->witdraw:0),
-                'balance' => $balance
-
+                'sl'        => $sl,
+                'bank_name' => htmlspecialchars($record->bank_name ?? '', ENT_QUOTES, 'UTF-8'),
+                'date'      => $record->date,
+                'deposit'   => (!empty($deposit) ? $deposit->deposit : 0),
+                'witdraw'   => (!empty($withdraw) ? $withdraw->withdraw : 0),
+                'balance'   => $balance
             );
-
-
             $sl++;
         }
 
-        ## Response
-        $response = array(
-            "draw" => intval($draw),
-            "iTotalRecords" => $totalRecordwithFilter,
-            "iTotalDisplayRecords" => $totalRecords,
-            "aaData" => $data
+        return array(
+            "draw"                 => intval($draw),
+            "iTotalRecords"        => $totalRecords,
+            "iTotalDisplayRecords" => $totalRecordwithFilter,
+            "aaData"               => $data
         );
-
-        return $response;
     }
-
-
 
     public function bank_book_list()
     {
-        $this->db->select('a.*');
-        $this->db->from('bank_tbl a');
-        $query = $this->db->get();
-        $data = $query->result_array();
-        return $data;
+        return $this->db->get('bank_tbl')->result_array();
     }
-
-
-
 }

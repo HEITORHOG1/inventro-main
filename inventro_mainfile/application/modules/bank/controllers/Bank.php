@@ -122,6 +122,7 @@ public function bank_list(){
     public function search_bankledger(){
         $postData = $this->input->post();
         $data = $this->bank_model->getbankledger($postData);
+        $data['csrf_token'] = $this->security->get_csrf_hash();
         echo json_encode($data);
     }
 

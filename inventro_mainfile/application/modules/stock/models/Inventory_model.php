@@ -10,12 +10,9 @@ class Inventory_model extends CI_Model {
 		}
 
 		$this->db->select('SUM(inv_batch_details.case_qty) as case_total,
-            SUM(inv_batch_details.unit_qty) as unit_total,inv_batch_details.product_id,
-            product_tbl.unit_per_case,
-            product_tbl.product_name,
+            SUM(inv_batch_details.unit_qty) as unit_total,
             product_tbl.fk_prod_category_id,
-            setup_product_category_tbl.category_name,
-            inv_batch.*
+            setup_product_category_tbl.category_name
         ');
 
         $this->db->from('inv_batch_details');
@@ -45,7 +42,7 @@ class Inventory_model extends CI_Model {
 			$this->db->where('product_tbl.fk_client_id', $clause->client_id);
 		}
 
-        $this->db->group_by('product_tbl.fk_prod_category_id');
+        $this->db->group_by(array('product_tbl.fk_prod_category_id', 'setup_product_category_tbl.category_name'));
        return $distribut_by_brand_products = $this->db->get()->result();
 	}
 
@@ -59,10 +56,10 @@ class Inventory_model extends CI_Model {
 	
 
 		$this->db->select("
-			SUM(inv_stock.unit_qty) AS quantity, 
-			SUM(inv_stock.case_qty) AS case_quantity, 
+			SUM(inv_stock.unit_qty) AS quantity,
+			SUM(inv_stock.case_qty) AS case_quantity,
 			SUM(product_tbl.unit_price) AS price,
-			product_tbl.unit_per_case
+			MAX(product_tbl.unit_per_case) AS unit_per_case
 		");
 		
 		$this->db->from('inv_stock');
@@ -176,7 +173,7 @@ class Inventory_model extends CI_Model {
 			$this->db->where("inv_stock.v_date", $clause->from_date);
 		}
 
-		$this->db->group_by('inv_stock.distributor_id');
+		$this->db->group_by(array('inv_stock.distributor_id', 'setup_distributor_tbl.distributor_name'));
 
 		$result = $this->db->get()->result();
 
@@ -228,7 +225,7 @@ class Inventory_model extends CI_Model {
 		}
 
 		$this->db->order_by('product_tbl.fk_prod_category_id');
-		$this->db->group_by('inv_stock.product_id');
+		$this->db->group_by(array('inv_stock.product_id', 'product_tbl.product_id', 'product_tbl.product_name'));
 
 		$result = $this->db->get()->result();
 

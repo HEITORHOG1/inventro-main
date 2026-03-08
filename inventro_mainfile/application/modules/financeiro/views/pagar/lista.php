@@ -120,6 +120,7 @@ $(document).ready(function() {
             url: base_url + 'financeiro/contas_pagar/get_lista',
             type: 'POST',
             data: function(d) {
+                d.csrf_test_name = $('#csrf_token').val();
                 d.status = $('#filtro_status').val();
                 d.fornecedor_id = $('#filtro_fornecedor').val();
                 d.data_inicio = $('#filtro_data_inicio').val();

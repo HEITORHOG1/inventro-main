@@ -65,6 +65,6 @@
 
     </div>
 </div>
-<script src="<?php echo base_url() ?>application/modules/report/assets/js/purchase.js.php"
+<script src="<?php echo base_url() ?>application/modules/report/assets/js/purchase.js"
         type="text/javascript"></script>
 

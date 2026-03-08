@@ -66,54 +66,51 @@ public function countlist()
         }
         return false;
 	}
-   private function get_supledger_query()
-	{
-			$column_order = array(null, 'name'); //set column field database for datatable orderable
-			$column_search = array('name'); //set column field database for datatable searchable 
-			$order = array('id' => 'asc');
-		
-		$cdate=date('Y-m-d');
-		$this->db->select('*');
-        $this->db->from('supplier_tbl');
-		$i = 0;
-	
-		foreach ($column_search as $item) // loop column 
-		{
-			if($_POST['search']['value']) // if datatable send POST for search
-			{
-				if($i===0) // first loop
-				{
-					$this->db->like($item, $_POST['search']['value']);
-				}
-				else
-				{
-					$this->db->or_like($item, $_POST['search']['value']);
-				}
+    private function get_supledger_query()
+    {
+        $column_order = array(null, 'name');
+        $column_search = array('name');
+        $order = array('id' => 'asc');
 
-				if(count($column_search) - 1 == $i) //last loop
-					$this->db->group_end(); //close bracket
-			}
-			$i++;
-		}
-		
-		if(isset($_POST['order'])) // here order processing
-		{
-			$this->db->order_by($column_order[$_POST['order']['0']['column']], $_POST['order']['0']['dir']);
-		} 
-		else if(isset($order))
-		{
-			$order = $order;
-			$this->db->order_by(key($order), $order[key($order)]);
-		}
-	}	
-   public function get_supledger(){
-    
+        $this->db->select('*');
+        $this->db->from('supplier_tbl');
+
+        $searchValue = $this->input->post('search', TRUE);
+        $searchValue = isset($searchValue['value']) ? $searchValue['value'] : '';
+        if ($searchValue != '') {
+            $this->db->group_start();
+            foreach ($column_search as $i => $item) {
+                if ($i === 0) {
+                    $this->db->like($item, $searchValue);
+                } else {
+                    $this->db->or_like($item, $searchValue);
+                }
+            }
+            $this->db->group_end();
+        }
+
+        $orderPost = $this->input->post('order', TRUE);
+        if (!empty($orderPost)) {
+            $colIdx = (int) $orderPost['0']['column'];
+            $dir = ($orderPost['0']['dir'] === 'desc') ? 'desc' : 'asc';
+            if (isset($column_order[$colIdx]) && $column_order[$colIdx] !== null) {
+                $this->db->order_by($column_order[$colIdx], $dir);
+            }
+        } else {
+            $this->db->order_by(key($order), $order[key($order)]);
+        }
+    }
+
+    public function get_supledger()
+    {
         $this->get_supledger_query();
-		if($_POST['length'] != -1)
-		$this->db->limit($_POST['length'], $_POST['start']);
-		$query = $this->db->get();
-		return $query->result();
-   }
+        $length = (int) $this->input->post('length', TRUE);
+        $start = (int) $this->input->post('start', TRUE);
+        if ($length != -1) {
+            $this->db->limit($length, $start);
+        }
+        return $this->db->get()->result();
+    }
    public function count_filtersupledger()
 	{
 		$this->get_supledger_query();

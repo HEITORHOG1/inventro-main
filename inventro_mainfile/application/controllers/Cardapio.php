@@ -1169,28 +1169,42 @@ self.addEventListener('activate', function(event) {
             return;
         }
 
-        // Limpar telefone para comparação
+        // Limpar telefone — armazenar e comparar SEMPRE só dígitos
         $telefone_limpo = preg_replace('/[^0-9]/', '', $telefone);
         if (strlen($telefone_limpo) < 8) {
             return;
         }
 
-        // Verificar se cliente já existe pelo telefone — query segura via like()
-        $cliente_existente = $this->db->select('id')
-            ->from('customer_tbl')
-            ->like('mobile', $telefone_limpo)
-            ->get()
-            ->row();
+        // Buscar cliente pelo telefone comparando apenas dígitos
+        // REPLACE remove formatação do valor armazenado no banco antes de comparar
+        $cliente_existente = $this->db->query(
+            "SELECT id FROM customer_tbl WHERE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(mobile, '(', ''), ')', ''), '-', ''), ' ', ''), '+', '') = ? LIMIT 1",
+            array($telefone_limpo)
+        )->row();
+
+        // Se não achou por telefone exato, tenta pelo CPF (se fornecido)
+        if (!$cliente_existente && !empty($cpf)) {
+            $cpf_limpo = preg_replace('/[^0-9]/', '', $cpf);
+            if (strlen($cpf_limpo) === 11) {
+                $cliente_existente = $this->db->select('id')
+                    ->from('customer_tbl')
+                    ->where("REPLACE(REPLACE(cpf, '.', ''), '-', '')", $cpf_limpo, FALSE)
+                    ->limit(1)
+                    ->get()
+                    ->row();
+            }
+        }
 
         if ($cliente_existente) {
             // Atualizar dados do cliente existente (endereço pode ter mudado)
             $update_data = [
                 'name' => $nome,
+                'mobile' => $telefone_limpo, // Normalizar telefone no banco
                 'address' => $endereco,
                 'updated_date' => date('Y-m-d H:i:s')
             ];
             if (!empty($cpf)) {
-                $update_data['cpf'] = $cpf;
+                $update_data['cpf'] = preg_replace('/[^0-9]/', '', $cpf);
             }
             if (!empty($cep)) {
                 $update_data['cep'] = preg_replace('/[^0-9]/', '', $cep);
@@ -1200,6 +1214,9 @@ self.addEventListener('activate', function(event) {
             }
             if (!empty($estado)) {
                 $update_data['estado'] = $estado;
+            }
+            if (!empty($complemento)) {
+                $update_data['complemento'] = $complemento;
             }
             $this->db->where('id', $cliente_existente->id)->update('customer_tbl', $update_data);
         } else {
@@ -1211,12 +1228,14 @@ self.addEventListener('activate', function(event) {
             $insert_data = [
                 'customerid' => $customerid,
                 'name' => $nome,
-                'mobile' => $telefone,
+                'mobile' => $telefone_limpo, // Armazenar SÓ dígitos
+                'email' => '',
                 'address' => $endereco,
-                'cpf' => $cpf,
+                'cpf' => !empty($cpf) ? preg_replace('/[^0-9]/', '', $cpf) : null,
                 'cep' => !empty($cep) ? preg_replace('/[^0-9]/', '', $cep) : null,
                 'cidade' => !empty($cidade) ? $cidade : null,
                 'estado' => !empty($estado) ? $estado : null,
+                'complemento' => !empty($complemento) ? $complemento : null,
                 'tipo_pessoa' => 'F',
                 'status' => 1,
                 'created_by' => 'cardapio',

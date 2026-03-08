@@ -229,7 +229,7 @@ class Supplierlist extends MX_Controller {
     public function ledgertotal() {
         $list = $this->supplier_model->get_supledger();
         $data = array();
-        $no = $_POST['start'];
+        $no = (int) $this->input->post('start', TRUE);
         foreach ($list as $rowdata) {
             $no++;
             $row = array();
@@ -256,10 +256,11 @@ class Supplierlist extends MX_Controller {
             $data[] = $row;
         }
         $output = array(
-            "draw" => $_POST['draw'],
+            "draw" => intval($this->input->post('draw', TRUE)),
             "recordsTotal" => $this->supplier_model->count_allsupledger(),
             "recordsFiltered" => $this->supplier_model->count_filtersupledger(),
             "data" => $data,
+            "csrf_token" => $this->security->get_csrf_hash(),
         );
         echo json_encode($output);
     }

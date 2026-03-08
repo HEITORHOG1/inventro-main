@@ -130,7 +130,7 @@ class V1_docs extends CI_Controller {
                     'category_id'   => ['type' => 'integer', 'example' => 1],
                     'category_name' => ['type' => 'string', 'example' => 'Grãos'],
                     'unit_name'     => ['type' => 'string', 'example' => 'un'],
-                    'picture'       => ['type' => 'string', 'nullable' => true, 'example' => 'http://localhost:8080/admin_assets/img/product/arroz.jpg']
+                    'picture'       => ['type' => 'string', 'nullable' => true, 'example' => 'http://localhost:8080/img/product/2026-03-08/arroz.jpg']
                 ]
             ],
             'Zona' => [

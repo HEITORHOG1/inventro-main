@@ -33,6 +33,7 @@ services:
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
       - app_logs:/var/www/html/application/logs
       - app_uploads:/var/www/html/admin_assets/uploads
+      - product_images:/var/www/html/application/modules/item/assets/images
     depends_on:
       db:
         condition: service_healthy
@@ -189,6 +190,8 @@ volumes:
   app_logs:
     driver: local
   app_uploads:
+    driver: local
+  product_images:
     driver: local
   n8n_data:
     driver: local
