@@ -73,7 +73,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "count_over_time({service=\"app\"} |~ \"ERROR\\s+-\\s+\" [$__range])",
+          "expr": "count_over_time({service=\"app\"} |~ \"ERROR - \" [$__range])",
           "legendFormat": "CI Errors"
         }
       ]
@@ -104,7 +104,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "count_over_time({service=\"app\"} |~ \"\\\" 5\\d{2} \" [$__range])",
+          "expr": "count_over_time({service=\"app\"} |~ \"HTTP/[0-9.]+ 5[0-9][0-9]\" [$__range])",
           "legendFormat": "5xx"
         }
       ]
@@ -133,7 +133,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "count_over_time({service=\"app\"} |~ \"\\\"(GET|POST|PUT|DELETE)\" [$__range])",
+          "expr": "count_over_time({service=\"app\"} |~ \"(GET|POST|PUT|DELETE) /\" [$__range])",
           "legendFormat": "Requests"
         }
       ]
@@ -167,7 +167,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum by (service) (count_over_time({project=~\".*inventro.*\"} [1m]))",
+          "expr": "sum by (service) (count_over_time({service=~\".+\"} [1m]))",
           "legendFormat": "{{service}}"
         }
       ]
@@ -257,7 +257,7 @@
       "type": "logs",
       "targets": [
         {
-          "expr": "{service=~\"app|db\"} |~ \"(ERROR|Fatal|Warning|\\\" 5\\d{2} )\"",
+          "expr": "{service=~\"app|db\"} |~ \"(ERROR|Fatal|Warning|HTTP/[0-9.]+ 5[0-9][0-9])\"",
           "legendFormat": ""
         }
       ]
@@ -272,5 +272,5 @@
   "timezone": "America/Sao_Paulo",
   "title": "Inventro - Logs Centralizados",
   "uid": "inventro-logs",
-  "version": 1
+  "version": 2
 }
