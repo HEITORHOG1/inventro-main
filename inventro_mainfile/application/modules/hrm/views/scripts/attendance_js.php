@@ -13,7 +13,7 @@
 	function deleteAttendance(attendance_id)
 	{
 
-		if(confirm('Do you want to delete')===false){
+		if(confirm('Deseja excluir?')===false){
 			return false;
 		}
 
@@ -54,7 +54,7 @@
 	function addOutTime(attendance_id)
 	{
 
-		if(confirm('Do you want to live')===false){
+		if(confirm('Deseja sair?')===false){
 			return false;
 		}
 
@@ -95,7 +95,7 @@
 	function editAttendance(attendance_id)
 	{
 
-		if(confirm('Do you want to update this')===false){
+		if(confirm('Deseja atualizar este registro?')===false){
 			return false;
 		}
 

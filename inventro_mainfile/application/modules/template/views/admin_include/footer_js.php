@@ -72,6 +72,50 @@
 <script src="<?php echo base_url('admin_assets') ?>/plugins/sweetalert2/sweetalert2.min.js"></script>
 <!-- Toastr -->
 <script src="<?php echo base_url('admin_assets') ?>/plugins/toastr/toastr.min.js"></script>
+<script>
+// Configuração global do Toastr
+toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    positionClass: 'toast-top-right',
+    timeOut: 4000,
+    extendedTimeOut: 2000,
+    showEasing: 'swing',
+    hideEasing: 'linear',
+    showMethod: 'fadeIn',
+    hideMethod: 'fadeOut'
+};
+
+// Funções globais de notificação (substituem alert/confirm)
+window.showToast = function(msg, type) {
+    type = type || 'info';
+    if (type === 'error' || type === 'danger') {
+        toastr.error(msg);
+    } else if (type === 'warning') {
+        toastr.warning(msg);
+    } else if (type === 'success') {
+        toastr.success(msg);
+    } else {
+        toastr.info(msg);
+    }
+};
+
+window.showConfirm = function(msg, callback) {
+    Swal.fire({
+        title: msg,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sim',
+        cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (result.isConfirmed && typeof callback === 'function') {
+            callback();
+        }
+    });
+};
+</script>
 <script src="<?php echo base_url('admin_assets') ?>/dist/js/myscript1.js"></script>
 <!-- Máscaras e funções brasileiras (CPF, CNPJ, CEP, Telefone) -->
 <script src="<?php echo base_url('admin_assets') ?>/js/brasil.js"></script>

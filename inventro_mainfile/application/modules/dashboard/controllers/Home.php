@@ -34,20 +34,12 @@ class Home extends MX_Controller {
 		$totalpurchase='';
 	                  for ($i=1; $i <= 12; $i++) {
                                $purchase = $this->dashboard_model->yearly_purchase_report($i);
-                               if (!empty($purchase->total_purchase)) {
-                                    $totalpurchase.=$purchase->total_purchase.",";
-                                     }else{
-                                $totalpurchase.=",";
-                               }
-                            }  
-                      $totalsale='';      
+                               $totalpurchase .= number_format((float)($purchase->total_purchase ?? 0), 2, '.', '') . ',';
+                            }
+                      $totalsale='';
                     for ($i=1; $i <= 12; $i++) {
                                $sale = $this->dashboard_model->yearly_invoice_report($i);
-                               if (!empty($sale->total_sale)) {
-                                    $totalsale.=$sale->total_sale.",";
-                               }else{
-                                 $totalsale.=",";
-                               }
+                               $totalsale .= number_format((float)($sale->total_sale ?? 0), 2, '.', '') . ',';
                             }
         $data['purchasetotal'] = $totalpurchase;
         $data['saletotal'] = $totalsale;

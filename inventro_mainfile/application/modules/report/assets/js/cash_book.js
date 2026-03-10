@@ -2,7 +2,6 @@ $(function () {
 "use strict";
     var base_url = $('#base_url').val();
     var total_transaction = $('#total_transaction').val();
-    var CSRF_TOKEN = $('#csrf_token').val();
     var mytable = $('#CashBookList').DataTable({
         responsive: true,
 
@@ -18,28 +17,28 @@ $(function () {
 
         dom: "'<'col-sm-4'l><'col-sm-4 float-right'><'col-sm-4'>Bfrtip", buttons: [{
             extend: "copy", exportOptions: {
-                columns: [0, 1, 2, 3] //Your Colume value those you want
+                columns: [0, 1, 2, 3]
             }, className: "btn-sm prints"
         }
             , {
-                extend: "csv", title: "Cash Book Report", exportOptions: {
-                    columns: [0, 1, 2, 3] //Your Colume value those you want print
+                extend: "csv", title: "Relatório Livro Caixa", exportOptions: {
+                    columns: [0, 1, 2, 3]
                 }, className: "btn-sm prints"
             }
             , {
                 extend: "excel", exportOptions: {
-                    columns: [0, 1, 2, 3] //Your Colume value those you want print
-                }, title: "Cash Book Report", className: "btn-sm prints"
+                    columns: [0, 1, 2, 3]
+                }, title: "Relatório Livro Caixa", className: "btn-sm prints"
             }
             , {
                 extend: "pdf", exportOptions: {
-                    columns: [0, 1, 2, 3] //Your Colume value those you want print
-                }, title: " Sales Report", className: "btn-sm prints"
+                    columns: [0, 1, 2, 3]
+                }, title: "Relatório Livro Caixa", className: "btn-sm prints"
             }
             , {
                 extend: "print", exportOptions: {
-                    columns: [0, 1, 2, 3] //Your Colume value those you want print
-                }, title: "<center>Cash Book Report</center>", className: "btn-sm prints"
+                    columns: [0, 1, 2, 3]
+                }, title: "<center>Relatório Livro Caixa</center>", className: "btn-sm prints"
             }, {
                 extend: "colvis"
             }
@@ -49,17 +48,13 @@ $(function () {
         'ajax': {
             'url': base_url + 'report/report/CheckCashBookReport',
             "data": function (data) {
- 
-                data.csrf_test_name = $('#csrf_token').val(); // Include fresh CSRF token
+                data.csrf_test_name = $('#csrf_token').val();
                 data.fromdate = $('#from_date').val();
                 data.todate = $('#to_date').val();
-
-
-
             }
         },
         'columns': [
-        
+
             {data: 'date'},
             {data: 'description'},
             {data: 'payment', class: "totalpayment"},
@@ -106,5 +101,3 @@ $(function () {
     });
 
 });
-
- 

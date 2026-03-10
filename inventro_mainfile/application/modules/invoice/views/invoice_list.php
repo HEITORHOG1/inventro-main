@@ -91,7 +91,7 @@
                                                echo 'Editar';
                                            }
                                            ?>" class="btn btn-info btn-sm"><i class="fas fa-pen"></i></a> 
-                                        <a href="<?php echo base_url('invoice/invoice/invoice_delete/' . $sale->invoice_id); ?>" data-toggle='tooltip' data-placement='top' data-original-title='Excluir' class="btn btn-danger btn-sm" onclick="return confirm('Deseja excluir esta fatura?')"><i class="fas fa-trash"></i></a> 
+                                        <a href="<?php echo base_url('invoice/invoice/invoice_delete/' . $sale->invoice_id); ?>" data-toggle='tooltip' data-placement='top' data-original-title='Excluir' class="btn btn-danger btn-sm" onclick="event.preventDefault(); var u=this.href; showConfirm('Deseja excluir esta fatura?', function(){ window.location.href=u; })"><i class="fas fa-trash"></i></a> 
                                     </td>
                                 </tr>
                                 <?php

@@ -28,6 +28,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       CI_ENCRYPTION_KEY: ${CI_ENCRYPTION_KEY}
       CI_COOKIE_SECURE: ${CI_COOKIE_SECURE:-true}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
       TZ: ${TZ:-America/Sao_Paulo}
     volumes:
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
@@ -37,8 +39,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -104,13 +108,13 @@ services:
   # =========================================
   # n8n — Automação de Workflows (opcional)
   # =========================================
-  # Só sobe com: docker compose --profile n8n up -d
+  # Só sobe com: docker compose --profile online up -d
   n8n:
     image: n8nio/n8n:latest
     container_name: inventro_n8n
     restart: always
     profiles:
-      - n8n
+      - online
     entrypoint: ["tini", "--", "/home/node/entrypoint.sh"]
     environment:
       # n8n usa SQLite por padrão (armazenado em /home/node/.n8n)
@@ -150,14 +154,13 @@ services:
           memory: 512M
 
   # =========================================
-  # Redis — Cache/Queue para n8n (opcional)
+  # Redis — Sessões, cache, locks (core)
   # =========================================
+  # Usado pelo PDV (sessões, stock locks) e opcionalmente pelo n8n.
   redis:
     image: redis:7-alpine
     container_name: inventro_redis
     restart: always
-    profiles:
-      - n8n
     command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
@@ -180,6 +183,46 @@ services:
           cpus: '0.25'
           memory: 256M
 
+  # =========================================
+  # Backup automático MySQL (core)
+  # =========================================
+  backup:
+    image: databack/mysql-backup:latest
+    container_name: inventro_backup
+    restart: always
+    command: >
+      dump
+      --server=db
+      --port=3306
+      --user=root
+      --pass=${DB_ROOT_PASSWORD}
+      --include=${DB_DATABASE:-inventro_db}
+      --frequency=1440
+      --begin=0300
+      --retention=7c
+      --compression=gzip
+      --safechars
+      --target=file:///db
+    environment:
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - backup_data:/db
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - inventro_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
 networks:
   inventro_network:
     driver: bridge
@@ -196,4 +239,6 @@ volumes:
   n8n_data:
     driver: local
   redis_data:
+    driver: local
+  backup_data:
     driver: local

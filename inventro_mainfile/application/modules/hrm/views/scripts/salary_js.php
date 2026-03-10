@@ -51,7 +51,7 @@
 	function deleteSalary(salary_id)
 	{
 
-		if(confirm('Do you want to delete')===false){
+		if(confirm('Deseja excluir?')===false){
 			return false;
 		}
 
@@ -96,7 +96,7 @@
 	function salaryGenerate()
 	{
 
-		if(confirm('Do you want to payment salary')===false){
+		if(confirm('Deseja pagar o salário?')===false){
 			return false;
 		}
 

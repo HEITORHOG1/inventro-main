@@ -34,7 +34,7 @@ function returnBank_paymet(val) {
 function deleteItem(t) {
     var a = $("#returntable > tbody > tr").length;
     if (1 == a) {
-        alert("Só há uma linha, não é possível excluir.");
+        showToast("Só há uma linha, não é possível excluir.", "warning");
     } else {
         var e = t.parentNode.parentNode;
         e.parentNode.removeChild(e);
@@ -55,7 +55,7 @@ function Return_calculate(item) {
 
     if (parseInt(qnty) > parseInt(soldqty)) {
         var message = "Não é possível devolver mais que a quantidade vendida";
-        alert(message);
+        showToast(message, "warning");
         $("#quantity_" + item).val('');
         $("#total_price_" + item).val('');
         $('input[type=submit]').prop('disabled', true);

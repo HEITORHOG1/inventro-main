@@ -35,7 +35,7 @@
                         <select name="fornecedor_id" id="filtro_fornecedor" class="form-control form-control-sm">
                             <option value="">Todos</option>
                             <?php foreach($fornecedores as $f): ?>
-                            <option value="<?php echo $f->supplier_id; ?>"><?php echo $f->name; ?></option>
+                            <option value="<?php echo html_escape($f->supplier_id); ?>"><?php echo html_escape($f->name); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -107,11 +107,13 @@
 
 <script>
 $(document).ready(function() {
+    var base_url = $('#base_url').val();
+
     // Toggle filtro
     $('#filterBtn').click(function() {
         $('#filterDiv').slideToggle();
     });
-    
+
     // DataTable
     var table = $('#tblContasPagar').DataTable({
         processing: true,
@@ -170,7 +172,5 @@ $(document).ready(function() {
         $('#filterForm')[0].reset();
         table.ajax.reload();
     });
-    
-    var base_url = $('#base_url').val();
 });
 </script>

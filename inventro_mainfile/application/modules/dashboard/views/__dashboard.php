@@ -10,7 +10,7 @@
               <div class="icon">
                 <i class="ion ion-bag"></i>
               </div>
-              <a href="<?php echo base_url('invoice/invoice/invoice_list')?>" class="small-box-footer"><?php echo html_escape('Mais informações')?> <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="<?php echo base_url('invoice/invoice/invoice_list')?>" class="small-box-footer"><?php echo makeString(['more_info']); ?> <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->

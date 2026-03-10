@@ -41,7 +41,7 @@ $(function () {
     startDate: moment().subtract(29, 'days'),
     endDate  : moment()
   }, function (start, end) {
-    window.alert('You chose: ' + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'))
+    showToast('Período: ' + start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'), 'info')
   })
 
   /* jQueryKnob */

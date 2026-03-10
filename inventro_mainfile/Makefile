@@ -13,7 +13,7 @@
 #   make db       — Abrir shell no MySQL
 #   make status   — Ver status dos containers
 
-.PHONY: dev dev-n8n prod prod-n8n down reset logs shell db status build n8n-up n8n-down n8n-logs monitor monitor-down monitor-logs
+.PHONY: dev dev-n8n prod prod-n8n down reset logs shell db status build n8n-up n8n-down n8n-logs monitor monitor-down monitor-logs loja loja-online backup-agora backup-listar
 
 # ---- Desenvolvimento (padrão) ----
 # Carrega docker-compose.yml + docker-compose.override.yml automaticamente
@@ -28,10 +28,10 @@ dev:
 	@echo "   Swagger:    http://localhost:$${APP_PORT:-8080}/api/docs"
 
 # ---- Desenvolvimento com n8n (WhatsApp automação) ----
-# Carrega docker-compose.yml + override + profile n8n
+# Carrega docker-compose.yml + override + profile online
 dev-n8n:
 	@echo "🚀 Subindo ambiente de DEV + n8n..."
-	docker compose --profile n8n up -d --build
+	docker compose --profile online up -d --build
 	@echo ""
 	@echo "✅ Ambiente dev + n8n pronto!"
 	@echo "   App:        http://localhost:$${APP_PORT:-8080}"
@@ -40,16 +40,16 @@ dev-n8n:
 	@echo "   n8n:        http://localhost:$${N8N_PORT:-5678}"
 	@echo "   Swagger:    http://localhost:$${APP_PORT:-8080}/api/docs"
 
-# ---- n8n: subir apenas n8n + redis ----
+# ---- n8n: subir apenas n8n ----
 n8n-up:
-	@echo "🚀 Subindo n8n + Redis..."
-	docker compose --profile n8n up -d n8n redis
+	@echo "🚀 Subindo n8n..."
+	docker compose --profile online up -d n8n
 	@echo "✅ n8n pronto em http://localhost:$${N8N_PORT:-5678}"
 
-# ---- n8n: parar apenas n8n + redis ----
+# ---- n8n: parar apenas n8n ----
 n8n-down:
-	@echo "⏹️  Parando n8n + Redis..."
-	docker compose stop n8n redis
+	@echo "⏹️  Parando n8n..."
+	docker compose stop n8n
 
 # ---- n8n: logs ----
 n8n-logs:
@@ -67,11 +67,42 @@ prod:
 # ---- Produção com n8n ----
 prod-n8n:
 	@echo "🚀 Subindo ambiente de PRODUÇÃO + n8n..."
-	docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile n8n up -d --build
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile online up -d --build
 	@echo ""
 	@echo "✅ Ambiente prod + n8n pronto!"
 	@echo "   App: http://localhost:$${APP_PORT:-80}"
 	@echo "   n8n: acesso via rede interna (sem porta exposta)"
+
+# ---- Loja Offline (PDV no mercadinho, sem n8n) ----
+# Carrega docker-compose.yml + docker-compose.loja.yml
+loja:
+	@echo "🏪 Subindo LOJA OFFLINE (PDV + DB + Redis + Backup)..."
+	docker compose -f docker-compose.yml -f docker-compose.loja.yml up -d --build
+	@echo ""
+	@echo "✅ Loja offline pronta!"
+	@echo "   PDV:   http://localhost:$${APP_PORT:-80}/pdv/terminal/001"
+	@echo "   Admin: http://localhost:$${APP_PORT:-80}"
+	@echo "   MySQL: localhost:$${DB_EXTERNAL_PORT:-3307}"
+
+# ---- Loja Online (PDV + cardápio + WhatsApp) ----
+loja-online:
+	@echo "🏪 Subindo LOJA ONLINE (PDV + n8n + WhatsApp)..."
+	docker compose -f docker-compose.yml -f docker-compose.loja.yml --profile online up -d --build
+	@echo ""
+	@echo "✅ Loja online pronta!"
+	@echo "   PDV:   http://localhost:$${APP_PORT:-80}/pdv/terminal/001"
+	@echo "   Admin: http://localhost:$${APP_PORT:-80}"
+
+# ---- Backup: executar agora ----
+backup-agora:
+	@echo "💾 Executando backup agora..."
+	docker exec inventro_backup /backup.sh
+	@echo "✅ Backup concluído!"
+
+# ---- Backup: listar backups existentes ----
+backup-listar:
+	@echo "📋 Backups disponíveis:"
+	docker exec inventro_backup ls -lh /db/
 
 # ---- Parar containers ----
 down:

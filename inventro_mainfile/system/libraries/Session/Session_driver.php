@@ -185,7 +185,10 @@ abstract class CI_Session_driver implements SessionHandlerInterface {
 	 */
 	protected function _fail()
 	{
-		ini_set('session.save_path', config_item('sess_save_path'));
+		if (session_status() !== PHP_SESSION_ACTIVE)
+		{
+			ini_set('session.save_path', config_item('sess_save_path'));
+		}
 		return $this->_failure;
 	}
 }

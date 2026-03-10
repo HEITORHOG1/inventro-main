@@ -45,7 +45,7 @@
 	function deleteDesignation(designation_id)
 	{
 
-		if(confirm('Do you want to delete')===false){
+		if(confirm('Deseja excluir este registro?')===false){
 			return false;
 		}
 

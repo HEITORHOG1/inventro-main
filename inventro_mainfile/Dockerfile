@@ -37,8 +37,12 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     opcache \
     && docker-php-ext-enable opcache
 
+# ---- phpredis (sessões + stock locks + cache) ----
+RUN pecl install redis-5.3.7 \
+    && docker-php-ext-enable redis
+
 # ---- Módulos Apache ----
-RUN a2enmod rewrite headers expires deflate
+RUN a2enmod rewrite headers expires deflate status
 
 # ---- Permitir .htaccess ----
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
@@ -82,6 +86,6 @@ EXPOSE 80
 
 # ---- Health check nativo ----
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
+    CMD curl -f http://localhost/health || exit 1
 
 CMD ["apache2-foreground"]

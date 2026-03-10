@@ -195,12 +195,12 @@ CREATE TABLE IF NOT EXISTS `invoice_details` (
   `invoice_id` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
   `invoice_details_id` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
   `product_id` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
-  `quantity` int(11) NOT NULL,
-  `price` decimal(10,0) DEFAULT NULL,
-  `discount` decimal(10,0) DEFAULT NULL,
-  `total_price` decimal(10,0) DEFAULT NULL,
-  `discount_amount` decimal(10,0) DEFAULT NULL,
-  `tax` decimal(10,0) DEFAULT NULL,
+  `quantity` decimal(10,3) NOT NULL,
+  `price` decimal(10,2) DEFAULT NULL,
+  `discount` decimal(10,2) DEFAULT NULL,
+  `total_price` decimal(10,2) DEFAULT NULL,
+  `discount_amount` decimal(10,2) DEFAULT NULL,
+  `tax` decimal(10,2) DEFAULT NULL,
   `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

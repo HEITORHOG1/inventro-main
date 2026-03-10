@@ -402,10 +402,27 @@ $config['encryption_key'] = getenv('CI_ENCRYPTION_KEY') ?: 'CHANGE_ME_IN_PRODUCT
 |
 */
 
-$config['sess_driver'] = 'files';
+// Sessão via Redis quando REDIS_HOST está configurado e extensão phpredis carregada
+if (getenv('REDIS_HOST') && extension_loaded('redis')) {
+    $config['sess_driver'] = 'redis';
+    // Montar save_path inline (evita problemas com require_once)
+    $_redis_host = getenv('REDIS_HOST') ?: 'redis';
+    $_redis_port = (int) (getenv('REDIS_PORT') ?: 6379);
+    $_redis_pass = getenv('REDIS_PASSWORD') ?: '';
+    $_redis_db   = (int) (getenv('REDIS_DATABASE') ?: 0);
+    $_redis_path = 'tcp://' . $_redis_host . ':' . $_redis_port;
+    $_redis_qp   = [];
+    if ($_redis_pass !== '') { $_redis_qp[] = 'auth=' . $_redis_pass; }
+    $_redis_qp[] = 'database=' . $_redis_db;
+    $_redis_path .= '?' . implode('&', $_redis_qp);
+    $config['sess_save_path'] = $_redis_path;
+    unset($_redis_host, $_redis_port, $_redis_pass, $_redis_db, $_redis_path, $_redis_qp);
+} else {
+    $config['sess_driver'] = 'files';
+    $config['sess_save_path'] = APPPATH.'cache/temp/';
+}
 $config['sess_cookie_name'] = 'ci_session';
 $config['sess_expiration'] = 7200;
-$config['sess_save_path'] = APPPATH.'cache/temp/';
 $config['sess_match_ip'] = TRUE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = TRUE;

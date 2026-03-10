@@ -138,7 +138,7 @@
                                         endif;
                                         if ($this->permission->method('setting', 'delete')->access()):
                                             ?>
-                                            <a href="<?php echo base_url("dashboard/currency/delete/$currency->currencyid") ?>" onclick="return confirm('<?php echo makeString(["are_you_sure"]) ?>')" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Delete "><i class="fa fa-trash" aria-hidden="true"></i></a> 
+                                            <a href="<?php echo base_url("dashboard/currency/delete/$currency->currencyid") ?>" onclick="event.preventDefault(); var u=this.href; showConfirm('<?php echo makeString(["are_you_sure"]) ?>', function(){ window.location.href=u; })" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Delete "><i class="fa fa-trash" aria-hidden="true"></i></a> 
                                 <?php endif; ?>
                                     </td>
 

@@ -52,7 +52,7 @@ function addInputField(t) {
     var limits = 500;
     get_allproducts(count);
     if (count == limits) {
-        alert("Você atingiu o limite de " + count + " itens");
+        showToast("Você atingiu o limite de " + count + " itens");
     } else {
         var a = "product_id_" + count, e = document.createElement("tr");
         e.innerHTML = "<td>\n\
@@ -76,7 +76,7 @@ function addInputField(t) {
 function deleteRow(t) {
     var a = $("#normalinvoice > tbody > tr").length;
     if (1 == a) {
-        alert("Só há uma linha, não é possível excluir.");
+        showToast("Só há uma linha, não é possível excluir.");
     } else {
         var e = t.parentNode.parentNode;
         e.parentNode.removeChild(e);
@@ -144,7 +144,7 @@ function quantity_calculate(item) {
 
     if (parseInt(qnty) > parseInt(available_qnt)) {
         var message = "Quantidade máxima disponível: " + available_qnt + " unidades";
-        alert(message);
+        showToast(message);
         $("#quantity_" + item).val('');
         $("#total_price_" + item).val('');
         $('input[type=submit]').prop('disabled', true);
@@ -235,7 +235,7 @@ function CategorySearch(id) {
             $(".all-products").html(data);
         },
         error: function() {
-            alert('Falha na requisição. Verifique e tente novamente.');
+            showToast('Falha na requisição. Verifique e tente novamente.');
         }
     });
 }
@@ -257,7 +257,7 @@ $('body').on('keyup', '#searchitem', function() {
             $(".all-products").html(data);
         },
         error: function() {
-            alert('Falha na requisição. Verifique e tente novamente.');
+            showToast('Falha na requisição. Verifique e tente novamente.');
         }
     });
 });
@@ -305,7 +305,7 @@ function onselectimage(id) {
             },
             success: function(data) {
                 if (data == false) {
-                    alert('Produto não encontrado!');
+                    showToast('Produto não encontrado!');
 
                 } else {
                     $("#hidden_tr").css("display", "none");
@@ -315,7 +315,7 @@ function onselectimage(id) {
                 }
             },
             error: function() {
-                alert('Falha na requisição. Verifique e tente novamente.');
+                showToast('Falha na requisição. Verifique e tente novamente.');
             }
         });
     }
@@ -334,7 +334,7 @@ function QtyCal(item) {
     var total_discount = $("#total_discount_" + item).val();
     if (parseInt(qnty) > parseInt(available_qnt)) {
         var message = "Produto sem estoque disponível";
-        alert(message);
+        showToast(message);
         $("#quantity_" + item).val('');
         $("#total_price_" + item).val('');
         $('input[type=submit]').prop('disabled', true);
@@ -386,7 +386,7 @@ function PaidAmount() {
 
 function deleteRow(e) {
     var t = $("#addinvoice > tbody > tr").length;
-    if (1 == t) alert("Só há uma linha, não é possível excluir.");
+    if (1 == t) showToast("Só há uma linha, não é possível excluir.");
     else {
         var a = e.parentNode.parentNode;
         a.parentNode.removeChild(a);
@@ -438,7 +438,7 @@ function BarcodeProcess() {
                 },
                 success: function(data) {
                     if (data == false) {
-                        alert('Produto não encontrado!');
+                        showToast('Produto não encontrado!');
 
                     } else {
                         $("#hidden_tr").css("display", "none");
@@ -448,12 +448,12 @@ function BarcodeProcess() {
                     }
                 },
                 error: function() {
-                    alert('Falha na requisição. Verifique e tente novamente.');
+                    showToast('Falha na requisição. Verifique e tente novamente.');
                 }
             });
         }
     } else {
-        alert('Código de barras inválido: ' + barcodeString);
+        showToast('Código de barras inválido: ' + barcodeString);
     }
 
     barcodeString = ''; // reset
@@ -477,7 +477,7 @@ $("#paymentform").submit(function() {
 
         },
         error: function() {
-            alert('Falha na requisição. Verifique e tente novamente.');
+            showToast('Falha na requisição. Verifique e tente novamente.');
         }
     });
 });
@@ -486,12 +486,12 @@ function Savepayment() {
     var payenttype = $("#paytype").val();
     var bankid = $("#bank").val();
     if (payenttype == '') {
-        alert("Selecione o tipo de pagamento!");
+        showToast("Selecione o tipo de pagamento!");
         return false;
     }
     if (payenttype == 2) {
         if (bankid == '') {
-            alert("Selecione o banco!");
+            showToast("Selecione o banco!");
             return false;
         }
 

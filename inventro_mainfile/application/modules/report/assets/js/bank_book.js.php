@@ -18,28 +18,28 @@ $(function () {
 
         dom: "'<'col-sm-4'l><'col-sm-4 float-right'><'col-sm-4'>Bfrtip", buttons: [{
             extend: "copy", exportOptions: {
-                columns: [0, 1, 2, 3] //Your Colume value those you want
+                columns: [0, 1, 2, 3, 4]
             }, className: "btn-sm prints"
         }
             , {
-                extend: "csv", title: "Bank Book Report", exportOptions: {
-                    columns: [0, 1, 2, 3] //Your Colume value those you want print
+                extend: "csv", title: "Relatório Livro Banco", exportOptions: {
+                    columns: [0, 1, 2, 3, 4]
                 }, className: "btn-sm prints"
             }
             , {
                 extend: "excel", exportOptions: {
-                    columns: [0, 1, 2, 3] //Your Colume value those you want print
-                }, title: "Bank Book Report", className: "btn-sm prints"
+                    columns: [0, 1, 2, 3, 4]
+                }, title: "Relatório Livro Banco", className: "btn-sm prints"
             }
             , {
                 extend: "pdf", exportOptions: {
-                    columns: [0, 1, 2, 3] //Your Colume value those you want print
-                }, title: " Bank Book Report", className: "btn-sm prints"
+                    columns: [0, 1, 2, 3, 4]
+                }, title: "Relatório Livro Banco", className: "btn-sm prints"
             }
             , {
                 extend: "print", exportOptions: {
-                    columns: [0, 1, 2, 3] //Your Colume value those you want print
-                }, title: "<center>Bank Book Report</center>", className: "btn-sm prints"
+                    columns: [0, 1, 2, 3, 4]
+                }, title: "<center>Relatório Livro Banco</center>", className: "btn-sm prints"
             }, {
                 extend: "colvis"
             }
@@ -49,21 +49,18 @@ $(function () {
         'ajax': {
             'url': base_url + 'report/report/getBankBookreport',
             "data": function (data) {
-                data.csrf_test_name = CSRF_TOKEN; // Include CSRF token in request dat
+                data.csrf_test_name = CSRF_TOKEN;
                 data.fromdate = $('#from_date').val();
                 data.todate = $('#to_date').val();
-                data.bank_ids = $('#bank_ids').val();
-
-
-
+                data.bank_id = $('#bank_id').val();
             }
         },
         'columns': [
             {data: 'bank_name'},
-            {data: 'date'},            
+            {data: 'date'},
             {data: 'deposit', class: "total_deposit"},
-            {data: 'witdraw', class: "total_withdraw"},
-            {data: 'balance',class: "total_balance"},
+            {data: 'withdraw', class: "total_withdraw"},
+            {data: 'balance', class: "total_balance"},
 
         ],
 
@@ -112,12 +109,10 @@ $(function () {
 
     });
 
-    mytable.buttons().container().appendTo('#CashBookList .col-md-6:eq(0)');
+    mytable.buttons().container().appendTo('#BankBookList .col-md-6:eq(0)');
 
     $("#btn-filter").on('click', function(){
         mytable.ajax.reload();
     });
 
 });
-
- 

@@ -1,0 +1,43 @@
+# =============================================
+# Inventro — Docker Compose Loja (PDV Offline)
+# =============================================
+# Modo loja: PDV + cadastros + estoque + relatórios
+# SEM phpMyAdmin, SEM n8n, SEM monitoramento
+#
+# Uso:
+#   make loja         — Sobe loja offline (app + db + redis + backup)
+#   make loja-online  — Sobe loja + n8n (cardápio + WhatsApp)
+#
+# Diferença do dev: sem phpMyAdmin, sem debug, sem volumes de código,
+# mas com backup automático. Ideal para instalar no PC do mercadinho.
+
+services:
+  # =========================================
+  # Override do App para loja
+  # =========================================
+  app:
+    restart: always
+    ports:
+      - "${APP_PORT:-80}:80"
+    environment:
+      APP_ENV: production
+      CI_COOKIE_SECURE: "false"   # Loja local sem HTTPS
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
+  # =========================================
+  # Override do DB para loja
+  # =========================================
+  db:
+    restart: always
+    # Porta externa para manutenção remota (opcional)
+    ports:
+      - "${DB_EXTERNAL_PORT:-3307}:3306"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G

@@ -63,7 +63,7 @@ class Return_model extends CI_Model {
     public function supplier_return_list($offset = null, $limit = null){
           $query = $this->db->select('a.*,b.name')
                         ->from('product_return a')
-                        ->join('supplier_tbl b','b.supplier_id = a.supplier_id')
+                        ->join('supplier_tbl b','b.supplier_id = a.supplier_id', 'left')
                         ->where('a.status', 2)
                         ->order_by('a.return_date','desc')
                         ->limit($offset, $limit)
@@ -223,7 +223,7 @@ public function bank_list(){
             public function get_customer_return_info($return_id) {
         $query = $this->db->select('a.*, b.name, b.mobile, b.email, b.address')
                         ->from('product_return a')
-                        ->join('customer_tbl b', 'b.customerid = a.customer_id')
+                        ->join('customer_tbl b', 'b.customerid = a.customer_id', 'left')
                         ->where('a.return_id', $return_id)
                         ->get()->row();
         return $query;
@@ -233,7 +233,7 @@ public function bank_list(){
     public function get_supplier_return_info($return_id) {
         $query = $this->db->select('a.*, b.name, b.mobile, b.email, b.address')
                         ->from('product_return a')
-                        ->join('supplier_tbl b', 'b.supplier_id = a.supplier_id')
+                        ->join('supplier_tbl b', 'b.supplier_id = a.supplier_id', 'left')
                         ->where('a.return_id', $return_id)
                         ->get()->row();
         return $query;
@@ -242,7 +242,7 @@ public function bank_list(){
      public function get_return_details($return_id) {
         $query = $this->db->select('a.*, a.price as product_price, b.name')
                         ->from('return_details a')
-                        ->join('product_tbl b', 'b.product_id = a.product_id')
+                        ->join('product_tbl b', 'b.product_id = a.product_id', 'left')
                         ->where('a.return_id', $return_id)
                         ->get()->result();
         return $query;

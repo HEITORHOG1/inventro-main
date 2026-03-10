@@ -39,6 +39,12 @@ public function item_form($id = null){
   $this->form_validation->set_rules('itemcategory', makeString(['category'])  ,'required|max_length[10]');
    $this->form_validation->set_rules('cartoonqty', makeString(['cartoonqty'])  ,'required|max_length[10]');
     $this->form_validation->set_rules('itemprice', makeString(['price'])  ,'required|max_length[15]');
+    $this->form_validation->set_rules('ean_gtin', 'EAN/GTIN', 'max_length[14]|numeric');
+    $this->form_validation->set_rules('estoque_minimo', 'Estoque Mínimo', 'integer|greater_than_equal_to[0]');
+    if ($this->input->post('pesavel')) {
+        $this->form_validation->set_rules('codigo_balanca', 'Código Balança', 'required|exact_length[5]|numeric');
+        $this->form_validation->set_rules('tipo_barcode_balanca', 'Tipo Barcode Balança', 'required|in_list[peso,preco]');
+    }
   
   $product_id = (!empty($this->input->post('product_id'))?$this->input->post('product_id'):$this->generator(8));
   $image = $this->fileupload->do_upload(
@@ -56,13 +62,21 @@ public function item_form($id = null){
     // Only show error if user actually selected a file but upload failed
     if ($image === false && !empty($_FILES['picture']['name'])) {
       $this->session->set_flashdata('exception', makeString(['invalid_image']));
-    }     
-  
- 
+    }
+
+  $is_pesavel = $this->input->post('pesavel',TRUE) ? 1 : 0;
+  $ean_raw = $this->input->post('ean_gtin',TRUE);
+  $ean_value = !empty($ean_raw) ? $ean_raw : null;
+
  $data['item']   = (Object) $test = [
    'product_id'     => $id,
    'name'           => $this->input->post('itemname',TRUE),
    'product_code'   => $this->input->post('itemcode',TRUE),
+   'ean_gtin'       => $ean_value,
+   'estoque_minimo' => (int)$this->input->post('estoque_minimo',TRUE),
+   'pesavel'        => $is_pesavel,
+   'codigo_balanca' => $is_pesavel ? $this->input->post('codigo_balanca',TRUE) : null,
+   'tipo_barcode_balanca' => $is_pesavel ? $this->input->post('tipo_barcode_balanca',TRUE) : 'peso',
    'unit'           => $this->input->post('itemunit',TRUE),
    'category_id'    => $this->input->post('itemcategory',TRUE),
    'model'          => $this->input->post('itemmodel',TRUE),
@@ -79,6 +93,11 @@ public function item_form($id = null){
    'product_id'     => $product_id,
    'name'           => $this->input->post('itemname',TRUE),
    'product_code'   => $this->input->post('itemcode',TRUE),
+   'ean_gtin'       => $ean_value,
+   'estoque_minimo' => (int)$this->input->post('estoque_minimo',TRUE),
+   'pesavel'        => $is_pesavel,
+   'codigo_balanca' => $is_pesavel ? $this->input->post('codigo_balanca',TRUE) : null,
+   'tipo_barcode_balanca' => $is_pesavel ? $this->input->post('tipo_barcode_balanca',TRUE) : 'peso',
    'unit'           => $this->input->post('itemunit',TRUE),
    'category_id'    => $this->input->post('itemcategory',TRUE),
    'model'          => $this->input->post('itemmodel',TRUE),
@@ -87,7 +106,7 @@ public function item_form($id = null){
    'supplier_id'    => $this->input->post('supplier_id',TRUE),
    'description'    => $this->input->post('itemdetails',TRUE),
    'purchase_price'  => $this->input->post('purchase_price',TRUE),
-   
+
   ];
 
 $defaultimg = 'application/modules/item/assets/images/product.jpg';
@@ -194,6 +213,66 @@ public function delete($id = null)
     }
     redirect("item/Item/item_list");
   }
+
+    /**
+     * AJAX: Check EAN/GTIN uniqueness
+     * Returns JSON {unique: bool, product_name: string|null}
+     */
+    public function check_ean() {
+        header('Content-Type: application/json');
+
+        $ean_gtin = $this->input->post('ean_gtin', TRUE);
+        $product_id = $this->input->post('product_id', TRUE);
+
+        if (empty($ean_gtin)) {
+            echo json_encode(['unique' => true, 'product_name' => null, 'csrf_token' => $this->security->get_csrf_hash()]);
+            return;
+        }
+
+        // Validate digits only
+        if (!ctype_digit($ean_gtin) || strlen($ean_gtin) > 14) {
+            echo json_encode(['unique' => false, 'product_name' => null, 'error' => 'EAN/GTIN deve conter apenas dígitos (máx. 14)', 'csrf_token' => $this->security->get_csrf_hash()]);
+            return;
+        }
+
+        $existing = $this->item_model->check_ean_unique($ean_gtin, $product_id);
+
+        echo json_encode([
+            'unique' => empty($existing),
+            'product_name' => !empty($existing) ? $existing->name : null,
+            'csrf_token' => $this->security->get_csrf_hash()
+        ]);
+    }
+
+    /**
+     * AJAX: Check codigo_balanca uniqueness
+     * Returns JSON {unique: bool, product_name: string|null}
+     */
+    public function check_codigo_balanca() {
+        header('Content-Type: application/json');
+
+        $codigo_balanca = $this->input->post('codigo_balanca', TRUE);
+        $product_id = $this->input->post('product_id', TRUE);
+
+        if (empty($codigo_balanca)) {
+            echo json_encode(['unique' => true, 'product_name' => null, 'csrf_token' => $this->security->get_csrf_hash()]);
+            return;
+        }
+
+        // Validate 5 digits
+        if (!ctype_digit($codigo_balanca) || strlen($codigo_balanca) !== 5) {
+            echo json_encode(['unique' => false, 'product_name' => null, 'error' => 'Código Balança deve ter exatamente 5 dígitos', 'csrf_token' => $this->security->get_csrf_hash()]);
+            return;
+        }
+
+        $existing = $this->item_model->check_codigo_balanca_unique($codigo_balanca, $product_id);
+
+        echo json_encode([
+            'unique' => empty($existing),
+            'product_name' => !empty($existing) ? $existing->name : null,
+            'csrf_token' => $this->security->get_csrf_hash()
+        ]);
+    }
 
     /**
      * Toggle disponibilidade no cardapio (AJAX)

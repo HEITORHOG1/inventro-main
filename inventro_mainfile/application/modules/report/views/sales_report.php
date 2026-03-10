@@ -43,7 +43,7 @@
                 <table id="SaleList" class="table table-bordered table-striped">
                     <thead>
                     <tr>
-                        <th><?php echo 'sl'; ?></th>
+                        <th>#</th>
                         <th><?php echo makeString(['invoice']); ?></th>
                         <th><?php echo makeString(['customer_name']); ?></th>
                         <th><?php echo makeString(['date']); ?></th>

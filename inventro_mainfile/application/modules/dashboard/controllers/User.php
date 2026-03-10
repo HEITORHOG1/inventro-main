@@ -107,6 +107,7 @@ class User extends MX_Controller {
 		$this->form_validation->set_rules('password', makeString(['password']),'required|max_length[32]|md5');
 		$this->form_validation->set_rules('about', makeString(['about']),'max_length[1000]');
 		$this->form_validation->set_rules('status', makeString(['status']),'required|max_length[1]');
+		$this->form_validation->set_rules('matricula', 'Matrícula (PDV)', 'max_length[20]');
 		
 		
         $config['upload_path']          = './admin_assets/img/user/';
@@ -137,11 +138,13 @@ class User extends MX_Controller {
 
 		
 		$password=$this->input->post('password',TRUE);
+		$matricula_value = $this->input->post('matricula',TRUE);
 		$data['user'] = (object)$userLevelData = array(
 			'id' 		  => $this->input->post('id',TRUE),
 			'firstname'   => $this->input->post('firstname',TRUE),
 			'lastname' 	  => $this->input->post('lastname',TRUE),
 			'email' 	  => $this->input->post('email',TRUE),
+			'matricula'   => !empty($matricula_value) ? $matricula_value : null,
 			'password' 	  => md5(!empty($password) ? $password : ''),
 			'about' 	  => $this->input->post('about',TRUE),
 			'image'   	  => (!empty($image)?$image:$this->input->post('old_image',TRUE)),
@@ -216,8 +219,35 @@ class User extends MX_Controller {
 
 
 
+	/**
+	 * AJAX: Check matricula uniqueness
+	 * Returns JSON {unique: bool}
+	 */
+	public function check_matricula() {
+		header('Content-Type: application/json');
+
+		$matricula = $this->input->post('matricula', TRUE);
+		$user_id = $this->input->post('user_id', TRUE);
+
+		if (empty($matricula)) {
+			echo json_encode(['unique' => true, 'csrf_token' => $this->security->get_csrf_hash()]);
+			return;
+		}
+
+		$this->db->where('matricula', $matricula);
+		if (!empty($user_id)) {
+			$this->db->where('id !=', (int)$user_id);
+		}
+		$existing = $this->db->get('user')->row();
+
+		echo json_encode([
+			'unique' => empty($existing),
+			'csrf_token' => $this->security->get_csrf_hash()
+		]);
+	}
+
 	public function delete($id = null)
-	{ 
+	{
 		if ($this->user_model->delete($id)) {
 			$this->session->set_flashdata('message', makeString(['delete_successfully']));
 		} else {

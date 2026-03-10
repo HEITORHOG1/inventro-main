@@ -6,7 +6,7 @@ function addInputField(t) {
     var count = row + 1;
     limits = 500;
     if (count == limits) {
-        alert("Você atingiu o limite de " + count + " itens");
+        showToast("Você atingiu o limite de " + count + " itens", "warning");
     } else {
         var a = "product_id_" + count,
             e = document.createElement("tr");
@@ -38,7 +38,7 @@ function addInputField(t) {
 function deleteRow(t) {
     var a = $("#normalinvoice > tbody > tr").length;
     if (1 == a) {
-        alert("There only one row you can't delete it.");
+        showToast("Só há uma linha, não é possível excluir.", "warning");
     } else {
         var e = t.parentNode.parentNode;
         e.parentNode.removeChild(e);
@@ -115,8 +115,8 @@ function quantity_calculate(item) {
 
     //============= its for purchase qnt and sales qnt calculation ==============
     if (parseInt(qnty) > parseInt(available_qnt)) {
-        var message = "You can purchase maximum " + available_qnt + " Items";
-        alert(message);
+        var message = "Quantidade máxima disponível: " + available_qnt + " unidades";
+        showToast(message, "warning");
         $("#quantity_" + item).val('');
         $("#total_price_" + item).val('');
         $('input[type=submit]').prop('disabled', true);

@@ -75,7 +75,7 @@
                                                 <select class="form-control select2 col-sm-8" name="bank_id" id="bank_id" data-placeholder="<?php echo makeString(['select_one']); ?>">
                                                     <option value=""></option>
                                                     <?php foreach ($bank_list as $bank) { ?>
-                                                        <option value="<?php echo $bank->bank_id; ?>" <?php
+                                                        <option value="<?php echo html_escape($bank->bank_id); ?>" <?php
                                                         if ($edit_invoice->bank_id == $bank->bank_id) {
                                                             echo 'selected';
                                                         }

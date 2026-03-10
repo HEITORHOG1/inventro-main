@@ -185,11 +185,11 @@ $(document).ready(function() {
                     // Reload to reflect changes
                     location.reload();
                 } else {
-                    alert(response.message);
+                    showToast(response.message, 'error');
                 }
             },
             error: function() {
-                alert('Erro ao atualizar status.');
+                showToast('Erro ao atualizar status.', 'error');
             }
         });
     });

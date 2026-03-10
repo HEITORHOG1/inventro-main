@@ -122,7 +122,7 @@
                                 <?php if ($this->permission->method('category', 'delete')->access()): ?>
                                 <a href="<?php echo base_url('item/category/delete_category/' . html_escape($category->id)) ?>"
                                     class="btn btn-danger btn-xs"
-                                    onclick="return confirm('Are You Sure to Want to Delete ?')"><i
+                                    onclick="event.preventDefault(); var u=this.href; showConfirm('Tem certeza que deseja excluir?', function(){ window.location.href=u; })"><i
                                         class="fas fa-trash-alt"></i></a>
                                 <?php endif; ?>
                             </td>

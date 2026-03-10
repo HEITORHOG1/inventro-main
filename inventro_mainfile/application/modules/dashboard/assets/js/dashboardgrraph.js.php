@@ -11,40 +11,17 @@ $(function (){
               var str3 = totalsale.substring(0, totalsale.length - 1);
               var res3 = str3.split(",");
               var icon=$("#currencyicon").val();
+
+              // Formatar valores para exibição (2 casas decimais)
+              var nitsaleFormatted = parseFloat(nitsale || 0).toFixed(2).replace('.', ',');
+              var nitpurchaseFormatted = parseFloat(nitpurchase || 0).toFixed(2).replace('.', ',');
+
               var salesChartCanvas = document.getElementById('revenue-chart-canvas').getContext('2d');
               var salesChartData = {
-    labels  : [<?php
-                    for ($i=1; $i <= 12; $i++) {
-                        if ($i==1) {
-                            echo '"January",';
-                        }elseif ($i==2) {
-                            echo '"February",';
-                        }elseif ($i==3) {
-                            echo '"March",';
-                        }elseif ($i==4) {
-                            echo '"April",';
-                        }elseif ($i==5) {
-                            echo '"May",';
-                        }elseif ($i==6) {
-                           echo '"June",';
-                        }elseif ($i==7) {
-                           echo '"July",';
-                        }elseif ($i==8) {
-                           echo '"August",';
-                        }elseif ($i==9) {
-                           echo '"September",';
-                        }elseif ($i==10) {
-                           echo '"October",';
-                        }elseif ($i==11) {
-                           echo '"November",';
-                        }elseif ($i==12) {
-                           echo '"December"';
-                        }
-                    }
-                ?>],
+    labels  : ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],
     datasets: [
       {
-        label               : 'Purchase',
+        label               : 'Compras',
         backgroundColor     : '#F7DC6F',
         borderColor         : 'rgba(60,141,188,0.8)',
         pointRadius          : false,
@@ -55,7 +32,7 @@ $(function (){
         data                : [0,0]
       },
       {
-        label               : 'Sale',
+        label               : 'Vendas',
         backgroundColor     : '#28B463',
         borderColor         : 'rgba(210, 214, 222, 1)',
         pointRadius         : true,
@@ -70,7 +47,7 @@ $(function (){
 
                salesChartData.datasets[0].data = res;
                salesChartData.datasets[1].data = res3;
- 
+
 
   var salesChartOptions = {
     maintainAspectRatio : false,
@@ -87,15 +64,28 @@ $(function (){
       yAxes: [{
         gridLines : {
           display : true,
+        },
+        ticks: {
+          callback: function(value) {
+            return icon + ' ' + parseFloat(value).toFixed(2);
+          }
         }
       }]
+    },
+    tooltips: {
+      callbacks: {
+        label: function(tooltipItem, data) {
+          var label = data.datasets[tooltipItem.datasetIndex].label || '';
+          return label + ': ' + icon + ' ' + parseFloat(tooltipItem.yLabel).toFixed(2);
+        }
+      }
     }
   }
 
   // This will get the first returned node in the jQuery collection.
-  var salesChart = new Chart(salesChartCanvas, { 
-      type: 'bar', 
-      data: salesChartData, 
+  var salesChart = new Chart(salesChartCanvas, {
+      type: 'bar',
+      data: salesChartData,
       options: salesChartOptions
     }
   )
@@ -104,8 +94,8 @@ $(function (){
  var pieChartCanvas = $('#pieChart').get(0).getContext('2d')
   var pieData        = {
     labels: [
-        'Total Sales ('+icon+' '+nitsale+')', 
-        'Total Purchase ('+icon+' '+nitpurchase+')',
+        'Total Vendas ('+icon+' '+nitsaleFormatted+')',
+        'Total Compras ('+icon+' '+nitpurchaseFormatted+')',
     ],
     datasets: [
       {
@@ -120,13 +110,21 @@ $(function (){
     },
     maintainAspectRatio : true,
     responsive : true,
+    tooltips: {
+      callbacks: {
+        label: function(tooltipItem, data) {
+          var label = data.labels[tooltipItem.index] || '';
+          var value = parseFloat(data.datasets[0].data[tooltipItem.index] || 0).toFixed(2);
+          return icon + ' ' + value;
+        }
+      }
+    }
   }
   //Create pie or douhnut chart
-  // You can switch between pie and douhnut using the method below.
   var pieChart = new Chart(pieChartCanvas, {
     type: 'pie',
     data: pieData,
-    options: pieOptions      
+    options: pieOptions
   });
 
           })

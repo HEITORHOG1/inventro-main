@@ -37,7 +37,7 @@
                 <table id="CashBookList" class="table table-bordered table-striped">
                     <thead>
                     <tr>
-                        <th><?php echo html_escape('date'); ?></th>
+                        <th><?php echo makeString(['date']); ?></th>
                         <th><?php echo makeString(['description']); ?></th>
                         <th><?php echo makeString(['payment','amount']); ?></th>
                         <th><?php echo makeString(['receipt','amount']); ?></th>

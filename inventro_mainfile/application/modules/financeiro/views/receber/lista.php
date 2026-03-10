@@ -35,7 +35,7 @@
                         <select name="cliente_id" id="filtro_cliente" class="form-control form-control-sm">
                             <option value="">Todos</option>
                             <?php foreach($clientes as $c): ?>
-                            <option value="<?php echo $c->customerid; ?>"><?php echo $c->name; ?></option>
+                            <option value="<?php echo html_escape($c->customerid); ?>"><?php echo html_escape($c->name); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

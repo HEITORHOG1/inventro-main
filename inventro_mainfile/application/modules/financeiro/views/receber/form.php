@@ -69,9 +69,9 @@
                     <select class="form-control select2" id="cliente_id" name="cliente_id" required>
                         <option value="">-- Selecione o Cliente --</option>
                         <?php foreach($clientes as $c): ?>
-                        <option value="<?php echo $c->customerid; ?>" 
+                        <option value="<?php echo html_escape($c->customerid); ?>"
                                 <?php echo (isset($conta->cliente_id) && $conta->cliente_id == $c->customerid) ? 'selected' : ''; ?>>
-                            <?php echo $c->name; ?> (<?php echo $c->mobile; ?>)
+                            <?php echo html_escape($c->name); ?> (<?php echo html_escape($c->mobile); ?>)
                         </option>
                         <?php endforeach; ?>
                     </select>

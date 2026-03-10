@@ -72,9 +72,24 @@ class Contas_pagar_model extends CI_Model {
         $start = isset($postData['start']) ? $postData['start'] : 0;
         $rowperpage = isset($postData['length']) ? $postData['length'] : 10;
         $columnIndex = isset($postData['order'][0]['column']) ? $postData['order'][0]['column'] : 0;
-        $columnName = isset($postData['columns'][$columnIndex]['data']) ? $postData['columns'][$columnIndex]['data'] : 'data_vencimento';
+        $columnName = isset($postData['columns'][$columnIndex]['data']) ? $postData['columns'][$columnIndex]['data'] : 'vencimento';
         $columnSortOrder = isset($postData['order'][0]['dir']) ? $postData['order'][0]['dir'] : 'asc';
         $searchValue = isset($postData['search']['value']) ? $postData['search']['value'] : '';
+
+        // Map DataTable column names to actual SQL columns
+        $sortMap = array(
+            'sl' => 'cp.id',
+            'codigo' => 'cp.codigo',
+            'descricao' => 'cp.descricao',
+            'fornecedor' => 's.name',
+            'categoria' => 'cf.nome',
+            'valor_original' => 'cp.valor_original',
+            'valor_pago' => 'cp.valor_pago',
+            'valor_pendente' => 'cp.valor_original',
+            'vencimento' => 'cp.data_vencimento',
+            'status' => 'cp.status',
+        );
+        $columnName = isset($sortMap[$columnName]) ? $sortMap[$columnName] : 'cp.data_vencimento';
 
         // Query base
         $this->db->select('cp.*, s.name as fornecedor_nome, cf.nome as categoria_nome, cf.cor as categoria_cor');
@@ -85,7 +100,7 @@ class Contas_pagar_model extends CI_Model {
         // Aplicar filtros
         if (!empty($status)) {
             if ($status == 'vencido') {
-                $this->db->where('cp.status IN ("aberto", "parcial")');
+                $this->db->where_in('cp.status', array('aberto', 'parcial'));
                 $this->db->where('cp.data_vencimento <', date('Y-m-d'));
             } else {
                 $this->db->where('cp.status', $status);
@@ -150,9 +165,9 @@ class Contas_pagar_model extends CI_Model {
             }
             $button .= '<a href="'.$base_url.'financeiro/contas_pagar/form/'.$record->id.'" class="btn btn-info btn-sm" title="'.makeString(['edit']).'"><i class="fas fa-edit"></i></a> ';
             if ($record->status != 'pago') {
-                $button .= '<a href="'.$base_url.'financeiro/contas_pagar/cancelar/'.$record->id.'" class="btn btn-warning btn-sm" title="'.makeString(['cancel']).'" onclick="return confirm(\'Cancelar esta conta?\')"><i class="fas fa-ban"></i></a> ';
+                $button .= '<a href="'.$base_url.'financeiro/contas_pagar/cancelar/'.$record->id.'" class="btn btn-warning btn-sm" title="'.makeString(['cancel']).'" onclick="event.preventDefault(); var u=this.href; showConfirm(\'Cancelar esta conta?\', function(){ window.location.href=u; })"><i class="fas fa-ban"></i></a> ';
             }
-            $button .= '<a href="'.$base_url.'financeiro/contas_pagar/delete/'.$record->id.'" class="btn btn-danger btn-sm" title="'.makeString(['delete']).'" onclick="return confirm(\'Excluir permanentemente?\')"><i class="fas fa-trash"></i></a>';
+            $button .= '<a href="'.$base_url.'financeiro/contas_pagar/delete/'.$record->id.'" class="btn btn-danger btn-sm" title="'.makeString(['delete']).'" onclick="event.preventDefault(); var u=this.href; showConfirm(\'Excluir permanentemente?\', function(){ window.location.href=u; })"><i class="fas fa-trash"></i></a>';
             
             $data[] = array(
                 'sl' => $sl,

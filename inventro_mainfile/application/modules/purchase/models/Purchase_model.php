@@ -216,7 +216,7 @@ class Purchase_model extends CI_Model {
         $base_url = base_url();
 
         foreach ($records as $record) {
-            $jsaction = "return confirm('Are You Sure ?')";
+            $jsaction = "return confirm('Tem certeza?')";
             $pid = htmlspecialchars($record->purchase_id, ENT_QUOTES, 'UTF-8');
 
             $button = '<a href="' . $base_url . 'purchase/purchase/purchase_details/' . $pid . '" class="btn btn-success btn-sm" data-toggle="tooltip" title="' . display('purchase_details') . '"><i class="fa fa-window-restore"></i></a>';

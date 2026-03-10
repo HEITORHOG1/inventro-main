@@ -68,9 +68,25 @@ class Contas_receber_model extends CI_Model {
         $start = isset($postData['start']) ? $postData['start'] : 0;
         $rowperpage = isset($postData['length']) ? $postData['length'] : 10;
         $columnIndex = isset($postData['order'][0]['column']) ? $postData['order'][0]['column'] : 0;
-        $columnName = isset($postData['columns'][$columnIndex]['data']) ? $postData['columns'][$columnIndex]['data'] : 'data_vencimento';
+        $columnName = isset($postData['columns'][$columnIndex]['data']) ? $postData['columns'][$columnIndex]['data'] : 'vencimento';
         $columnSortOrder = isset($postData['order'][0]['dir']) ? $postData['order'][0]['dir'] : 'asc';
         $searchValue = isset($postData['search']['value']) ? $postData['search']['value'] : '';
+
+        // Map DataTable column names to actual SQL columns
+        $sortMap = array(
+            'sl' => 'cr.id',
+            'codigo' => 'cr.codigo',
+            'descricao' => 'cr.descricao',
+            'cliente' => 'c.name',
+            'telefone' => 'c.mobile',
+            'categoria' => 'cf.nome',
+            'valor_original' => 'cr.valor_original',
+            'valor_recebido' => 'cr.valor_recebido',
+            'valor_pendente' => 'cr.valor_original',
+            'vencimento' => 'cr.data_vencimento',
+            'status' => 'cr.status',
+        );
+        $columnName = isset($sortMap[$columnName]) ? $sortMap[$columnName] : 'cr.data_vencimento';
 
         $this->db->select('cr.*, c.name as cliente_nome, c.mobile as cliente_telefone, cf.nome as categoria_nome, cf.cor as categoria_cor');
         $this->db->from('contas_receber cr');
@@ -79,7 +95,7 @@ class Contas_receber_model extends CI_Model {
         
         if (!empty($status)) {
             if ($status == 'vencido') {
-                $this->db->where('cr.status IN ("aberto", "parcial")');
+                $this->db->where_in('cr.status', array('aberto', 'parcial'));
                 $this->db->where('cr.data_vencimento <', date('Y-m-d'));
             } else {
                 $this->db->where('cr.status', $status);
@@ -139,9 +155,9 @@ class Contas_receber_model extends CI_Model {
             }
             $button .= '<a href="'.$base_url.'financeiro/contas_receber/form/'.$record->id.'" class="btn btn-info btn-sm" title="'.makeString(['edit']).'"><i class="fas fa-edit"></i></a> ';
             if ($record->status != 'recebido') {
-                $button .= '<a href="'.$base_url.'financeiro/contas_receber/cancelar/'.$record->id.'" class="btn btn-warning btn-sm" title="'.makeString(['cancel']).'" onclick="return confirm(\'Cancelar esta conta?\')"><i class="fas fa-ban"></i></a> ';
+                $button .= '<a href="'.$base_url.'financeiro/contas_receber/cancelar/'.$record->id.'" class="btn btn-warning btn-sm" title="'.makeString(['cancel']).'" onclick="event.preventDefault(); var u=this.href; showConfirm(\'Cancelar esta conta?\', function(){ window.location.href=u; })"><i class="fas fa-ban"></i></a> ';
             }
-            $button .= '<a href="'.$base_url.'financeiro/contas_receber/delete/'.$record->id.'" class="btn btn-danger btn-sm" title="'.makeString(['delete']).'" onclick="return confirm(\'Excluir permanentemente?\')"><i class="fas fa-trash"></i></a>';
+            $button .= '<a href="'.$base_url.'financeiro/contas_receber/delete/'.$record->id.'" class="btn btn-danger btn-sm" title="'.makeString(['delete']).'" onclick="event.preventDefault(); var u=this.href; showConfirm(\'Excluir permanentemente?\', function(){ window.location.href=u; })"><i class="fas fa-trash"></i></a>';
             
             $data[] = array(
                 'sl' => $sl,

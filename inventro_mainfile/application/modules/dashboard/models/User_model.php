@@ -168,7 +168,7 @@ class User_model extends CI_Model {
                         $button .= ' <button class="btn btn-info btn-sm" title="'.makeString(['admin']).'">'.makeString(['admin']).'</button>';
                     } else { 
                        	$button .= '<li><a href="'.base_url("dashboard/user/form/$record->id").'"><i class="fa fa-pencil text-info"></i> '.makeString(['edit']).'</a></li>';
-                       	$button .= '<li><a href="'.base_url("dashboard/user/delete/$record->id").'" onclick="return confirm('.makeString(["are_you_sure"]).')"><i class="fa fa-trash-o text-danger"></i> Delete</a></li>';
+                       	$button .= '<li><a href="'.base_url("dashboard/user/delete/$record->id").'" onclick="event.preventDefault(); var u=this.href; showConfirm('.makeString(["are_you_sure"]).', function(){ window.location.href=u; })"><i class="fa fa-trash-o text-danger"></i> Delete</a></li>';
                         
                     } 
 

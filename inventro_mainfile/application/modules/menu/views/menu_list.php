@@ -76,7 +76,7 @@
                                             }
                                             ?>
                                         </td>
-                                        <td><a href="<?php echo base_url("menu/menu_setting/edit_menu/$menus->menu_id") ?>" class="btn btn-success btn-sm"><i class="fas fa-edit"></i> </a> <a href="<?php echo base_url("menu/menu_setting/delete/$menus->menu_id") ?>" onclick="return confirm('<?php echo makeString(["are_you_sure"]) ?>')" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Delete "><i class="fa fa-trash" aria-hidden="true"></i></a></td>
+                                        <td><a href="<?php echo base_url("menu/menu_setting/edit_menu/$menus->menu_id") ?>" class="btn btn-success btn-sm"><i class="fas fa-edit"></i> </a> <a href="<?php echo base_url("menu/menu_setting/delete/$menus->menu_id") ?>" onclick="event.preventDefault(); var u=this.href; showConfirm('<?php echo makeString(["are_you_sure"]) ?>', function(){ window.location.href=u; })" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Delete "><i class="fa fa-trash" aria-hidden="true"></i></a></td>
 
 
 

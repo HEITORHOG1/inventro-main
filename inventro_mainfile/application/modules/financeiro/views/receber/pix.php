@@ -246,12 +246,12 @@ $(document).ready(function() {
                     startPolling(r.charge_id);
                     startCountdown(r.expiracao);
                 } else {
-                    alert('Erro: ' + r.message);
+                    showToast('Erro: ' + r.message, 'error');
                 }
             },
             error: function() {
                 btn.prop('disabled', false).html('<i class="fas fa-qrcode"></i> <?php echo makeString(["gerar_pix"]); ?>');
-                alert('Erro de conexao.');
+                showToast('Erro de conexao.', 'error');
             }
         });
     });

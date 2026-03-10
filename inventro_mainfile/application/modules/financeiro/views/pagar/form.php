@@ -68,9 +68,9 @@
                     <select class="form-control select2" id="fornecedor_id" name="fornecedor_id">
                         <option value="">-- Opcional --</option>
                         <?php foreach($fornecedores as $f): ?>
-                        <option value="<?php echo $f->supplier_id; ?>" 
+                        <option value="<?php echo html_escape($f->supplier_id); ?>"
                                 <?php echo (isset($conta->fornecedor_id) && $conta->fornecedor_id == $f->supplier_id) ? 'selected' : ''; ?>>
-                            <?php echo $f->name; ?>
+                            <?php echo html_escape($f->name); ?>
                         </option>
                         <?php endforeach; ?>
                     </select>

@@ -30,9 +30,18 @@
                   </div>
 
                   <div class="form-group">
+                    <label for="matricula">
+                        Matrícula (PDV)
+                        <i class="fas fa-info-circle text-muted" data-toggle="tooltip" title="Código de identificação para login no PDV"></i>
+                    </label>
+                    <input type="text" name="matricula" class="form-control" id="matricula" maxlength="20" value="<?php echo html_escape($user->matricula ?? ''); ?>" placeholder="Código para login no PDV">
+                    <small id="matricula_feedback" class="form-text text-danger" style="display:none;"></small>
+                  </div>
+
+                  <div class="form-group">
                     <label for="password"><?php echo makeString(['password'])?></label>
                     <input type="password" name="password" class="form-control" id="password">.
-                    
+
                   </div>
 
 
@@ -82,5 +91,43 @@
 
           </div>
           <!--/.col (left) -->
-         
+
         </div>
+
+<script>
+$(function() {
+    $('[data-toggle="tooltip"]').tooltip();
+
+    var baseUrl = '<?php echo base_url(); ?>';
+    var csrfName = '<?php echo $this->security->get_csrf_token_name(); ?>';
+    var csrfHash = '<?php echo $this->security->get_csrf_hash(); ?>';
+    var userId = '<?php echo html_escape($user->id ?? ''); ?>';
+
+    // AJAX: Check matricula uniqueness on blur
+    $('#matricula').on('blur', function() {
+        var matricula = $(this).val().trim();
+        var $feedback = $('#matricula_feedback');
+        $feedback.hide().text('');
+
+        if (!matricula) return;
+
+        var postData = {};
+        postData[csrfName] = csrfHash;
+        postData['matricula'] = matricula;
+        postData['user_id'] = userId;
+
+        $.ajax({
+            url: baseUrl + 'dashboard/user/check_matricula',
+            type: 'POST',
+            data: postData,
+            dataType: 'json',
+            success: function(r) {
+                if (r.csrf_token) csrfHash = r.csrf_token;
+                if (!r.unique) {
+                    $feedback.text('Matrícula já cadastrada para outro usuário').show();
+                }
+            }
+        });
+    });
+});
+</script>

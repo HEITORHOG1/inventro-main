@@ -92,7 +92,7 @@ class Invoice_model extends CI_Model {
     public function edit_invoicedetails($invoice_id) {
         $query = $this->db->select('a.*, b.cartoon_qty')
                         ->from('invoice_details a')
-                        ->join('product_tbl b', 'b.product_id = a.product_id', 'left')
+                        ->join('product_tbl b', 'b.id = a.product_id', 'left')
                         ->where('a.invoice_id', $invoice_id)
                         ->get()->result();
         return $query;
@@ -148,7 +148,7 @@ class Invoice_model extends CI_Model {
     public function get_invoice_info($order_id) {
         $query = $this->db->select('a.*, b.name, b.mobile, b.email, b.address')
                         ->from('invoice_tbl a')
-                        ->join('customer_tbl b', 'b.customerid = a.customer_id')
+                        ->join('customer_tbl b', 'b.customerid = a.customer_id', 'left')
                         ->where('a.invoice_id', $order_id)
                         ->get()->row();
  
@@ -159,7 +159,7 @@ class Invoice_model extends CI_Model {
     public function get_invoice_details($order_id) {
         $query = $this->db->select('a.*, a.price as product_price, b.name')
                         ->from('invoice_details a')
-                        ->join('product_tbl b', 'b.product_id = a.product_id')
+                        ->join('product_tbl b', 'b.id = a.product_id', 'left')
                         ->where('a.invoice_id', $order_id)
                         ->get()->result();
  

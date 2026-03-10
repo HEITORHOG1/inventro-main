@@ -445,13 +445,13 @@
 
             if (novaSenha !== confirmarSenha) {
                 e.preventDefault();
-                alert('As senhas nao coincidem.');
+                showToast('As senhas nao coincidem.', 'warning');
                 return false;
             }
 
             if (novaSenha.length < 6) {
                 e.preventDefault();
-                alert('A nova senha deve ter no minimo 6 caracteres.');
+                showToast('A nova senha deve ter no minimo 6 caracteres.', 'warning');
                 return false;
             }
         });

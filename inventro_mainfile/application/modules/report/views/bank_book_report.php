@@ -1,3 +1,4 @@
+<link rel="stylesheet" type="text/css" href="<?php echo base_url() ?>application/modules/report/assets/css/custom.css">
 <div class="card card-primary card-outline">
 
     <div class="card-header">
@@ -9,8 +10,18 @@
 
             <div class="col-sm-12">
                 <div class="form-group row">
-                   
-                    <label for="from_date" class="col-sm-2 control-label"><?php echo makeString(['from_date']); ?></label>
+                    <label for="bank_id" class="col-sm-1 control-label"><?php echo makeString(['bank']); ?></label>
+
+                    <div class="col-sm-2">
+                        <select name="bank_id" id="bank_id" class="form-control select2">
+                            <option value=""><?php echo makeString(['all']); ?></option>
+                            <?php if (!empty($bank_list)): foreach ($bank_list as $bank): ?>
+                                <option value="<?php echo html_escape($bank['id']); ?>"><?php echo html_escape($bank['bank_name']); ?></option>
+                            <?php endforeach; endif; ?>
+                        </select>
+                    </div>
+
+                    <label for="from_date" class="col-sm-1 control-label"><?php echo makeString(['from_date']); ?></label>
 
                     <div class="col-sm-2">
                         <input type="text" name="from_date" class="form-control datepicker" id="from_date" value=""
@@ -61,11 +72,10 @@
                     <th></th>
                     </tfoot>
                     <input type="hidden" name="" id="base_url" value="<?php echo base_url(); ?>">
-                </table>  
+                </table>
             </div>
         </div>
 
     </div>
 </div>
 <script src="<?php echo base_url() ?>application/modules/report/assets/js/bank_book.js" type="text/javascript"></script>
-

@@ -11,10 +11,10 @@
             $error = $this->session->flashdata('error');
             $success = $this->session->flashdata('success');
             if ($error != '') {
-                echo $error;
+                echo html_escape($error);
             }
             if ($success != '') {
-                echo $success;
+                echo html_escape($success);
             }
             $currency = $get_appsetting->currencyname;
             $position = $get_appsetting->position;
@@ -53,32 +53,32 @@
                                     </td>
                                     <td class="text-left">
                                         <?php
-                                        echo (($position == 0) ? "$currency $cash->last_day_closing" : "$cash->last_day_closing $currency");
+                                        echo html_escape(($position == 0) ? "$currency $cash->last_day_closing" : "$cash->last_day_closing $currency");
                                         ?>
                                     </td>
                                     <td>
                                         <?php
-                                        echo (($position == 0) ? "$currency $cash->cash_in" : "$cash->cash_in $currency");
+                                        echo html_escape(($position == 0) ? "$currency $cash->cash_in" : "$cash->cash_in $currency");
                                         ?>
                                     </td>
                                     <td>
                                          <?php
-                                        echo (($position == 0) ? "$currency $cash->cash_out" : "$cash->cash_out $currency");
+                                        echo html_escape(($position == 0) ? "$currency $cash->cash_out" : "$cash->cash_out $currency");
                                         ?>
                                     </td>
                                     <td align="right">
                                         <?php
-                                        echo (($position == 0) ? "$currency $cash->amount" : "$cash->amount $currency");
+                                        echo html_escape(($position == 0) ? "$currency $cash->amount" : "$cash->amount $currency");
                                         ?>
                                     </td>
                                     <td>
                                          <?php
-                                        echo (($position == 0) ? "$currency $cash->adjustment" : "$cash->adjustment $currency");
+                                        echo html_escape(($position == 0) ? "$currency $cash->adjustment" : "$cash->adjustment $currency");
                                         ?>
                                     </td>
                                     <td class="text-center">
                                         
-                                        <a class="btn btn-danger btn-sm"  href="<?php echo base_url('accounts/account/cash_closing_delete/' . $cash->id); ?>" title="Delete" onclick="return confirm('Do you want to delete it?')"><i class="fas fa-trash" aria-hidden="true"></i></a>
+                                        <a class="btn btn-danger btn-sm"  href="<?php echo base_url('accounts/account/cash_closing_delete/' . $cash->id); ?>" title="Delete" onclick="event.preventDefault(); var u=this.href; showConfirm('Deseja excluir este registro?', function(){ window.location.href=u; })"><i class="fas fa-trash" aria-hidden="true"></i></a>
                                     </td>
                                 </tr>
                                 <?php

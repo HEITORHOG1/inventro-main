@@ -11,10 +11,10 @@
             $error = $this->session->flashdata('error');
             $success = $this->session->flashdata('success');
             if ($error != '') {
-                echo $error;
+                echo html_escape($error);
             }
             if ($success != '') {
-                echo $success;
+                echo html_escape($success);
             }
             $currency = $get_appsetting->currencyname;
             $position = $get_appsetting->position;
@@ -64,12 +64,12 @@
                                     </td>
                                     <td align="right">
                                         <?php
-                                        echo (($position == 0) ? "$currency $ledger->amount" : "$ledger->amount $currency");
+                                        echo html_escape(($position == 0) ? "$currency $ledger->amount" : "$ledger->amount $currency");
                                         ?>
                                     </td>
                                     <td class="text-center">
                                         <a class="btn btn-info btn-sm"  href="<?php echo base_url('accounts/account/transaction_edit/' . $ledger->transaction_id); ?>" title="Edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
-                                        <a class="btn btn-danger btn-sm"  href="<?php echo base_url('accounts/account/transaction_delete/' . $ledger->transaction_id); ?>" title="Delete" onclick="return confirm('Do you want to delete it?')"><i class="fas fa-trash" aria-hidden="true"></i></a>
+                                        <a class="btn btn-danger btn-sm"  href="<?php echo base_url('accounts/account/transaction_delete/' . $ledger->transaction_id); ?>" title="Delete" onclick="event.preventDefault(); var u=this.href; showConfirm('Deseja excluir este registro?', function(){ window.location.href=u; })"><i class="fas fa-trash" aria-hidden="true"></i></a>
                                     </td>
                                 </tr>
                                 <?php

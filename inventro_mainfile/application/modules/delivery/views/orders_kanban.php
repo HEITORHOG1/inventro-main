@@ -643,13 +643,13 @@ foreach (['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega
                         window.open(response.whatsapp_link, '_blank');
                     }
                 } else {
-                    alert(response.message || 'Erro ao atualizar status');
+                    showToast(response.message || 'Erro ao atualizar status', 'error');
                     $btn.removeClass('loading');
                     $btn.html('<i class="fa fa-arrow-right"></i> ' + escapeHtml(nextLabelMap[nextStatus] || 'Avancar'));
                 }
             },
             error: function() {
-                alert('Erro de conexao. Tente novamente.');
+                showToast('Erro de conexao. Tente novamente.', 'error');
                 $btn.removeClass('loading');
                 $btn.html('<i class="fa fa-arrow-right"></i> ' + escapeHtml(nextLabelMap[nextStatus] || 'Avancar'));
             }
@@ -717,11 +717,11 @@ foreach (['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega
                         $('#alert-loja-pausada').remove();
                     }
                 } else {
-                    alert(response.message || 'Erro ao alterar status da loja');
+                    showToast(response.message || 'Erro ao alterar status da loja', 'error');
                 }
             },
             error: function() {
-                alert('Erro de conexao. Tente novamente.');
+                showToast('Erro de conexao. Tente novamente.', 'error');
             }
         });
     }
@@ -850,7 +850,7 @@ foreach (['pendente', 'confirmado', 'preparando', 'pronto_coleta', 'saiu_entrega
                     if (r.success && r.whatsapp_link) {
                         window.open(r.whatsapp_link, '_blank');
                     } else {
-                        alert(r.message || 'Erro ao gerar cupom');
+                        showToast(r.message || 'Erro ao gerar cupom', 'error');
                     }
                 }
             });

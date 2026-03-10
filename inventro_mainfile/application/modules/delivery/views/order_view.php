@@ -436,7 +436,7 @@ function enviarCupomWhatsApp() {
             if (r.success && r.whatsapp_link) {
                 window.open(r.whatsapp_link, '_blank');
             } else {
-                alert(r.message || 'Erro ao gerar cupom');
+                showToast(r.message || 'Erro ao gerar cupom', 'error');
             }
         },
         error: function() {
@@ -456,7 +456,7 @@ document.getElementById('formStatus').addEventListener('submit', function() {
 
 function atribuirEntregador() {
     var entregadorId = document.getElementById('entregadorSelect').value;
-    if (!entregadorId) { alert('Selecione um entregador'); return; }
+    if (!entregadorId) { showToast('Selecione um entregador', 'warning'); return; }
 
     $.ajax({
         url: baseUrl + 'delivery/orders/atribuir_entregador',
@@ -466,11 +466,11 @@ function atribuirEntregador() {
         success: function(r) {
             if (r.csrf_token) csrfHash = r.csrf_token;
             if (r.success) {
-                alert(r.message);
+                showToast(r.message, 'success');
                 if (r.whatsapp_link) window.open(r.whatsapp_link, '_blank');
                 location.reload();
             } else {
-                alert(r.message || 'Erro ao atribuir entregador');
+                showToast(r.message || 'Erro ao atribuir entregador', 'error');
             }
         }
     });
@@ -487,10 +487,10 @@ function confirmarPagamento() {
         success: function(r) {
             if (r.csrf_token) csrfHash = r.csrf_token;
             if (r.success) {
-                alert(r.message);
+                showToast(r.message, 'success');
                 location.reload();
             } else {
-                alert(r.message || 'Erro ao confirmar pagamento');
+                showToast(r.message || 'Erro ao confirmar pagamento', 'error');
             }
         }
     });

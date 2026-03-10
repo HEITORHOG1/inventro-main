@@ -178,7 +178,7 @@ $(document).ready(function() {
                         btn.html('<i class="fas fa-times"></i> Inativo');
                     }
                 } else {
-                    alert(response.message);
+                    showToast(response.message, 'error');
                 }
             }
         });

@@ -22,18 +22,20 @@ $position = $get_appsetting->position;
                             <strong><?php echo html_escape($get_appsetting->title); ?></strong><br>
                             <?php echo html_escape($get_appsetting->address); ?><br>
                             <?php echo html_escape($get_appsetting->email); ?><br>
-                            <abbr title="Phone"></abbr> <?php echo $get_appsetting->phone; ?>
+                            <abbr title="Phone"></abbr> <?php echo html_escape($get_appsetting->phone); ?>
                         </address>
                     </div>
                     <div class="col-sm-6 text-right">
-                        <h4 class="m-t-0"><?php echo html_escape('Return');?> : <?php echo html_escape($return_info->invoice_id); ?></h4>
+                        <h4 class="m-t-0"><?php echo makeString(['return']); ?> : <?php echo html_escape($return_info->invoice_id ?? ''); ?></h4>
                         <div><?php echo date('d F Y', strtotime($return_info->return_date)); ?></div>
+                        <?php if (!empty($return_info->name)): ?>
                         <address>
                             <strong><?php echo html_escape($return_info->name); ?></strong><br>
-                            <?php echo html_escape($return_info->address); ?><br>
-                            <?php echo html_escape($return_info->email); ?><br>
-                            <abbr title="<?php echo makeString(['mobile']); ?>"></abbr> <?php echo html_escape($return_info->mobile); ?>
+                            <?php echo html_escape($return_info->address ?? ''); ?><br>
+                            <?php echo html_escape($return_info->email ?? ''); ?><br>
+                            <abbr title="<?php echo makeString(['mobile']); ?>"></abbr> <?php echo html_escape($return_info->mobile ?? ''); ?>
                         </address>
+                        <?php endif; ?>
                     </div>
                 </div> <hr>
                 <div class="table-responsive m-b-20">
@@ -62,11 +64,11 @@ $position = $get_appsetting->position;
                                     </td>
                                     <td><?php echo html_escape($single->return_qty); ?></td>
                                     <td><?php
-                                        echo (($position == 0) ? "$currency $single->price" : "$single->price $currency");
+                                        echo html_escape(($position == 0) ? "$currency $single->price" : "$single->price $currency");
                                         ?></td>
                                     <td><?php
                                         $totalPrice = $single->return_qty * $single->price;
-                                        echo (($position == 0) ? "$currency $totalPrice" : "$totalPrice $currency");
+                                        echo html_escape(($position == 0) ? "$currency $totalPrice" : "$totalPrice $currency");
                                         ?></td>
                                 </tr>
                             <?php } ?>
@@ -84,9 +86,9 @@ $position = $get_appsetting->position;
                     <div class="col-sm-4">
                         <ul class="list-unstyled text-left">
                              <li>
-                                <strong><?php echo makeString(['deduction']); ?>:</strong> <span style="margin-left: 20px;"><?php echo (($position == 0) ? "$currency $return_info->deduction" : "$return_info->deduction $currency"); ?> </span></li>
+                                <strong><?php echo makeString(['deduction']); ?>:</strong> <span style="margin-left: 20px;"><?php echo html_escape(($position == 0) ? "$currency $return_info->deduction" : "$return_info->deduction $currency"); ?> </span></li>
                             <li>
-                                <strong><?php echo makeString(['total_amount']); ?>:</strong> <?php echo (($position == 0) ? "$currency $return_info->total_amount" : "$return_info->total_amount $currency"); ?> </li>
+                                <strong><?php echo makeString(['total_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $return_info->total_amount" : "$return_info->total_amount $currency"); ?> </li>
                            
 
 

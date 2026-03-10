@@ -1,0 +1,707 @@
+{
+  "annotations": { "list": [] },
+  "description": "Monitoramento do PDV (Frente de Caixa) — Vendas, erros, performance, auditoria",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Visão Geral PDV",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 5, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "title": "Vendas Finalizadas",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/finalizar_venda\" |~ \"\\\" 200 \" [$__range])",
+          "legendFormat": "Vendas"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 5, "x": 5, "y": 1 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "title": "Erros PDV (4xx/5xx)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service=\"app\"} |~ \"\\\"(GET|POST) /pdv/\" |~ \"\\\" 4[0-9][0-9] \" [$__range]))",
+          "legendFormat": "4xx"
+        },
+        {
+          "expr": "sum(count_over_time({service=\"app\"} |~ \"\\\"(GET|POST) /pdv/\" |~ \"\\\" 5[0-9][0-9] \" [$__range]))",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 10 },
+              { "color": "yellow", "value": 100 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 5, "x": 10, "y": 1 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "title": "Requests PDV Total",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service=\"app\"} |~ \"\\\"(GET|POST) /pdv/\" [$__range]))",
+          "legendFormat": "Requests"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 5, "x": 15, "y": 1 },
+      "id": 4,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "title": "Erros PHP no PDV",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service=\"app\"} |~ \"(PHP Fatal|PHP Warning|PHP Notice|PHP Parse error|Severity:)\" |~ \"pdv\" [$__range]))",
+          "legendFormat": "Erros PHP"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "purple", "value": null }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 1 },
+      "id": 5,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "title": "Logins PDV",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/autenticar\" |~ \"\\\" 200 \" [$__range])",
+          "legendFormat": "Logins"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 101,
+      "title": "Vendas ao Longo do Tempo",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "Vendas",
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "id": 10,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "title": "Vendas Finalizadas por Hora",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/finalizar_venda\" |~ \"\\\" 200 \" [1h])",
+          "legendFormat": "Vendas/hora"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "Erros",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "4xx" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "5xx" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "id": 11,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "title": "Erros PDV por Hora",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service=\"app\"} |~ \"\\\"(GET|POST) /pdv/\" |~ \"\\\" 4[0-9][0-9] \" [1h]))",
+          "legendFormat": "4xx"
+        },
+        {
+          "expr": "sum(count_over_time({service=\"app\"} |~ \"\\\"(GET|POST) /pdv/\" |~ \"\\\" 5[0-9][0-9] \" [1h]))",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 102,
+      "title": "Endpoints PDV — Requests por Rota",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "",
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 20,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "title": "Requests por Endpoint PDV",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"GET /pdv/buscar_produto\" [5m])",
+          "legendFormat": "buscar_produto"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/finalizar_venda\" [5m])",
+          "legendFormat": "finalizar_venda"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/autenticar\" [5m])",
+          "legendFormat": "autenticar"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/abrir_caixa\" [5m])",
+          "legendFormat": "abrir_caixa"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/validar_estoque\" [5m])",
+          "legendFormat": "validar_estoque"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"GET /pdv/terminal\" [5m])",
+          "legendFormat": "terminal (page load)"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/registrar_sangria\" [5m])",
+          "legendFormat": "sangria"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/registrar_suprimento\" [5m])",
+          "legendFormat": "suprimento"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"GET /pdv/cupom_impressao\" [5m])",
+          "legendFormat": "cupom_impressao"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "id": 103,
+      "title": "Auditoria e Sessões",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          }
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 25 },
+      "id": 30,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "title": "Ações de Auditoria PDV (via CI logs)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/autenticar\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "login"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/abrir_caixa\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "abertura_caixa"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/fechar_caixa\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "fechamento_caixa"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/cancelar_venda\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "cancelamento"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/registrar_devolucao\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "devolucao"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          }
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 25 },
+      "id": 31,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "title": "Operações de Caixa",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/registrar_sangria\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "sangria"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/registrar_suprimento\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "suprimento"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/suspender_venda\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "venda_suspensa"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/recuperar_venda\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "venda_recuperada"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "id": 104,
+      "title": "Performance — Busca de Produto",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "Requests / 5min",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "scheme",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto"
+          }
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 33 },
+      "id": 40,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "title": "Buscas de Produto (bipagens)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"GET /pdv/buscar_produto\" |~ \"\\\" 200 \" [5m])",
+          "legendFormat": "Produto encontrado (200)"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"\\\"GET /pdv/buscar_produto\" |~ \"\\\" [45][0-9][0-9] \" [5m])",
+          "legendFormat": "Produto erro (4xx/5xx)"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "scheme",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto"
+          }
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 33 },
+      "id": 41,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "title": "Validações de Estoque (antes do pagamento)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/validar_estoque\" |~ \"\\\" 200 \" [5m])",
+          "legendFormat": "Estoque OK"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/liberar_locks\" [5m])",
+          "legendFormat": "Locks liberados"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 40 },
+      "id": 105,
+      "title": "Logs em Tempo Real",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 41 },
+      "id": 50,
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "title": "Logs PDV — Erros e Warnings",
+      "type": "logs",
+      "targets": [
+        {
+          "expr": "{service=\"app\"} |~ \"\\\"(GET|POST) /pdv/\" |~ \"(ERROR|Warning|Severity|\\\" [45][0-9][0-9] )\"",
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 51 },
+      "id": 51,
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "title": "Logs PDV — Todos os Requests",
+      "type": "logs",
+      "targets": [
+        {
+          "expr": "{service=\"app\"} |~ \"\\\"(GET|POST) /pdv/\"",
+          "legendFormat": ""
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 61 },
+      "id": 106,
+      "title": "Fiado / Crediário",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          }
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 62 },
+      "id": 60,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "title": "Operações de Fiado",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/registrar_fiado\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "Novo fiado"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"POST /pdv/receber_fiado\" |~ \"\\\" 200 \" [15m])",
+          "legendFormat": "Recebimento fiado"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          }
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 62 },
+      "id": 61,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "title": "Sessão Redis (locks de estoque)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"Estoque:\" [5m])",
+          "legendFormat": "Logs Estoque lib"
+        },
+        {
+          "expr": "count_over_time({service=\"app\"} |~ \"Estoque.*falha|Estoque.*erro\" [5m])",
+          "legendFormat": "Erros Estoque"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["inventro", "pdv", "frente-de-caixa"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["10s", "30s", "1m", "5m", "15m"]
+  },
+  "timezone": "browser",
+  "title": "Inventro — PDV (Frente de Caixa)",
+  "uid": "inventro-pdv",
+  "version": 1
+}

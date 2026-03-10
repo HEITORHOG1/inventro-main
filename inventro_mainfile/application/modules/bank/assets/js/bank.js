@@ -30,7 +30,7 @@ $(function() {
             },
             error: function(xhr)
             {
-                alert('Falha ao salvar!');
+                showToast('Falha ao salvar!', 'error');
             }
         });
     });
@@ -67,7 +67,7 @@ $(function() {
             },
             error: function(xhr)
             {
-                alert('Falha ao salvar!');
+                showToast('Falha ao salvar!', 'error');
             }
         });
     });

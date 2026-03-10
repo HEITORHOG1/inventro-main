@@ -77,7 +77,7 @@
                                             <i class="fa fa-window-restore"></i>
                                         </a>
                                        
-                                        <a href="<?php echo base_url('return/returns/delete/' . $return->invoice_id); ?>" data-toggle='tooltip' data-placement='top' data-original-title='Delete' class="btn btn-danger btn-sm" onclick="return confirm('Do you want to delete it?')"><i class="fas fa-trash"></i></a> 
+                                        <a href="<?php echo base_url('return/returns/delete/' . $return->invoice_id); ?>" data-toggle='tooltip' data-placement='top' data-original-title='Delete' class="btn btn-danger btn-sm" onclick="event.preventDefault(); var u=this.href; showConfirm('Deseja excluir este registro?', function(){ window.location.href=u; })"><i class="fas fa-trash"></i></a> 
                                     </td>
                                 </tr>
                                 <?php

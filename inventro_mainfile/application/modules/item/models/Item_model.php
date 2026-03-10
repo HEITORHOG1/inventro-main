@@ -169,7 +169,7 @@ class Item_model extends CI_Model {
         foreach ($records as $record) {
             $button = '';
             $base_url = base_url();
-            $jsaction = "return confirm('Are You Sure ?')";
+            $jsaction = "return confirm('Tem certeza?')";
 
             if (!empty($record->picture)) {
                 $img_src = $record->picture;
@@ -219,5 +219,37 @@ class Item_model extends CI_Model {
     public function company_info()
     {
         return $this->db->get('setting')->result_array();
+    }
+
+    /**
+     * Check if EAN/GTIN is unique (excluding a given product_id)
+     *
+     * @param string $ean_gtin
+     * @param string|null $exclude_product_id
+     * @return object|null  Returns the product row if EAN exists, null otherwise
+     */
+    public function check_ean_unique($ean_gtin, $exclude_product_id = null)
+    {
+        $this->db->where('ean_gtin', $ean_gtin);
+        if (!empty($exclude_product_id)) {
+            $this->db->where('product_id !=', $exclude_product_id);
+        }
+        return $this->db->get('product_tbl')->row();
+    }
+
+    /**
+     * Check if codigo_balanca is unique (excluding a given product_id)
+     *
+     * @param string $codigo_balanca
+     * @param string|null $exclude_product_id
+     * @return object|null  Returns the product row if code exists, null otherwise
+     */
+    public function check_codigo_balanca_unique($codigo_balanca, $exclude_product_id = null)
+    {
+        $this->db->where('codigo_balanca', $codigo_balanca);
+        if (!empty($exclude_product_id)) {
+            $this->db->where('product_id !=', $exclude_product_id);
+        }
+        return $this->db->get('product_tbl')->row();
     }
 }

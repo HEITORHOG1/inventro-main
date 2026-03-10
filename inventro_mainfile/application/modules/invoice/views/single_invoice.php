@@ -26,14 +26,24 @@ $position = $get_appsetting->position;
                         </address>
                     </div>
                     <div class="col-sm-6 text-right">
-                        <h4 class="m-t-0">Invoice : <?php echo html_escape($get_invoice_info->invoice_id); ?></h4>
+                        <?php if (!empty($get_invoice_info)): ?>
+                        <h4 class="m-t-0"><?php echo makeString(['invoice']); ?> : <?php echo html_escape($get_invoice_info->invoice_id); ?></h4>
                         <div><?php echo date('d F Y', strtotime($get_invoice_info->date)); ?></div>
+                        <?php if (!empty($get_invoice_info->name)): ?>
                         <address>
-                            <strong><?php echo html_escape( $get_invoice_info->name); ?></strong><br>
-                            <?php echo html_escape($get_invoice_info->address); ?><br>
-                            <?php echo html_escape($get_invoice_info->email); ?><br>
-                            <abbr title="<?php echo makeString(['mobile']); ?>"></abbr> <?php echo html_escape($get_invoice_info->mobile); ?>
+                            <strong><?php echo html_escape($get_invoice_info->name); ?></strong><br>
+                            <?php echo html_escape($get_invoice_info->address ?? ''); ?><br>
+                            <?php echo html_escape($get_invoice_info->email ?? ''); ?><br>
+                            <abbr title="<?php echo makeString(['mobile']); ?>"></abbr> <?php echo html_escape($get_invoice_info->mobile ?? ''); ?>
                         </address>
+                        <?php else: ?>
+                        <address>
+                            <strong><?php echo makeString(['customer']); ?>:</strong> <?php echo makeString(['walk_in_customer']); ?>
+                        </address>
+                        <?php endif; ?>
+                        <?php else: ?>
+                        <p><?php echo makeString(['invoice']); ?> <?php echo makeString(['not_found']); ?></p>
+                        <?php endif; ?>
                     </div>
                 </div> <hr>
                 <div class="table-responsive m-b-20">
@@ -57,7 +67,7 @@ $position = $get_appsetting->position;
                                     <td><?php echo $sl; ?></td>
                                     <td>
                                         <div>
-                                            <strong><?php echo html_escape($single->name); ?></strong>
+                                            <strong><?php echo html_escape($single->name ?? 'Produto removido'); ?></strong>
                                         </div>
                                     </td>
                                     <td><?php echo html_escape($single->quantity); ?></td>
@@ -76,19 +86,26 @@ $position = $get_appsetting->position;
                 <div class="row">
                     <div class="col-sm-8">
                         <p>
-                            <?php echo html_escape($get_invoice_info->description); ?>
+                            <?php echo html_escape(!empty($get_invoice_info) ? ($get_invoice_info->description ?? '') : ''); ?>
                         </p>
                         <p><strong><?php echo makeString(['thank_you_very_much']); ?></strong></p>
 
                     </div>
                     <div class="col-sm-4">
                         <ul class="list-unstyled text-left">
+                            <?php if (!empty($get_invoice_info)): ?>
+                            <?php
+                                $total = number_format((float)($get_invoice_info->total_amount ?? 0), 2, '.', '');
+                                $paid = number_format((float)($get_invoice_info->paid_amount ?? 0), 2, '.', '');
+                                $due = number_format((float)($get_invoice_info->due_amount ?? 0), 2, '.', '');
+                            ?>
                             <li>
-                                <strong><?php echo makeString(['total_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $get_invoice_info->total_amount" : "$get_invoice_info->total_amount $currency"); ?> </li>
+                                <strong><?php echo makeString(['total_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $total" : "$total $currency"); ?> </li>
                             <li>
-                                <strong><?php echo makeString(['paid_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $get_invoice_info->paid_amount" : "$get_invoice_info->paid_amount $currency"); ?> </li>
+                                <strong><?php echo makeString(['paid_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $paid" : "$paid $currency"); ?> </li>
                             <li>
-                                <strong><?php echo makeString(['due_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $get_invoice_info->due_amount" : "$get_invoice_info->due_amount $currency"); ?> </li>
+                                <strong><?php echo makeString(['due_amount']); ?>:</strong> <?php echo html_escape(($position == 0) ? "$currency $due" : "$due $currency"); ?> </li>
+                            <?php endif; ?>
 
                         </ul>
                     </div>

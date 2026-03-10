@@ -179,7 +179,7 @@
                                         endif;
                                         if ($this->permission->method('supplier', 'delete')->access()):
                                             ?>
-                                            <a href="<?php echo base_url("supplier/supplierlist/delete/$supplier->id") ?>" onclick="return confirm('<?php echo makeString(["are_you_sure"]) ?>')" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Excluir"><i class="fa fa-trash" aria-hidden="true"></i></a> 
+                                            <a href="<?php echo base_url("supplier/supplierlist/delete/$supplier->id") ?>" onclick="event.preventDefault(); var u=this.href; showConfirm('<?php echo makeString(["are_you_sure"]) ?>', function(){ window.location.href=u; })" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="right" title="Excluir"><i class="fa fa-trash" aria-hidden="true"></i></a> 
                                             <?php endif; ?>
                                     </td>
                                 </tr>

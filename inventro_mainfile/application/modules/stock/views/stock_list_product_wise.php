@@ -1,17 +1,15 @@
 <div class="col-sm-12">
     <button class="btn btn-primary mb-3" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="true" aria-controls="collapseExample">
-        <?php echo html_escape('Search by Product');?>
+        <?php echo makeString(['search_by_product']); ?>
     </button>
     <div class="card card-primary card-outline collapse in" id="collapseExample" aria-expanded="true" style="">
         <div class="card-body">
-
-            
             <?php echo form_open_multipart('stock/stock/stock_report_product_wise', array('class' => 'form-inline', 'id' => 'stock_report_product_wise'))?>
                 <label class="mr-3"><?php echo makeString(['select_product']); ?>:</label>
                 <select class="form-control" id="product_id" name="product_id" required="">
                     <option value=""><?php echo makeString(['select_one']); ?></option>
                     <?php foreach ($products as $product){?>
-                        <option value="<?php echo $product->product_id; ?>"><?php echo $product->name; ?> </option>
+                        <option value="<?php echo html_escape($product->product_id); ?>"><?php echo html_escape($product->name); ?> </option>
                     <?php } ?>
                 </select>
                 <button type="submit" class="btn btn-success ml-3"><?php echo makeString(['search']); ?></button>
@@ -21,117 +19,62 @@
 </div>
 
 <div class="card card-primary card-outline">
-        <div class="card-header">
-            <h4><?php echo makeString(['stock_report_product_wise']); ?></h4>
-        </div>
+    <div class="card-header">
+        <h4><?php echo makeString(['stock_report_product_wise']); ?></h4>
+    </div>
 
     <div class="row">
         <div class="col-sm-12">
             <div class="card-body">
                 <table id="datagrid" class="table table-bordered table-striped">
                     <thead>
-                    <tr>
-                        <th><?php echo makeString(['sl']); ?></th>
+                        <tr>
+                            <th><?php echo makeString(['sl']); ?></th>
                             <th><?php echo makeString(['product_name']); ?></th>
                             <th><?php echo makeString(['product_model']); ?></th>
                             <th><?php echo makeString(['category_name']); ?></th>
                             <th><?php echo makeString(['sales_price']); ?></th>
                             <th><?php echo makeString(['purchase_price']); ?></th>
-                            <th><?php echo makeString(['stock_in']); ?></th>
-                            <th><?php echo makeString(['stock_out']); ?></th>
-                            <th><?php echo makeString(['customer']).' '.makeString(['return']); ?></th>
-                            <th><?php echo makeString(['supplier']).' '.makeString(['return']); ?></th>
                             <th><?php echo makeString(['stock']); ?></th>
-                    </tr>
+                        </tr>
                     </thead>
                     <tbody>
-                    <?php
-                    $sl = 1;
-                    $total_sales=0;
-                    $total_purchases=0;
-                    $total_purchases_quantity=0;                    
-                    $total_sales_quantity =  $total_supplier_return = $total_cutomer_return=0;
-                    $total_stock = 0;
-                    foreach($stocks as $stock){
-
-                            // customer return part
-                            $this->db->select('SUM(return_qty) as total_return_in');
-                            $this->db->from('return_details');
-                            $this->db->where('product_id', $stock->product_id);
-                            $this->db->where('status', 1);
-                            $cutomrer_return = $this->db->get()->row();
-
-                            $total_cutomer_return+=$cutomrer_return->total_return_in;
-                            // supplier return part 
-                            $this->db->select('SUM(return_qty) as total_return_out');
-                            $this->db->from('return_details');
-                            $this->db->where('product_id', $stock->product_id);
-                            $this->db->where('status', 2);
-                            $supplier_return = $this->db->get()->row();
-                            $total_supplier_return += $supplier_return->total_return_out;
-
-                        ?>
-
-                        <tr class="<?php echo ($sl & 1)?"odd gradeX":"even gradeC" ?>">
-                            <td><?php echo  html_escape($sl);?></td>
-                            <td><?php echo  html_escape($stock->product_name);?></td>
-                            <td class="center">
-                                <?php echo  html_escape($stock->model)?>
-                            </td>
-                            <td class="center">
-                                <?php echo  html_escape($stock->category_name); ?>
-                            </td>
-                            <td class="center">
-                                <?php echo  html_escape($stock->price)?>
-                            </td>
-                            <td class="center">
-                                <?php echo  html_escape($stock->purchase_price)?>
-                            </td>
-                            <td class="center">
-                                <?php echo  $in = html_escape($stock->total_purchase_quantity)?>
-                            </td>
-                            <td class="center">
-                                <?php echo  $out  = html_escape($stock->total_sales_quantity)?>
-                            </td>
-                            <td class="center">
-                                <?php echo    html_escape($cutomrer_return->total_return_in) ?>
-                            </td>
-                            <td class="center">
-                                <?php echo   html_escape($supplier_return->total_return_out) ?>
-                            </td>
-                            <td class="center">
-                                <?php echo  $totalstock = ($in +(!empty($cutomrer_return->total_return_in)?$cutomrer_return->total_return_in:0)) - ($out+$supplier_return->total_return_out) ?>
-                            </td>
-
-                        </tr>
-                        <?php 
-                         $sl++;
-                            $total_sales = (int) $total_sales + (int) $stock->price;
-                            $total_purchases = (int) $total_purchases + (int) $stock->purchase_price;
-                            $total_purchases_quantity += (int) $stock->total_purchase_quantity;
-                            $total_sales_quantity = (int) $total_sales_quantity + (int) $stock->total_sales_quantity;
-                           $total_stock = ($total_purchases_quantity + $total_cutomer_return) - ( $total_supplier_return + $total_sales_quantity);
-                        ?>
-
-                    <?php } ?>
+                        <?php
+                        $sl = 1;
+                        $total_sales_price = 0;
+                        $total_purchase_price = 0;
+                        $total_stock = 0;
+                        foreach ($stocks as $stock) {
+                            $qty = (float) $stock->stock_qty;
+                            ?>
+                            <tr>
+                                <td><?php echo html_escape($sl); ?></td>
+                                <td><?php echo html_escape($stock->product_name); ?></td>
+                                <td><?php echo html_escape($stock->model); ?></td>
+                                <td><?php echo html_escape($stock->category_name); ?></td>
+                                <td class="text-right"><?php echo html_escape(number_format((float)$stock->price, 2, ',', '.')); ?></td>
+                                <td class="text-right"><?php echo html_escape(number_format((float)$stock->purchase_price, 2, ',', '.')); ?></td>
+                                <td class="text-right <?php echo ($qty <= 0) ? 'text-danger font-weight-bold' : ''; ?>">
+                                    <?php echo html_escape(number_format($qty, 0, ',', '.')); ?>
+                                </td>
+                            </tr>
+                            <?php
+                            $sl++;
+                            $total_sales_price += (float) $stock->price;
+                            $total_purchase_price += (float) $stock->purchase_price;
+                            $total_stock += $qty;
+                        } ?>
                     </tbody>
                     <tfoot>
-                    <tr>
-                        <td colspan="4"><b><?php echo html_escape('Grand Total');?></b></td>
-                        <td><?php echo  html_escape($total_sales); ?></td>
-                            <td><?php echo  html_escape($total_purchases); ?></td>
-                            <td><?php echo  html_escape($total_purchases_quantity); ?></td>
-                            <td><?php echo  html_escape($total_sales_quantity); ?></td>
-                            <td><?php echo  html_escape($total_cutomer_return); ?></td>
-                            <td><?php echo  html_escape($total_supplier_return); ?></td>
-                            <td><?php echo  html_escape($total_stock); ?></td>
-                    </tr>
+                        <tr>
+                            <td colspan="4" align="right"><b><?php echo makeString(['grand_total']); ?></b></td>
+                            <td class="text-right"><b><?php echo html_escape(number_format($total_sales_price, 2, ',', '.')); ?></b></td>
+                            <td class="text-right"><b><?php echo html_escape(number_format($total_purchase_price, 2, ',', '.')); ?></b></td>
+                            <td class="text-right"><b><?php echo html_escape(number_format($total_stock, 0, ',', '.')); ?></b></td>
+                        </tr>
                     </tfoot>
                 </table>
-              
             </div>
         </div>
     </div>
 </div>
-
-

@@ -101,7 +101,7 @@
                                 <?php if ($this->permission->method('unit', 'delete')->access()): ?>
                                 <a href="<?php echo base_url('item/unit/delete_unit/' . html_escape($unit->id)) ?>"
                                     class="btn btn-danger btn-xs"
-                                    onclick="return confirm('Are You Sure to Want to Delete ?')"><i
+                                    onclick="event.preventDefault(); var u=this.href; showConfirm('Tem certeza que deseja excluir?', function(){ window.location.href=u; })"><i
                                         class="fas fa-trash-alt"></i></a>
                                 <?php endif; ?>
                             </td>

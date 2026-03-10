@@ -576,15 +576,15 @@
                         if (data.success) {
                             window.location.reload();
                         } else {
-                            alert(data.message || 'Erro ao processar');
+                            showToast(data.message || 'Erro ao processar', 'error');
                         }
                     } catch(e) {
-                        alert('Erro de comunicacao');
+                        showToast('Erro de comunicacao', 'error');
                     }
                 } else if (xhr.status === 403) {
                     window.location.reload();
                 } else {
-                    alert('Erro de conexao (' + xhr.status + ')');
+                    showToast('Erro de conexao (' + xhr.status + ')', 'error');
                 }
             };
             xhr.send(csrfName + '=' + encodeURIComponent(csrfHash));

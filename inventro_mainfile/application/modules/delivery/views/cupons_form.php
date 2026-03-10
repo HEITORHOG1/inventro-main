@@ -188,7 +188,7 @@ $(document).ready(function() {
         var inicio = $('#validade_inicio').val();
         var fim    = $(this).val();
         if (inicio && fim && fim < inicio) {
-            alert('<?php echo makeString(["validade_fim_antes_inicio"]); ?>');
+            showToast('<?php echo makeString(["validade_fim_antes_inicio"]); ?>', 'warning');
             $(this).val('');
         }
     });

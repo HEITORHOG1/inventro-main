@@ -105,59 +105,66 @@ SET @un_pct = (SELECT id FROM product_unit WHERE unit_name = 'pct' LIMIT 1);
 SET @un_lata = (SELECT id FROM product_unit WHERE unit_name = 'lata' LIMIT 1);
 SET @un_dz = (SELECT id FROM product_unit WHERE unit_name = 'dz' LIMIT 1);
 
--- BEBIDAS
-INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES 
-('PROD001', '7891000100103', '', 'Coca-Cola 2L', COALESCE(@cat_bebidas, 1), 'Refrigerante Coca-Cola 2 Litros', 10.99, 7.50, COALESCE(@un_unidade, 1), 1, 1, 1, 1),
-('PROD002', '7891000100110', '', 'Coca-Cola Lata 350ml', COALESCE(@cat_bebidas, 1), 'Refrigerante Coca-Cola Lata', 4.99, 3.20, COALESCE(@un_lata, 1), 1, 1, 1, 1),
-('PROD003', '7891000200101', '', 'Guaraná Antarctica 2L', COALESCE(@cat_bebidas, 1), 'Refrigerante Guaraná Antarctica 2 Litros', 8.99, 6.00, COALESCE(@un_unidade, 1), 1, 1, 1, 1),
-('PROD004', '7891000300102', '', 'Fanta Laranja 2L', COALESCE(@cat_bebidas, 1), 'Refrigerante Fanta Laranja 2 Litros', 8.99, 6.00, COALESCE(@un_unidade, 1), 1, 1, 1, 1),
-('PROD005', '7891000500104', '', 'Água Mineral 500ml', COALESCE(@cat_bebidas, 1), 'Água Mineral Sem Gás 500ml', 2.50, 1.20, COALESCE(@un_unidade, 1), 1, 1, 1, 1);
+-- BEBIDAS (product_code = código interno curto, ean_gtin = código de barras EAN-13)
+INSERT INTO product_tbl (product_id, product_code, ean_gtin, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES
+('PROD001', '1001', '7891000100103', '', 'Coca-Cola 2L', COALESCE(@cat_bebidas, 1), 'Refrigerante Coca-Cola 2 Litros', 10.99, 7.50, COALESCE(@un_unidade, 1), 1, 1, 1, 1),
+('PROD002', '1002', '7891000100110', '', 'Coca-Cola Lata 350ml', COALESCE(@cat_bebidas, 1), 'Refrigerante Coca-Cola Lata', 4.99, 3.20, COALESCE(@un_lata, 1), 1, 1, 1, 1),
+('PROD003', '1003', '7891000200101', '', 'Guaraná Antarctica 2L', COALESCE(@cat_bebidas, 1), 'Refrigerante Guaraná Antarctica 2 Litros', 8.99, 6.00, COALESCE(@un_unidade, 1), 1, 1, 1, 1),
+('PROD004', '1004', '7891000300102', '', 'Fanta Laranja 2L', COALESCE(@cat_bebidas, 1), 'Refrigerante Fanta Laranja 2 Litros', 8.99, 6.00, COALESCE(@un_unidade, 1), 1, 1, 1, 1),
+('PROD005', '1005', '7891000500104', '', 'Água Mineral 500ml', COALESCE(@cat_bebidas, 1), 'Água Mineral Sem Gás 500ml', 2.50, 1.20, COALESCE(@un_unidade, 1), 1, 1, 1, 1);
 
 -- ALIMENTOS BÁSICOS
-INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES 
-('PROD011', '7891100100201', '', 'Arroz Tipo 1 - 5kg', COALESCE(@cat_alimentos, 2), 'Arroz Branco Tipo 1 Pacote 5kg', 24.90, 18.00, COALESCE(@un_pct, 1), 2, 1, 1, 1),
-('PROD012', '7891100200202', '', 'Arroz Tipo 1 - 1kg', COALESCE(@cat_alimentos, 2), 'Arroz Branco Tipo 1 Pacote 1kg', 6.99, 4.50, COALESCE(@un_pct, 1), 2, 1, 1, 1),
-('PROD013', '7891100300203', '', 'Feijão Carioca 1kg', COALESCE(@cat_alimentos, 2), 'Feijão Carioca Pacote 1kg', 8.99, 6.50, COALESCE(@un_pct, 1), 2, 1, 1, 1),
-('PROD014', '7891100400204', '', 'Feijão Preto 1kg', COALESCE(@cat_alimentos, 2), 'Feijão Preto Pacote 1kg', 9.99, 7.00, COALESCE(@un_pct, 1), 2, 1, 1, 1),
-('PROD015', '7891100500205', '', 'Açúcar Cristal 5kg', COALESCE(@cat_alimentos, 2), 'Açúcar Cristal Pacote 5kg', 19.90, 14.00, COALESCE(@un_pct, 1), 2, 1, 1, 1),
-('PROD016', '7891100600206', '', 'Açúcar Cristal 1kg', COALESCE(@cat_alimentos, 2), 'Açúcar Cristal Pacote 1kg', 4.99, 3.20, COALESCE(@un_pct, 1), 2, 1, 1, 1),
-('PROD017', '7891100700207', '', 'Óleo de Soja 900ml', COALESCE(@cat_alimentos, 2), 'Óleo de Soja Soya 900ml', 7.99, 5.50, COALESCE(@un_unidade, 1), 2, 1, 1, 1),
-('PROD018', '7891100800208', '', 'Sal Refinado 1kg', COALESCE(@cat_alimentos, 2), 'Sal Refinado Iodado 1kg', 2.99, 1.80, COALESCE(@un_pct, 1), 2, 1, 1, 1);
+INSERT INTO product_tbl (product_id, product_code, ean_gtin, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES
+('PROD011', '1006', '7891100100201', '', 'Arroz Tipo 1 - 5kg', COALESCE(@cat_alimentos, 2), 'Arroz Branco Tipo 1 Pacote 5kg', 24.90, 18.00, COALESCE(@un_pct, 1), 2, 1, 1, 1),
+('PROD012', '1007', '7891100200202', '', 'Arroz Tipo 1 - 1kg', COALESCE(@cat_alimentos, 2), 'Arroz Branco Tipo 1 Pacote 1kg', 6.99, 4.50, COALESCE(@un_pct, 1), 2, 1, 1, 1),
+('PROD013', '1008', '7891100300203', '', 'Feijão Carioca 1kg', COALESCE(@cat_alimentos, 2), 'Feijão Carioca Pacote 1kg', 8.99, 6.50, COALESCE(@un_pct, 1), 2, 1, 1, 1),
+('PROD014', '1009', '7891100400204', '', 'Feijão Preto 1kg', COALESCE(@cat_alimentos, 2), 'Feijão Preto Pacote 1kg', 9.99, 7.00, COALESCE(@un_pct, 1), 2, 1, 1, 1),
+('PROD015', '1010', '7891100500205', '', 'Açúcar Cristal 5kg', COALESCE(@cat_alimentos, 2), 'Açúcar Cristal Pacote 5kg', 19.90, 14.00, COALESCE(@un_pct, 1), 2, 1, 1, 1),
+('PROD016', '1011', '7891100600206', '', 'Açúcar Cristal 1kg', COALESCE(@cat_alimentos, 2), 'Açúcar Cristal Pacote 1kg', 4.99, 3.20, COALESCE(@un_pct, 1), 2, 1, 1, 1),
+('PROD017', '1012', '7891100700207', '', 'Óleo de Soja 900ml', COALESCE(@cat_alimentos, 2), 'Óleo de Soja Soya 900ml', 7.99, 5.50, COALESCE(@un_unidade, 1), 2, 1, 1, 1),
+('PROD018', '1013', '7891100800208', '', 'Sal Refinado 1kg', COALESCE(@cat_alimentos, 2), 'Sal Refinado Iodado 1kg', 2.99, 1.80, COALESCE(@un_pct, 1), 2, 1, 1, 1);
 
--- FRUTAS E VERDURAS
-INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES 
-('PROD021', '0000000000301', '', 'Banana Prata', COALESCE(@cat_frutas, 3), 'Banana Prata - Preço por kg', 5.99, 3.00, COALESCE(@un_kg, 1), 3, 1, 1, 1),
-('PROD022', '0000000000302', '', 'Maçã Fuji', COALESCE(@cat_frutas, 3), 'Maçã Fuji Nacional - Preço por kg', 9.99, 6.00, COALESCE(@un_kg, 1), 3, 1, 1, 1),
-('PROD023', '0000000000303', '', 'Laranja Pera', COALESCE(@cat_frutas, 3), 'Laranja Pera - Preço por kg', 4.99, 2.50, COALESCE(@un_kg, 1), 3, 1, 1, 1),
-('PROD024', '0000000000304', '', 'Tomate', COALESCE(@cat_frutas, 3), 'Tomate Salada - Preço por kg', 6.99, 3.50, COALESCE(@un_kg, 1), 3, 1, 1, 1),
-('PROD025', '0000000000305', '', 'Cebola', COALESCE(@cat_frutas, 3), 'Cebola Nacional - Preço por kg', 5.99, 3.00, COALESCE(@un_kg, 1), 3, 1, 1, 1);
+-- FRUTAS E VERDURAS (sem EAN — produtos vendidos por peso, código interno apenas)
+INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES
+('PROD021', '1014', '', 'Banana Prata', COALESCE(@cat_frutas, 3), 'Banana Prata - Preço por kg', 5.99, 3.00, COALESCE(@un_kg, 1), 3, 1, 1, 1),
+('PROD022', '1015', '', 'Maçã Fuji', COALESCE(@cat_frutas, 3), 'Maçã Fuji Nacional - Preço por kg', 9.99, 6.00, COALESCE(@un_kg, 1), 3, 1, 1, 1),
+('PROD023', '1016', '', 'Laranja Pera', COALESCE(@cat_frutas, 3), 'Laranja Pera - Preço por kg', 4.99, 2.50, COALESCE(@un_kg, 1), 3, 1, 1, 1),
+('PROD024', '1017', '', 'Tomate', COALESCE(@cat_frutas, 3), 'Tomate Salada - Preço por kg', 6.99, 3.50, COALESCE(@un_kg, 1), 3, 1, 1, 1),
+('PROD025', '1018', '', 'Cebola', COALESCE(@cat_frutas, 3), 'Cebola Nacional - Preço por kg', 5.99, 3.00, COALESCE(@un_kg, 1), 3, 1, 1, 1);
 
 -- LATICÍNIOS
-INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES 
-('PROD031', '7891200100401', '', 'Leite Integral 1L', COALESCE(@cat_laticinios, 4), 'Leite UHT Integral 1 Litro', 5.49, 3.80, COALESCE(@un_unidade, 1), 4, 1, 1, 1),
-('PROD032', '7891200200402', '', 'Leite Desnatado 1L', COALESCE(@cat_laticinios, 4), 'Leite UHT Desnatado 1 Litro', 5.49, 3.80, COALESCE(@un_unidade, 1), 4, 1, 1, 1),
-('PROD033', '7891200300403', '', 'Queijo Mussarela', COALESCE(@cat_laticinios, 4), 'Queijo Mussarela Fatiado - Preço por kg', 45.90, 35.00, COALESCE(@un_kg, 1), 4, 1, 1, 1),
-('PROD034', '7891200400404', '', 'Manteiga 200g', COALESCE(@cat_laticinios, 4), 'Manteiga com Sal 200g', 12.99, 9.00, COALESCE(@un_unidade, 1), 4, 1, 1, 1),
-('PROD035', '7891200500405', '', 'Ovos 12 unidades', COALESCE(@cat_laticinios, 4), 'Ovos Brancos Dúzia', 12.99, 9.00, COALESCE(@un_dz, 1), 4, 1, 1, 1);
+INSERT INTO product_tbl (product_id, product_code, ean_gtin, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES
+('PROD031', '1019', '7891200100401', '', 'Leite Integral 1L', COALESCE(@cat_laticinios, 4), 'Leite UHT Integral 1 Litro', 5.49, 3.80, COALESCE(@un_unidade, 1), 4, 1, 1, 1),
+('PROD032', '1020', '7891200200402', '', 'Leite Desnatado 1L', COALESCE(@cat_laticinios, 4), 'Leite UHT Desnatado 1 Litro', 5.49, 3.80, COALESCE(@un_unidade, 1), 4, 1, 1, 1),
+('PROD033', '1021', '7891200300403', '', 'Queijo Mussarela', COALESCE(@cat_laticinios, 4), 'Queijo Mussarela Fatiado - Preço por kg', 45.90, 35.00, COALESCE(@un_kg, 1), 4, 1, 1, 1),
+('PROD034', '1022', '7891200400404', '', 'Manteiga 200g', COALESCE(@cat_laticinios, 4), 'Manteiga com Sal 200g', 12.99, 9.00, COALESCE(@un_unidade, 1), 4, 1, 1, 1),
+('PROD035', '1023', '7891200500405', '', 'Ovos 12 unidades', COALESCE(@cat_laticinios, 4), 'Ovos Brancos Dúzia', 12.99, 9.00, COALESCE(@un_dz, 1), 4, 1, 1, 1);
 
--- CARNES E FRIOS
-INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES 
-('PROD041', '0000000000501', '', 'Carne Moída', COALESCE(@cat_carnes, 5), 'Carne Moída Patinho - Preço por kg', 32.90, 25.00, COALESCE(@un_kg, 1), 5, 1, 1, 1),
-('PROD042', '0000000000502', '', 'Frango Inteiro', COALESCE(@cat_carnes, 5), 'Frango Inteiro Congelado - Preço por kg', 14.90, 10.00, COALESCE(@un_kg, 1), 5, 1, 1, 1),
-('PROD043', '0000000000503', '', 'Presunto', COALESCE(@cat_carnes, 5), 'Presunto Fatiado - Preço por kg', 29.90, 22.00, COALESCE(@un_kg, 1), 5, 1, 1, 1),
-('PROD044', '0000000000504', '', 'Mortadela', COALESCE(@cat_carnes, 5), 'Mortadela Fatiada - Preço por kg', 19.90, 14.00, COALESCE(@un_kg, 1), 5, 1, 1, 1);
+-- CARNES E FRIOS (sem EAN — produtos vendidos por peso)
+INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES
+('PROD041', '1024', '', 'Carne Moída', COALESCE(@cat_carnes, 5), 'Carne Moída Patinho - Preço por kg', 32.90, 25.00, COALESCE(@un_kg, 1), 5, 1, 1, 1),
+('PROD042', '1025', '', 'Frango Inteiro', COALESCE(@cat_carnes, 5), 'Frango Inteiro Congelado - Preço por kg', 14.90, 10.00, COALESCE(@un_kg, 1), 5, 1, 1, 1),
+('PROD043', '1026', '', 'Presunto', COALESCE(@cat_carnes, 5), 'Presunto Fatiado - Preço por kg', 29.90, 22.00, COALESCE(@un_kg, 1), 5, 1, 1, 1),
+('PROD044', '1027', '', 'Mortadela', COALESCE(@cat_carnes, 5), 'Mortadela Fatiada - Preço por kg', 19.90, 14.00, COALESCE(@un_kg, 1), 5, 1, 1, 1);
 
 -- HIGIENE E LIMPEZA
-INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES 
-('PROD051', '7891400100701', '', 'Detergente 500ml', COALESCE(@cat_higiene, 7), 'Detergente Ypê Neutro 500ml', 2.99, 1.80, COALESCE(@un_unidade, 1), 6, 1, 1, 1),
-('PROD052', '7891400200702', '', 'Água Sanitária 2L', COALESCE(@cat_higiene, 7), 'Água Sanitária Qboa 2L', 6.99, 4.50, COALESCE(@un_unidade, 1), 6, 1, 1, 1),
-('PROD053', '7891400300703', '', 'Sabão em Pó 1kg', COALESCE(@cat_higiene, 7), 'Sabão em Pó Omo 1kg', 14.99, 10.50, COALESCE(@un_pct, 1), 6, 1, 1, 1),
-('PROD054', '7891400400704', '', 'Papel Higiênico 12 rolos', COALESCE(@cat_higiene, 7), 'Papel Higiênico Folha Dupla 12 rolos', 19.99, 14.00, COALESCE(@un_pct, 1), 6, 1, 1, 1);
+INSERT INTO product_tbl (product_id, product_code, ean_gtin, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES
+('PROD051', '1028', '7891400100701', '', 'Detergente 500ml', COALESCE(@cat_higiene, 7), 'Detergente Ypê Neutro 500ml', 2.99, 1.80, COALESCE(@un_unidade, 1), 6, 1, 1, 1),
+('PROD052', '1029', '7891400200702', '', 'Água Sanitária 2L', COALESCE(@cat_higiene, 7), 'Água Sanitária Qboa 2L', 6.99, 4.50, COALESCE(@un_unidade, 1), 6, 1, 1, 1),
+('PROD053', '1030', '7891400300703', '', 'Sabão em Pó 1kg', COALESCE(@cat_higiene, 7), 'Sabão em Pó Omo 1kg', 14.99, 10.50, COALESCE(@un_pct, 1), 6, 1, 1, 1),
+('PROD054', '1031', '7891400400704', '', 'Papel Higiênico 12 rolos', COALESCE(@cat_higiene, 7), 'Papel Higiênico Folha Dupla 12 rolos', 19.99, 14.00, COALESCE(@un_pct, 1), 6, 1, 1, 1);
 
 -- PET SHOP
-INSERT INTO product_tbl (product_id, product_code, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES 
-('PROD061', '7891500100101', '', 'Ração Cães Adultos 3kg', COALESCE(@cat_pet, 10), 'Ração Pedigree Adulto 3kg', 39.90, 28.00, COALESCE(@un_pct, 1), 7, 1, 1, 1),
-('PROD062', '7891500200102', '', 'Ração Gatos Adultos 3kg', COALESCE(@cat_pet, 10), 'Ração Whiskas Adulto 3kg', 42.90, 30.00, COALESCE(@un_pct, 1), 7, 1, 1, 1);
+INSERT INTO product_tbl (product_id, product_code, ean_gtin, model, name, category_id, description, price, purchase_price, unit, supplier_id, status, created_by, updated_by) VALUES
+('PROD061', '1032', '7891500100101', '', 'Ração Cães Adultos 3kg', COALESCE(@cat_pet, 10), 'Ração Pedigree Adulto 3kg', 39.90, 28.00, COALESCE(@un_pct, 1), 7, 1, 1, 1),
+('PROD062', '1033', '7891500200102', '', 'Ração Gatos Adultos 3kg', COALESCE(@cat_pet, 10), 'Ração Whiskas Adulto 3kg', 42.90, 30.00, COALESCE(@un_pct, 1), 7, 1, 1, 1);
+
+-- ===========================================
+-- ESTOQUE INICIAL (100 unidades de cada produto)
+-- ===========================================
+INSERT INTO inv_stock (product_id, case_qty)
+SELECT id, 100 FROM product_tbl WHERE id NOT IN (SELECT product_id FROM inv_stock)
+ON DUPLICATE KEY UPDATE case_qty = 100;
 
 -- ===========================================
 -- 6. FUNÇÕES (ROLES)
